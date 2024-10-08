@@ -1,0 +1,4 @@
+User-agent: Googlebot
+Disallow: /contact
+Disallow: /cookie-policy
+Disallow: /impressum
