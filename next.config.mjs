@@ -8,6 +8,22 @@ const nextConfig = {
                 destination: `/sitemap.xml/:id`
             }
         ]
+    },
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: "i.pravatar.cc",
+                port: "",
+                pathname: "/300",
+            },
+            {
+                protocol: 'https',
+                hostname: "source.unsplash.com",
+                port: "",
+                pathname: "/random/200x200",
+            }
+        ]
     }
 }
 export default nextConfig

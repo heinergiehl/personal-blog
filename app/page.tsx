@@ -1,127 +1,454 @@
 "use client"
-import Image from "next/image";
-import { useEffect, useRef } from "react";
-import Typed from 'typed.js';
-
-export default function Home() {
-  const el = useRef(null);
-
+import { Card } from "@/components/landingPage/card/card"
+import {
+  Card as BentoCard,
+  GridContainer,
+} from "@/components/landingPage/bento/grid"
+import Spotlight from "@/components/landingPage/card/spotlight"
+import { cn } from "@/lib/utils"
+import useMousePosition from "@/utils/useMousePosition"
+import { motion } from "framer-motion"
+import Image from "next/image"
+import { useEffect, useRef, useState } from "react"
+import { FaCode, FaDatabase, FaGithub, FaYoutube } from "react-icons/fa"
+import { IoLogoFigma } from "react-icons/io5"
+// Scroll Indicator Component
+const ScrollIndicatorWithSections = () => {
+  const [scrollProgress, setScrollProgress] = useState(0)
+  const [currentSection, setCurrentSection] = useState<string | null>(null)
+  const [isScrolling, setIsScrolling] = useState(false)
+  let scrollTimeout: NodeJS.Timeout
+  // Calculate scroll progress based on vertical scroll
+  const handleScroll = () => {
+    setIsScrolling(true)
+    const scrollTop =
+      document.documentElement.scrollTop || document.body.scrollTop
+    const scrollHeight =
+      document.documentElement.scrollHeight -
+      document.documentElement.clientHeight
+    const progress = (scrollTop / scrollHeight) * 100
+    setScrollProgress(progress)
+    // Clear any existing timeout and start a new one
+    clearTimeout(scrollTimeout)
+    scrollTimeout = setTimeout(() => {
+      setIsScrolling(false)
+    }, 400) // Hide after 1 second of no scrolling
+  }
   useEffect(() => {
-    const typed = new Typed(el.current, {
-      strings: ['<i>Tailwind</i> CSS.', '&amp; React', 'Typescript'],
-      typeSpeed: 50,
-    });
-
+    window.addEventListener("scroll", handleScroll)
     return () => {
-      // Destroy Typed instance during cleanup to stop animation
-      typed.destroy();
-    };
-  }, []);
-
-
+      window.removeEventListener("scroll", handleScroll)
+      clearTimeout(scrollTimeout) // Cleanup on unmount
+    }
+  }, [])
+  // Track which section is currently in view
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setCurrentSection(entry.target.id)
+          }
+        })
+      },
+      { threshold: 0.8 }
+    )
+    const sections = document.querySelectorAll("section")
+    sections.forEach((section) => observer.observe(section))
+    return () => {
+      sections.forEach((section) => observer.unobserve(section))
+    }
+  }, [])
   return (
-    <main>
-      <section className="container px-4 py-10 mx-auto lg:h-128 lg:space-x-8 lg:flex lg:items-center"><div className="w-full text-center lg:text-left lg:w-1/2 lg:-mt-8"><h1 className="text-3xl leading-snug text-gray-800 dark:text-gray-200 md:text-4xl">
-        A <span className="font-semibold">tech blog</span> for community <br className="hidden lg:block" /> components using <span className="font-semibold underline decoration-primary"><span ref={el} /></span></h1> <p className="mt-4 text-lg text-gray-500 dark:text-gray-300">Open source blog and templates to <br className="hidden lg:block" /> bootstrap your new apps, projects or landing sites!</p> <div className="mt-6 bg-transparent border rounded-lg dark:border-gray-700 lg:w-2/3 focus-within:border-primary focus-within:ring focus-within:ring-primary dark:focus-within:border-primary focus-within:ring-opacity-20"><form action="https://www.creative-tim.com/twcomponents/search" className="flex flex-wrap justify-between md:flex-row">
-
-          <input type="search" name="query" placeholder="Search Components" required={true} className="flex-1 h-10 px-4 m-1 text-gray-700 placeholder-gray-400 bg-transparent border-none appearance-none lg:h-12 dark:text-gray-200 focus:outline-none focus:placeholder-transparent focus:ring-0" />
-
-          <button type="submit" className="flex items-center dark:bg-gray-800 justify-center w-full p-2 m-1 text-white transition-colors duration-300 transform rounded-lg lg:w-12 lg:h-12 lg:p-0 bg-primary hover:bg-primary/70 focus:outline-none focus:bg-primary/70"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></button></form></div></div> <div className="w-full mt-4 lg:mt-0 lg:w-1/2"><img src="https://www.creative-tim.com/twcomponents/svg/website-designer-bro-purple.svg" alt="tailwind css components" className="w-full h-full max-w-md mx-auto" /></div>
-      </section>
-
-
-      <section className="text-gray-600 dark:text-gray-50 body-font">
-        <div className="container px-5 py-24 mx-auto">
-          <h2 className="text-4xl pb-8 mb-4 font-bold  text-center">About Our Services</h2>
-          <div className="flex flex-wrap -m-4">
-            <div className="p-4 lg:w-1/3">
-              <div className="h-full bg-gray-200 dark:bg-gray-900 bg-opacity-75 px-8 pt-16 pb-24 rounded-lg overflow-hidden text-center relative shadow-lg">
-                <h2 className="tracking-widest text-xs title-font font-medium  mb-1">WEB DEVELOPMENT</h2>
-                <h1 className="title-font sm:text-2xl text-xl font-medium text-gray-900 dark:text-white mb-3">Full-Stack Solutions</h1>
-                <p className="leading-relaxed mb-3 text-gray-700 dark:text-gray-50  ">
-                  Building robust, scalable, and responsive web applications using modern tech stacks like React, Node.js, and more.
-                </p>
-                <a className=" inline-flex items-center hover:text-indigo-700">Learn More
-                  <svg className="w-4 h-4 ml-2" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14"></path>
-                    <path d="M12 5l7 7-7 7"></path>
-                  </svg>
-                </a>
-                <div className="text-center mt-2 leading-none flex justify-center absolute bottom-0 left-0 w-full py-4">
-                  <span className="text-gray-400 dark:text-gray-500 mr-3 inline-flex items-center leading-none text-sm pr-3 py-1 border-r-2 border-gray-200">
-                    <svg className="w-4 h-4 mr-1" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>2.4K Views
-                  </span>
-                  <span className="text-gray-400 dark:text-gray-500 inline-flex items-center leading-none text-sm">
-                    <svg className="w-4 h-4 mr-1" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                      <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"></path>
-                    </svg>32 Comments
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="p-4 lg:w-1/3">
-              <div className="h-full bg-gray-200 dark:bg-gray-900 bg-opacity-75 px-8 pt-16 pb-24 rounded-lg overflow-hidden text-center relative shadow-lg">
-                <h2 className="tracking-widest text-xs title-font font-medium  mb-1">MOBILE DEVELOPMENT</h2>
-                <h1 className="title-font sm:text-2xl text-xl font-medium text-gray-900 dark:text-white mb-3">Cross-Platform Apps</h1>
-                <p className="leading-relaxed mb-3 text-gray-700 dark:text-gray-400">
-                  Crafting seamless mobile experiences for both Android and iOS using frameworks like React Native and Flutter.
-                </p>
-                <a className=" inline-flex items-center hover:text-indigo-700">Learn More
-                  <svg className="w-4 h-4 ml-2" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14"></path>
-                    <path d="M12 5l7 7-7 7"></path>
-                  </svg>
-                </a>
-                <div className="text-center mt-2 leading-none flex justify-center absolute bottom-0 left-0 w-full py-4">
-                  <span className="text-gray-400 dark:text-gray-500 mr-3 inline-flex items-center leading-none text-sm pr-3 py-1 border-r-2 border-gray-200">
-                    <svg className="w-4 h-4 mr-1" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>1.8K Views
-                  </span>
-                  <span className="text-gray-400 dark:text-gray-500 inline-flex items-center leading-none text-sm">
-                    <svg className="w-4 h-4 mr-1" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                      <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"></path>
-                    </svg>18 Comments
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="p-4 lg:w-1/3">
-              <div className="h-full bg-gray-200 dark:bg-gray-900 bg-opacity-75 px-8 pt-16 pb-24 rounded-lg overflow-hidden text-center relative shadow-lg">
-                <h2 className="tracking-widest text-xs title-font font-medium  mb-1">CLOUD SOLUTIONS</h2>
-                <h1 className="title-font sm:text-2xl text-xl font-medium text-gray-900 dark:text-white mb-3">Scalable Infrastructure</h1>
-                <p className="leading-relaxed mb-3 text-gray-700 dark:text-gray-400">
-                  Implementing and managing cloud environments with AWS, Azure, and GCP to ensure your applications scale effortlessly.
-                </p>
-                <a className=" inline-flex items-center hover:text-indigo-700">Learn More
-                  <svg className="w-4 h-4 ml-2" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14"></path>
-                    <path d="M12 5l7 7-7 7"></path>
-                  </svg>
-                </a>
-                <div className="text-center mt-2 leading-none flex justify-center absolute bottom-0 left-0 w-full py-4">
-                  <span className="text-gray-400 dark:text-gray-500 mr-3 inline-flex items-center leading-none text-sm pr-3 py-1 border-r-2 border-gray-200">
-                    <svg className="w-4 h-4 mr-1" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>3.1K Views
-                  </span>
-                  <span className="text-gray-400 dark:text-gray-500 inline-flex items-center leading-none text-sm">
-                    <svg className="w-4 h-4 mr-1" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                      <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"></path>
-                    </svg>24 Comments
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-    </main>
-  );
+    <>
+      <div
+        className="fixed top-0 mt-[70px] left-0 w-1 bg-gray-300 opacity-20 z-40 ml-4 
+      "
+      />
+      {/* Scroll Progress Bar */}
+      <motion.div
+        className="   drop-shadow-[0px_0px_2px_rgba(79,_170,_229,_1)] fixed mt-[70px] top-0 left-0 w-1 bg-gradient-to-b from-indigo-500/10 via-indigo-500/40 to-indigo-500/100 z-50 ml-4 flex justify-center"
+        style={{ height: `${scrollProgress}%` }}
+        initial={{ height: 0 }}
+        animate={{ height: `${scrollProgress}%` }}
+        transition={{ duration: 0.2 }}
+      >
+        <motion.div
+          style={{ top: `${scrollProgress > 2 ? scrollProgress - 2 : 0}%` }}
+          className={cn([
+            "fixed flex w-4 h-4 bg-indigo-600 rounded-full z-50 mt-[70px]",
+            scrollProgress > 90 ? "mt-[0px]" : "mt-[70px]",
+          ])}
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.8 }}
+        >
+          {currentSection && (
+            <motion.h2
+              className="fixed  text-sm font-semibold ml-4 left-6 transform"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: isScrolling ? 1 : 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              {currentSection}
+            </motion.h2>
+          )}
+        </motion.div>
+      </motion.div>
+    </>
+  )
 }
+// About Me Component
+const AboutMe = () => {
+  return (
+    <section
+      id="about-me"
+      className=" p-8 bg-gradient-to-r from-white via-gray-100 to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-black rounded-lg shadow-lg mt-16"
+    >
+      <motion.h2
+        className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+      >
+        About Me
+      </motion.h2>
+      <motion.p
+        className="text-lg text-gray-600 dark:text-gray-300 mb-4"
+        initial={{ opacity: 0, x: -30 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+      >
+        Hi, I’m{" "}
+        <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+          Heiner Giehl
+        </span>
+        , a passionate Full-Stack Developer with a knack for creating modern and
+        interactive applications. My journey as a self-taught developer has
+        equipped me with deep expertise and enthusiasm for delivering impactful
+        projects.
+      </motion.p>
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.4 }}
+      >
+        <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+          <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">
+            Expertise in Backend Development
+          </h3>
+          <p className="text-gray-600 dark:text-gray-300">
+            I specialize in backend technologies like Python (Flask), Node.js,
+            and Laravel. From Websockets to Task Scheduling, I deliver robust
+            server-side solutions.
+          </p>
+        </div>
+        <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+          <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">
+            Frontend Proficiency
+          </h3>
+          <p className="text-gray-600 dark:text-gray-300">
+            Creating dynamic, user-friendly interfaces with React, Next.js, and
+            Vue.js is my passion. I blend creativity with technical expertise to
+            craft modern applications.
+          </p>
+        </div>
+      </motion.div>
+    </section>
+  )
+}
+// Avatar Component
+const Avatar = () => {
+  return (
+    <section
+      id="Header"
+      className=" flex flex-col items-center p-6 bg-gradient-to-r from-blue-50 via-white to-indigo-50 dark:from-gray-800 dark:via-gray-900 dark:to-black rounded-lg shadow-lg mt-16"
+    >
+      <motion.div
+        className="relative"
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.8, ease: "easeInOut" }}
+      >
+        <Image
+          width={300}
+          height={300}
+          src="https://i.pravatar.cc/300"
+          alt="Your Avatar"
+          className="w-24 h-24 rounded-full border-4 border-gray-300 dark:border-gray-700 shadow-lg"
+        />
+        <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"></div>
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
+        className="flex flex-col space-y-2 mt-4"
+      >
+        <div className="flex items-center space-x-3">
+          <motion.div
+            className="text-4xl"
+            animate={{
+              rotate: [0, 25, -25, 20, -20, 15, -15, 10, -10, 0],
+              scale: [1.5, 1],
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: 2,
+              ease: "easeInOut",
+              stiffness: 260,
+              damping: 20,
+            }}
+          >
+            👋
+          </motion.div>
+          <motion.h2
+            className="text-2xl font-semibold text-gray-800 dark:text-gray-100"
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+          >
+            Hello!
+          </motion.h2>
+        </div>
+        <motion.p
+          className="text-lg text-gray-600 dark:text-gray-300"
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.8 }}
+        >
+          I'm available for work!
+        </motion.p>
+        <motion.p
+          className="text-lg text-gray-600 dark:text-gray-300 font-medium"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 1 }}
+        >
+          I am a{" "}
+          <span className="text-indigo-600 dark:text-indigo-400 font-bold">
+            Full-Stack Developer
+          </span>
+          .
+        </motion.p>
+      </motion.div>
+    </section>
+  )
+}
+const Skills = () => {
+  return (
+    <section
+      id="skills"
+      className=" p-8 bg-gradient-to-r from-white via-gray-100 to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-black rounded-lg shadow-lg mt-16"
+    >
+      {/* <motion.h2
+        className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+      >
+        Skills
+      </motion.h2>
+      <motion.p
+        className="text-lg text-gray-600 dark:text-gray-300 mb-4"
+        initial={{ opacity: 0, x: -30 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+      >
+        Hi, I’m{" "}
+        <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+          Heiner Giehl
+        </span>
+        , a passionate Full-Stack Developer with a knack for creating modern and
+        interactive applications. My journey as a self-taught developer has
+        equipped me with deep expertise and enthusiasm for delivering impactful
+        projects.
+      </motion.p>
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.4 }}
+      >
+        <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+          <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">
+            Expertise in Backend Development
+          </h3>
+          <p className="text-gray-600 dark:text-gray-300">
+            I specialize in backend technologies like Python (Flask), Node.js,
+            and Laravel. From Websockets to Task Scheduling, I deliver robust
+            server-side solutions.
+          </p>
+        </div>
+        <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+          <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">
+            Frontend Proficiency
+          </h3>
+          <p className="text-gray-600 dark:text-gray-300">
+            Creating dynamic, user-friendly interfaces with React, Next.js, and
+            Vue.js is my passion. I blend creativity with technical expertise to
+            craft modern applications.
+          </p>
+        </div>
+      </motion.div> */}
+      <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-6">
+        Areas Of Expertise
+      </h2>
+      <Spotlight className="max-w-sm mx-auto grid gap-6 lg:grid-cols-3 items-start lg:max-w-none group p-20">
+        <Card
+          icon={<FaCode size={40} />}
+          title="Frontend Proficiency"
+          descriptionHeader="Expertise in Frontend Development"
+          description="Creating dynamic, user-friendly interfaces with React, Next.js, and Vue.js is my passion. I blend creativity with technical expertise to craft modern applications."
+        />
+        <Card
+          icon={<FaDatabase size={40} />}
+          title="Backend Proficiency"
+          descriptionHeader="Expertise in Backend Development"
+          description="I specialize in backend technologies like Python (Flask), Node.js, and Laravel. From Websockets to Task Scheduling, I deliver robust server-side solutions."
+        />
+        <Card
+          icon={<IoLogoFigma size={40} />}
+          title="Some Design Skills"
+          descriptionHeader="Design Skills"
+          description="Some foundational skills in UI/UX design, Figma. I can create wireframes, prototypes, and design systems."
+        />
+      </Spotlight>
+      {/* Bento grid with examples work using same spotlight cards but different grid layout, meaning cards different rows and columns; 
+      each card can take classname to style it differently
+      */}
+      {/* <div className="mx-auto grid max-w-4xl grid-flow-dense grid-cols-12 gap-4">
+        <div className="col-span-8 bg-blue-300 p-4 rounded-lg row-span-4"></div>
+        <div className="col-span-4  bg-blue-400 p-4 rounded-lg"></div>
+        <div className="col-span-3 row-span-8 bg-gradient-to-r from-[#00ff75] to-[#3700ff] rounded-[20px] transition-all duration-300 hover:shadow-[0px_0px_30px_1px_rgba(0,255,117,0.3)]">
+          <div className="h-full w-full bg-[#1a1a1a] rounded transition-all duration-200 hover:scale-[0.98] hover:rounded-[20px]"></div>
+        </div>
+        <div className="col-span-6 row-span-4 bg-blue-800 p-4 rounded-lg"></div>
+        <div className="col-span-6 row-span-4 bg-blue-900 p-4 rounded-lg"></div>
+        <div className="col-span-4 bg-blue-500 p-4 rounded-lg"></div>
+        <div className="col-span-4 bg-blue-600 p-4 rounded-lg"></div>
+      </div> */}
+    </section>
+  )
+}
+const Projects = () => {
+  return (
+    <section
+      className="my-[200px] bg-gradient-to-r from-white via-gray-100 to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-black "
+      id="projects"
+    >
+      <motion.h2
+        className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-6 text-center"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+      >
+        Projects
+      </motion.h2>
+      <GridContainer>
+        <BentoCard
+          image={"/downloaderInsta.png"}
+          title="Instagram Media Downloader"
+          description="Download Instagram images, videos, and reels with this tool.
+            "
+          mousePosition={useMousePosition()}
+          cardCSS="col-span-6 row-span-1 rounded-lg transition-all duration-300 hover:shadow-lg relative"
+        />
+        <BentoCard
+          title="Tech Stack"
+          techStackList={[
+            "Python Flask",
+            "ReactJS",
+            "NextJS",
+            "TailwindCSS",
+            "Hetzner VPS",
+          ]}
+          mousePosition={useMousePosition()}
+          cardCSS="col-span-5 row-span-1 rounded-lg transition-all duration-300 hover:shadow-lg"
+        />
+        <BentoCard
+          techStackList={["NextJS", "ReactJs", "TailwindCSS", "Framer Motion"]}
+          title="Tech Stack"
+          mousePosition={useMousePosition()}
+          cardCSS="col-span-4 row-span-1 rounded-lg transition-all duration-300 hover:shadow-lg"
+        />
+        <BentoCard
+          image="/gifmagic.png"
+          title="GIF Editor"
+          description="Create and edit GIFs with this tool. Fun experiment using FabricJS for the first time to edit GIFs on a canvas"
+          mousePosition={useMousePosition()}
+          cardCSS="col-span-8 row-span-1 rounded-lg transition-all duration-300 hover:shadow-lg"
+        />
+        <BentoCard
+          images={["/filetalky1.png", "/filetalky2.png"]}
+          title="Chat with Files"
+          description="Chat with files and images with this tool. First time using AI-APIs like OpenAI ChatGPT or Google Gemini in a project. Properly parsing, rendering PDFS was a challenge."
+          mousePosition={useMousePosition()}
+          cardCSS="col-span-12 row-span-1 rounded-lg transition-all duration-300 hover:shadow-lg"
+        />
+      </GridContainer>
+    </section>
+  )
+}
+export const Socials = () => {
+  return (
+    <motion.div
+      initial={{ opacity: 1 }}
+      whileHover={{ height: "100px" }}
+      className="fixed left-[95%] top-[50%] w-[60px] rounded-full flex flex-col items-center justify-center overflow-hidden cursor-pointer transition-all duration-300 group 
+        bg-white dark:bg-slate-900  drop-shadow-[0px_0px_5px_rgba(79,_70,_229,_1)] "
+    >
+      {/* Shiny Blurry Border */}
+      <div
+        className="absolute inset-0 rounded-full pointer-events-none blur-md 
+        bg-gradient-to-br from-pink-500/50 via-purple-500/20 to-transparent dark:from-purple-700/50 dark:via-black/40 dark:to-transparent "
+      ></div>
+      {/* "Socials" Text */}
+      <motion.div
+        className="absolute text-black dark:text-white text-sm font-bold transition-all duration-200 group-hover:opacity-0"
+        initial={{ scale: 1 }}
+        whileHover={{ scale: 0.8 }}
+        transition={{ duration: 0.3 }}
+      >
+        Socials
+      </motion.div>
+      {/* Icons */}
+      <motion.div className="flex flex-col items-center justify-center gap-3 h-full w-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-200">
+        {/* Github Icon */}
+        <motion.div
+          whileHover={{ scale: 1.3, rotate: 10 }}
+          transition={{ type: "spring", stiffness: 300 }}
+          className="text-black dark:text-white text-xl"
+        >
+          <FaGithub size={27} />
+        </motion.div>
+        {/* YouTube Icon */}
+        <motion.div
+          whileHover={{ scale: 1.3, rotate: -10 }}
+          transition={{ type: "spring", stiffness: 300 }}
+          className="text-black dark:text-white text-xl"
+        >
+          <FaYoutube size={27} />
+        </motion.div>
+      </motion.div>
+    </motion.div>
+  )
+}
+// Main Component
+const Main = () => {
+  return (
+    <>
+      <ScrollIndicatorWithSections />
+      <div className="flex flex-col pl-4">
+        <Avatar />
+        <AboutMe />
+        <Skills />
+        <Projects />
+        <Socials />
+      </div>
+    </>
+  )
+}
+export default Main
