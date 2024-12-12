@@ -12,7 +12,10 @@ import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 import { FaCode, FaDatabase, FaGithub, FaYoutube } from "react-icons/fa"
 import { IoLogoFigma } from "react-icons/io5"
-// Scroll Indicator Component
+import { Copy, Mail } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { ToastAction } from "@/components/ui/toast"
+import { useToast } from "@/hooks/use-toast"
 const ScrollIndicatorWithSections = () => {
   const [scrollProgress, setScrollProgress] = useState(0)
   const [currentSection, setCurrentSection] = useState<string | null>(null)
@@ -34,6 +37,7 @@ const ScrollIndicatorWithSections = () => {
       setIsScrolling(false)
     }, 400) // Hide after 1 second of no scrolling
   }
+
   useEffect(() => {
     window.addEventListener("scroll", handleScroll)
     return () => {
@@ -67,10 +71,15 @@ const ScrollIndicatorWithSections = () => {
       />
       {/* Scroll Progress Bar */}
       <motion.div
-        className="   drop-shadow-[0px_0px_2px_rgba(79,_170,_229,_1)] fixed mt-[70px] top-0 left-0 w-1 bg-gradient-to-b from-indigo-500/10 via-indigo-500/40 to-indigo-500/100 z-50 ml-4 flex justify-center"
+        className={cn([
+          "  drop-shadow-[0px_0px_2px_rgba(79,_170,_229,_1)] fixed mt-[70px] top-0 left-0 w-1 bg-gradient-to-b from-indigo-500/10 via-indigo-500/40 to-indigo-500/100 z-50 ml-4 flex justify-center",
+        ])}
         style={{ height: `${scrollProgress}%` }}
         initial={{ height: 0 }}
-        animate={{ height: `${scrollProgress}%` }}
+        animate={{
+          height: `${scrollProgress - 10}%`,
+          opacity: isScrolling ? 1 : 0,
+        }}
         transition={{ duration: 0.2 }}
       >
         <motion.div
@@ -99,6 +108,7 @@ const ScrollIndicatorWithSections = () => {
     </>
   )
 }
+
 // About Me Component
 const AboutMe = () => {
   return (
@@ -159,6 +169,7 @@ const AboutMe = () => {
     </section>
   )
 }
+
 // Avatar Component
 const Avatar = () => {
   return (
@@ -237,6 +248,7 @@ const Avatar = () => {
     </section>
   )
 }
+
 const Skills = () => {
   return (
     <section
@@ -333,6 +345,7 @@ const Skills = () => {
     </section>
   )
 }
+
 const Projects = () => {
   return (
     <section
@@ -349,6 +362,7 @@ const Projects = () => {
       </motion.h2>
       <GridContainer>
         <BentoCard
+          link={"https://insta.savetube.me/de"}
           image={"/downloaderInsta.png"}
           title="Instagram Media Downloader"
           description="Download Instagram images, videos, and reels with this tool.
@@ -375,6 +389,7 @@ const Projects = () => {
           cardCSS="col-span-4 row-span-1 rounded-lg transition-all duration-300 hover:shadow-lg"
         />
         <BentoCard
+          link={"https://www.gifmagic.app/"}
           image="/gifmagic.png"
           title="GIF Editor"
           description="Create and edit GIFs with this tool. Fun experiment using FabricJS for the first time to edit GIFs on a canvas"
@@ -382,6 +397,7 @@ const Projects = () => {
           cardCSS="col-span-8 row-span-1 rounded-lg transition-all duration-300 hover:shadow-lg"
         />
         <BentoCard
+          link={"https://filetalky.com/"}
           images={["/filetalky1.png", "/filetalky2.png"]}
           title="Chat with Files"
           description="Chat with files and images with this tool. First time using AI-APIs like OpenAI ChatGPT or Google Gemini in a project. Properly parsing, rendering PDFS was a challenge."
@@ -392,6 +408,7 @@ const Projects = () => {
     </section>
   )
 }
+
 export const Socials = () => {
   return (
     <motion.div
@@ -417,25 +434,83 @@ export const Socials = () => {
       {/* Icons */}
       <motion.div className="flex flex-col items-center justify-center gap-3 h-full w-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-200">
         {/* Github Icon */}
-        <motion.div
+        <motion.a
           whileHover={{ scale: 1.3, rotate: 10 }}
           transition={{ type: "spring", stiffness: 300 }}
           className="text-black dark:text-white text-xl"
+          href={"https://github.com/heinergiehl"}
         >
           <FaGithub size={27} />
-        </motion.div>
+        </motion.a>
         {/* YouTube Icon */}
-        <motion.div
+        <motion.a
+          href={"https://www.youtube.com/@codingislove3707"}
           whileHover={{ scale: 1.3, rotate: -10 }}
           transition={{ type: "spring", stiffness: 300 }}
           className="text-black dark:text-white text-xl"
         >
           <FaYoutube size={27} />
-        </motion.div>
+        </motion.a>
       </motion.div>
     </motion.div>
   )
 }
+
+// Contact Component
+const Contact = () => {
+  const [copied, setCopied] = useState(false)
+  const { toast } = useToast()
+  const copyEmail = () => {
+    navigator.clipboard.writeText("webdevislife2021@gmail.com")
+    setCopied(true)
+    toast({
+      duration: 500,
+      title: "Email Copied!",
+      description: "You can now paste it anywhere.",
+    })
+  }
+
+  useEffect(() => {
+    if (copied) {
+      const timeout = setTimeout(() => {
+        setCopied(false)
+      }, 2000)
+      return () => clearTimeout(timeout)
+    }
+  }, [copied])
+  return (
+    <motion.section
+      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 20 }}
+      transition={{ duration: 0.5 }}
+      id="contact"
+      className="text-center p-8 bg-gradient-to-r from-white via-gray-100 to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-black rounded-lg shadow-lg mt-16"
+    >
+      <motion.h2
+        className="text-3xl font-bold  mb-6"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+      >
+        Contact
+      </motion.h2>
+      <motion.div
+        className="text-lg mb-4"
+        initial={{ opacity: 0, x: -30 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+      >
+        <div className="flex flex-col items-center justify-center">
+          Thanks for your interest. Let's chat!
+          <Button variant="ghost" onClick={copyEmail}>
+            {!copied ? <Mail /> : <Copy />}
+          </Button>
+        </div>
+      </motion.div>
+    </motion.section>
+  )
+}
+
 // Main Component
 const Main = () => {
   return (
@@ -447,8 +522,10 @@ const Main = () => {
         <Skills />
         <Projects />
         <Socials />
+        <Contact />
       </div>
     </>
   )
 }
+
 export default Main

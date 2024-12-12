@@ -6,9 +6,11 @@ interface GridContainerProps {
   children: ReactNode
   gridCSS?: string
 }
+
 interface MousePositionProps {
   mousePosition: { x: number; y: number }
 }
+
 const GridContainer = ({
   children,
   gridCSS = "grid max-w-6xl grid-flow-dense grid-cols-12 gap-8 p-8 grid-rows-3 p-40 ",
@@ -25,6 +27,7 @@ const GridContainer = ({
     </div>
   )
 }
+
 interface CardProps {
   mousePosition: { x: number; y: number }
   cardCSS?: string
@@ -33,7 +36,9 @@ interface CardProps {
   image?: string
   images?: string[]
   techStackList?: string[]
+  link?: string
 }
+
 const Card = ({
   mousePosition,
   image,
@@ -42,6 +47,7 @@ const Card = ({
   description,
   techStackList,
   cardCSS = "col-span-3 row-span-12 rounded-lg transition-all duration-300 hover:shadow-lg relative",
+  link,
 }: CardProps) => {
   const cardRef = useRef<HTMLDivElement>(null)
   const [gradientPosition, setGradientPosition] = useState({ x: 0, y: 0 })
@@ -62,7 +68,7 @@ const Card = ({
       className={`cursor-pointer rounded-lg transition-all duration-300 relative z-10 ${cardCSS}`}
       onMouseEnter={handleHoverStart}
       onMouseLeave={handleHoverEnd}
-      whileHover={{ scale: 1.02 }} // Scale card slightly on hover
+   
       initial={{ opacity: 0, y: 50 }} // Animation for initial load
       animate={{ opacity: 1, y: 0 }} // Bring to normal position
       exit={{ opacity: 0, y: 50 }} // Exit animation
@@ -124,14 +130,15 @@ const Card = ({
           )}
           {/* Animated Title */}
           {image || images ? (
-            <motion.div
-              className="  text-2xl font-bold bg-gradient-to-b from-transparent to-black rounded-lg p-4 z-20"
+            <motion.a
+              className="border-2 border-slate-400  text-2xl font-bold bg-gradient-to-b from-transparent to-black rounded-lg p-4 z-20"
               initial={{ opacity: 0, y: 20 }} // Start hidden below the center
               animate={isHovered ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }} // Slide up on hover, hide otherwise
               transition={{ duration: 0.4 }}
+              href={link}
             >
               {title}
-            </motion.div>
+            </motion.a>
           ) : (
             <div
               className="  text-2xl font-bold black:bg-gradient-to-b black:from-transparent black:to-black rounded-lg p-4 z-20
@@ -162,10 +169,12 @@ const Card = ({
     </motion.div>
   )
 }
+
 interface MousePosition {
   x: number
   y: number
 }
+
 export default function useMousePosition(
   containerRef: RefObject<HTMLElement>
 ): MousePosition {
@@ -182,10 +191,12 @@ export default function useMousePosition(
         setMousePosition({ x: relativeX, y: relativeY })
       }
     }
+
     const container = containerRef.current
     if (container) {
       container.addEventListener("mousemove", handleMouseMove)
     }
+
     return () => {
       if (container) {
         container.removeEventListener("mousemove", handleMouseMove)
@@ -194,4 +205,5 @@ export default function useMousePosition(
   }, [containerRef])
   return mousePosition
 }
+
 export { GridContainer, Card }

@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+import createMDX from '@next/mdx'
 const nextConfig = {
     rewrites: async () => {
         // for sitemap.xml
@@ -31,5 +32,13 @@ const nextConfig = {
     eslint: {
         ignoreDuringBuilds: true,
     },
+    pageExtensions: ['mdx', 'ts', 'tsx'],
+    experimental: {
+        mdxRs: true,
+    },
 }
-export default nextConfig
+
+const withMDX = createMDX({
+    // Add markdown plugins here, as desired
+})
+export default withMDX(nextConfig)

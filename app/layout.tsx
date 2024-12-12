@@ -6,6 +6,7 @@ import SiteConfig from "@/config/site"
 import NavBar from "@/components/NavBar"
 import { ThemeProvider } from "@/components/theme-provider"
 import Script from "next/script"
+import { Toaster } from "@/components/ui/toaster"
 const fontSans = FontSans({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -35,6 +36,7 @@ export default function RootLayout({
         >
           <NavBar />
           {children}
+          <Toaster />
         </ThemeProvider>
       </body>
       <Script
