@@ -1,31 +1,12 @@
-import Image from "next/image"
+"use client"
+
 import React, { useRef, useState, useEffect, ReactNode, RefObject } from "react"
 import { motion } from "framer-motion"
-import { cn } from "@/lib/utils"
+import Image from "next/image"
+
 interface GridContainerProps {
   children: ReactNode
   gridCSS?: string
-}
-
-interface MousePositionProps {
-  mousePosition: { x: number; y: number }
-}
-
-const GridContainer = ({
-  children,
-  gridCSS = "grid max-w-6xl grid-flow-dense grid-cols-12 gap-8 p-8 grid-rows-3 p-40 ",
-}: GridContainerProps) => {
-  const gridRef = useRef<HTMLDivElement>(null)
-  const mousePosition = useMousePosition(gridRef) // Use custom hook
-  return (
-    <div ref={gridRef} className={`relative mx-auto ${gridCSS} `}>
-      {React.Children.map(children, (child) =>
-        React.isValidElement(child)
-          ? React.cloneElement(child, { mousePosition })
-          : child
-      )}
-    </div>
-  )
 }
 
 interface CardProps {
@@ -39,6 +20,33 @@ interface CardProps {
   link?: string
 }
 
+interface MousePosition {
+  x: number
+  y: number
+}
+
+const GridContainer = ({
+  children,
+  gridCSS = "grid max-w-6xl md:w-full overflow-hidden grid-flow-dense grid-cols-12 md:gap-8 grid-rows-3 gap-2 h-full md:p-40",
+}: GridContainerProps) => {
+  const gridRef = useRef<HTMLDivElement>(null)
+  const mousePosition = useMousePosition(gridRef)
+
+  return (
+    <div
+      ref={gridRef}
+      className={`relative mx-auto ${gridCSS}`}
+      id="bento-container"
+    >
+      {React.Children.map(children, (child) =>
+        React.isValidElement(child)
+          ? React.cloneElement(child, { mousePosition })
+          : child
+      )}
+    </div>
+  )
+}
+
 const Card = ({
   mousePosition,
   image,
@@ -46,12 +54,12 @@ const Card = ({
   title,
   description,
   techStackList,
-  cardCSS = "col-span-3 row-span-12 rounded-lg transition-all duration-300 hover:shadow-lg relative",
+  cardCSS = "col-span-3 row-span-12 rounded-lg transition-all duration-300 hover:shadow-lg relative ",
   link,
 }: CardProps) => {
   const cardRef = useRef<HTMLDivElement>(null)
   const [gradientPosition, setGradientPosition] = useState({ x: 0, y: 0 })
-  const [isHovered, setIsHovered] = useState(false)
+
   useEffect(() => {
     if (cardRef.current) {
       const rect = cardRef.current.getBoundingClientRect()
@@ -60,128 +68,97 @@ const Card = ({
       setGradientPosition({ x: relativeX, y: relativeY })
     }
   }, [mousePosition])
-  const handleHoverStart = () => setIsHovered(true)
-  const handleHoverEnd = () => setIsHovered(false)
+
   return (
     <motion.div
       ref={cardRef}
-      className={`cursor-pointer rounded-lg transition-all duration-300 relative z-10 ${cardCSS}`}
-      onMouseEnter={handleHoverStart}
-      onMouseLeave={handleHoverEnd}
-   
-      initial={{ opacity: 0, y: 50 }} // Animation for initial load
-      animate={{ opacity: 1, y: 0 }} // Bring to normal position
-      exit={{ opacity: 0, y: 50 }} // Exit animation
-      transition={{ type: "spring", stiffness: 300, damping: 20 }} // Smooth transition
+      className={`rounded-lg transition-all duration-300 relative z-10 ${cardCSS}`}
     >
       {/* Gradient Layer */}
-      <motion.div
+      <div
+        className="absolute inset-0 pointer-events-none z-[-1]"
         style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          zIndex: -1,
-          filter: isHovered ? "blur(10px)" : "blur(20px)",
+          background: `radial-gradient(circle at ${gradientPosition.x}px ${gradientPosition.y}px, rgba(0, 255, 117, 0.9), rgba(55, 0, 255, 0.9))`,
+          filter: "blur(8px)",
+          transition: "background 0.8s ease-out",
         }}
-        animate={{
-          background: `radial-gradient(circle at ${gradientPosition.x}px ${gradientPosition.y}px, rgba(0, 255, 117, 0.8), rgba(55, 0, 255, 0.5))`,
-          opacity: isHovered ? 1 : 0.4,
-        }}
-        transition={{
-          duration: 0.5,
-          ease: "easeOut",
-        }}
-      />
-      {/* Card Content */}
-      <div className="h-full w-full dark:bg-slate-900 bg-slate-300 rounded-lg transition-all duration-200 hover:scale-[0.98] z-10">
+      ></div>
+
+      <div className="h-full dark:bg-slate-900 bg-slate-300 rounded-lg">
         {/* Card Image */}
-        <div
-          className={cn([
-            "relative  w-full flex items-center justify-center",
-            image && "h-[200px]",
-            images && "h-[300px] w-full ",
-          ])}
-        >
-          {image && (
+        {image && (
+          <div className="relative flex items-center justify-center">
             <Image
-              className="absolute rounded-t-lg h-[200px] w-full object-cover"
+              className="rounded-t-lg object-contain w-full"
               src={image}
-              alt="Picture of the author"
+              alt={title}
               width={300}
               height={300}
             />
+          </div>
+        )}
+        {images && (
+          <div className="relative flex items-center justify-center">
+            <Image
+              className="rounded-t-lg w-full h-[200px] first:rounded-t-md first:rounded-r-none"
+              src={images[0]}
+              alt={title}
+              width={300}
+              height={300}
+            />
+            <Image
+              className="rounded-t-lg object-cover w-[300px] h-[200px] last:rounded-l-none first:rounded-r-md"
+              src={images[1]}
+              alt={title}
+              width={300}
+              height={300}
+            />
+          </div>
+        )}
+
+        {/* Card Content */}
+        <div className="p-4">
+          <h3 className="text-lg font-bold">
+            {link ? (
+              <a
+                href={link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline"
+              >
+                {title}
+              </a>
+            ) : (
+              title
+            )}
+          </h3>
+          {description && (
+            <p className="text-sm text-gray-500">{description}</p>
           )}
-          {images && (
-            <div className="absolute h-[300px] w-[600px]">
-              <div className="flex gap-1 w-full h-full justify-center items-center ">
-                {images.map((img) => (
-                  <Image
-                    className=" h-[300px] w-[400px] object-fit first:rounded-l-lg last:rounded-r-lg"
-                    src={img}
-                    alt="Picture of the author"
-                    width={400}
-                    height={300}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-          {/* Animated Title */}
-          {image || images ? (
-            <motion.a
-              className="border-2 border-slate-400  text-2xl font-bold bg-gradient-to-b from-transparent to-black rounded-lg p-4 z-20"
-              initial={{ opacity: 0, y: 20 }} // Start hidden below the center
-              animate={isHovered ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }} // Slide up on hover, hide otherwise
-              transition={{ duration: 0.4 }}
-              href={link}
-            >
-              {title}
-            </motion.a>
-          ) : (
-            <div
-              className="  text-2xl font-bold black:bg-gradient-to-b black:from-transparent black:to-black rounded-lg p-4 z-20
-            "
-            >
-              {title}
-            </div>
-          )}
-        </div>
-        {/* Card Description */}
-        {description && <div className="p-4 ">{description}</div>}
-        {/* Tech Stack */}
-        {techStackList && (
-          <div className="p-4 ">
-            <ul className="flex flex-wrap gap-2">
+          {techStackList && (
+            <ul className="mt-2 flex flex-wrap gap-2">
               {techStackList.map((tech) => (
                 <li
-                  className="bg-accent text-accent-foreground rounded-md px-2 py-1"
                   key={tech}
+                  className="bg-indigo-500 text-white px-2 py-1 rounded"
                 >
                   {tech}
                 </li>
               ))}
             </ul>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </motion.div>
   )
 }
 
-interface MousePosition {
-  x: number
-  y: number
-}
-
-export default function useMousePosition(
-  containerRef: RefObject<HTMLElement>
-): MousePosition {
+function useMousePosition(containerRef: RefObject<HTMLElement>): MousePosition {
   const [mousePosition, setMousePosition] = useState<MousePosition>({
     x: 0,
     y: 0,
   })
+
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
       if (containerRef.current) {
@@ -203,6 +180,7 @@ export default function useMousePosition(
       }
     }
   }, [containerRef])
+
   return mousePosition
 }
 

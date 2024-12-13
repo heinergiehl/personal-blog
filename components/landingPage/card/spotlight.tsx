@@ -5,6 +5,7 @@ type SpotlightProps = {
   children: React.ReactNode
   className?: string
 }
+
 export default function Spotlight({
   children,
   className = "",
@@ -36,6 +37,7 @@ export default function Spotlight({
       containerSize.current.h = containerRef.current.offsetHeight
     }
   }
+
   const onMouseMove = () => {
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect()
@@ -57,16 +59,19 @@ export default function Spotlight({
       }
     }
   }
+
   return (
     <div className={className} ref={containerRef}>
       {children}
     </div>
   )
 }
+
 type SpotlightCardProps = {
   children: React.ReactNode
   className?: string
 }
+
 export function SpotlightCard({
   children,
   className = "",

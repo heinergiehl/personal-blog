@@ -16,6 +16,7 @@ import { Copy, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ToastAction } from "@/components/ui/toast"
 import { useToast } from "@/hooks/use-toast"
+import ThreeBackground from "@/components/landingPage/3dBackground"
 const ScrollIndicatorWithSections = () => {
   const [scrollProgress, setScrollProgress] = useState(0)
   const [currentSection, setCurrentSection] = useState<string | null>(null)
@@ -114,58 +115,60 @@ const AboutMe = () => {
   return (
     <section
       id="about-me"
-      className=" p-8 bg-gradient-to-r from-white via-gray-100 to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-black rounded-lg shadow-lg mt-16"
+      className="flex justify-center items-center flex-col p-8 bg-gradient-to-r from-white via-gray-100 to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-black rounded-lg shadow-lg mt-16"
     >
-      <motion.h2
-        className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-      >
-        About Me
-      </motion.h2>
-      <motion.p
-        className="text-lg text-gray-600 dark:text-gray-300 mb-4"
-        initial={{ opacity: 0, x: -30 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.8, delay: 0.2 }}
-      >
-        Hi, I’m{" "}
-        <span className="font-semibold text-indigo-600 dark:text-indigo-400">
-          Heiner Giehl
-        </span>
-        , a passionate Full-Stack Developer with a knack for creating modern and
-        interactive applications. My journey as a self-taught developer has
-        equipped me with deep expertise and enthusiasm for delivering impactful
-        projects.
-      </motion.p>
-      <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 gap-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, delay: 0.4 }}
-      >
-        <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-          <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">
-            Expertise in Backend Development
-          </h3>
-          <p className="text-gray-600 dark:text-gray-300">
-            I specialize in backend technologies like Python (Flask), Node.js,
-            and Laravel. From Websockets to Task Scheduling, I deliver robust
-            server-side solutions.
-          </p>
-        </div>
-        <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-          <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">
-            Frontend Proficiency
-          </h3>
-          <p className="text-gray-600 dark:text-gray-300">
-            Creating dynamic, user-friendly interfaces with React, Next.js, and
-            Vue.js is my passion. I blend creativity with technical expertise to
-            craft modern applications.
-          </p>
-        </div>
-      </motion.div>
+   
+        <motion.h2
+          className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          About Me
+        </motion.h2>
+        <motion.p
+          className="text-lg text-gray-600 dark:text-gray-300 mb-4 "
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          Hi, I’m{" "}
+          <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+            Heiner Giehl
+          </span>
+          , a passionate Full-Stack Developer with a knack for creating modern
+          and interactive applications. My journey as a self-taught developer
+          has equipped me with deep expertise and enthusiasm for delivering
+          impactful projects.
+        </motion.p>
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+        >
+          <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">
+              Expertise in Backend Development
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300">
+              I specialize in backend technologies like Python (Flask), Node.js,
+              and Laravel. From Websockets to Task Scheduling, I deliver robust
+              server-side solutions.
+            </p>
+          </div>
+          <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">
+              Frontend Proficiency
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300">
+              Creating dynamic, user-friendly interfaces with React, Next.js,
+              and Vue.js is my passion. I blend creativity with technical
+              expertise to craft modern applications.
+            </p>
+          </div>
+        </motion.div>
+
     </section>
   )
 }
@@ -175,10 +178,10 @@ const Avatar = () => {
   return (
     <section
       id="Header"
-      className=" flex flex-col items-center p-6 bg-gradient-to-r from-blue-50 via-white to-indigo-50 dark:from-gray-800 dark:via-gray-900 dark:to-black rounded-lg shadow-lg mt-16"
+      className="relative flex flex-col items-center p-6   rounded-lg shadow-lg mt-16"
     >
       <motion.div
-        className="relative"
+        className="relative z-10"
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.8, ease: "easeInOut" }}
@@ -186,9 +189,9 @@ const Avatar = () => {
         <Image
           width={300}
           height={300}
-          src="https://i.pravatar.cc/300"
+          src="/heiner-profile.jpg"
           alt="Your Avatar"
-          className="w-24 h-24 rounded-full border-4 border-gray-300 dark:border-gray-700 shadow-lg"
+          className="w-24 h-24 rounded-full border-4 border-gray-300 dark:border-gray-700 shadow-lg object-cover"
         />
         <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"></div>
       </motion.div>
@@ -196,11 +199,11 @@ const Avatar = () => {
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
-        className="flex flex-col space-y-2 mt-4"
+        className="flex flex-col space-y-2 mt-4  z-10"
       >
         <div className="flex items-center space-x-3">
           <motion.div
-            className="text-4xl"
+            className="text-4xl  z-10"
             animate={{
               rotate: [0, 25, -25, 20, -20, 15, -15, 10, -10, 0],
               scale: [1.5, 1],
@@ -230,7 +233,7 @@ const Avatar = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, delay: 0.8 }}
         >
-          I'm available for work!
+          I'm Heiner and available for work!
         </motion.p>
         <motion.p
           className="text-lg text-gray-600 dark:text-gray-300 font-medium"
@@ -245,6 +248,9 @@ const Avatar = () => {
           .
         </motion.p>
       </motion.div>
+      <div className="absolute inset-0" >
+        <ThreeBackground />
+      </div>
     </section>
   )
 }
@@ -308,7 +314,7 @@ const Skills = () => {
       <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-6">
         Areas Of Expertise
       </h2>
-      <Spotlight className="max-w-sm mx-auto grid gap-6 lg:grid-cols-3 items-start lg:max-w-none group p-20">
+      <Spotlight className="max-w-xl mx-auto grid gap-6 grid-cols-1 lg:grid-cols-3 items-start lg:max-w-none group p-20">
         <Card
           icon={<FaCode size={40} />}
           title="Frontend Proficiency"
@@ -349,7 +355,7 @@ const Skills = () => {
 const Projects = () => {
   return (
     <section
-      className="my-[200px] bg-gradient-to-r from-white via-gray-100 to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-black "
+      className="flex flex-col justify-center  my-[200px] bg-gradient-to-r from-white via-gray-100 to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-black "
       id="projects"
     >
       <motion.h2
@@ -414,7 +420,7 @@ export const Socials = () => {
     <motion.div
       initial={{ opacity: 1 }}
       whileHover={{ height: "100px" }}
-      className="fixed left-[95%] top-[50%] w-[60px] rounded-full flex flex-col items-center justify-center overflow-hidden cursor-pointer transition-all duration-300 group 
+      className="z-30 fixed  left-[85%] md:left-[95%] top-[50%] w-[60px] rounded-full flex flex-col items-center justify-center overflow-hidden cursor-pointer transition-all duration-300 group 
         bg-white dark:bg-slate-900  drop-shadow-[0px_0px_5px_rgba(79,_70,_229,_1)] "
     >
       {/* Shiny Blurry Border */}
@@ -516,7 +522,7 @@ const Main = () => {
   return (
     <>
       <ScrollIndicatorWithSections />
-      <div className="flex flex-col pl-4">
+      <div className=" px-4 w-full flex flex-col">
         <Avatar />
         <AboutMe />
         <Skills />

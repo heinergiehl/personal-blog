@@ -10,6 +10,7 @@ type CardProps = {
   image?: string
   icon?: React.ReactNode
 }
+
 export const Card = ({
   className = "",
   title,
@@ -23,7 +24,7 @@ export const Card = ({
     <SpotlightCard>
       <div
         className={cn([
-          "relative h-full bg-slate-300 dark:bg-slate-900 p-6 pb-8 rounded-[inherit] z-20 overflow-hidden ",
+          "relative h-full bg-slate-300 dark:bg-slate-900 p-6 pb-8 rounded-[inherit] z-20 overflow-hidden",
           ,
           className,
         ])}
