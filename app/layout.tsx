@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   title: SiteConfig.title,
   description: SiteConfig.description,
 }
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -30,7 +31,7 @@ export default function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
