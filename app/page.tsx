@@ -56,7 +56,9 @@ const ScrollIndicatorWithSections = () => {
           }
         })
       },
-      { threshold: 0.8 }
+      {
+        threshold: 0.25, // Trigger when 25% of the section is visible
+      }
     )
     const sections = document.querySelectorAll("section")
     sections.forEach((section) => observer.observe(section))
@@ -355,8 +357,8 @@ const Skills = () => {
 const Projects = () => {
   return (
     <section
-      className="flex flex-col justify-center  my-[200px] bg-gradient-to-r from-white via-gray-100 to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-black "
-      id="projects"
+      className="flex flex-col justify-center h-full  my-[200px] bg-gradient-to-r from-white via-gray-100 to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-black "
+      id="Projects"
     >
       <motion.h2
         className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-6 text-center"
@@ -426,7 +428,7 @@ export const Socials = () => {
     <motion.div
       initial={{ opacity: 1 }}
       animate={{ height: isExpanded ? "180px" : "60px" }}
-  
+      onClick={toggleExpand}
       onTapCancel={toggleExpand}
       onHoverStart={toggleExpand}
       onHoverEnd={toggleExpand}
@@ -454,7 +456,7 @@ export const Socials = () => {
      
       {/* Icons */}
     
-      <motion.div className="flex flex-col items-center justify-center gap-3 h-full w-full opacity-100 transition-opacity duration-300 delay-200"
+{isExpanded&&      <motion.div className="flex flex-col items-center justify-center gap-3 h-full w-full opacity-100 transition-opacity duration-300 delay-200"
         animate={{
           opacity: isExpanded ? 1 : 0,
         }}
@@ -488,7 +490,7 @@ export const Socials = () => {
           >
             <Image src="/upwork.svg" width={27} height={27} alt="SVG Logo" />
           </motion.a>
-        </motion.div>
+        </motion.div>}
       
     </motion.div>
   )
