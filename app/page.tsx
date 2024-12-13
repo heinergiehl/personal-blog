@@ -419,7 +419,7 @@ export const Socials = () => {
   return (
     <motion.div
       initial={{ opacity: 1 }}
-      whileHover={{ height: "100px" }}
+      whileHover={{ height: "150px" }}
       className="z-30 fixed  left-[85%] md:left-[95%] top-[50%] w-[60px] rounded-full flex flex-col items-center justify-center overflow-hidden cursor-pointer transition-all duration-300 group 
         bg-white dark:bg-slate-900  drop-shadow-[0px_0px_5px_rgba(79,_70,_229,_1)] "
     >
@@ -456,6 +456,14 @@ export const Socials = () => {
           className="text-black dark:text-white text-xl"
         >
           <FaYoutube size={27} />
+        </motion.a>
+        <motion.a
+          href={"https://www.upwork.com/freelancers/~01e359856bc8297a0f"}
+          whileHover={{ scale: 1.3, rotate: -10 }}
+          transition={{ type: "spring", stiffness: 300 }}
+          className="text-black dark:text-white text-xl"
+        >
+          <Image src="/upwork.svg" width={27} height={27} alt="SVG Logo" />
         </motion.a>
       </motion.div>
     </motion.div>
