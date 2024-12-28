@@ -1,6 +1,8 @@
 import { motion } from "framer-motion"
-import { GridContainer, Card as BentoCard } from "../landingPage/bento/grid"
+
 import useMousePosition from "@/utils/useMousePosition"
+import { BentoCard } from "../landingPage/bento"
+import GridContainer from "../landingPage/bento/grid"
 
 const Projects = () => {
   return (
