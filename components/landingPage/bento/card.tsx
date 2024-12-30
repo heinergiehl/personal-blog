@@ -30,7 +30,7 @@ function BentoCard({
 
   gradientOpacity = 0.8,
   gradientFrom = "#4f16eb",
-  gradientTo = "#cf08f3",
+  gradientTo = "#4b0358",
   image,
   images,
   title,

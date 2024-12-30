@@ -454,8 +454,8 @@ export const ThreeDGlowGrid = ({
     >
       <Canvas camera={{ position: cameraPosition, fov }}>
         <ambientLight intensity={1.2} />
- 
-        <spotLight intensity={1} position={[0, 0,1]} />
+
+        <spotLight intensity={1} position={[0, 0, 1]} />
         <Suspense fallback={null}>
           <Scene
             startFormation={startFormation}
@@ -492,31 +492,30 @@ export const ThreeDGlowGrid = ({
 // Example usage page
 const Page = () => {
   return (
-
-      <ThreeDGlowGrid
-        gridSize={12}
-        spacing={6.5}
-        cubeSize={4.9}
-        depth={4.7}
-        baseHighlight={0.75}
-        neighborRadius={10.0}
-        chaosRange={150}
-        formationDuration={2}
-        chaosDuration={2}
-        highlightIntensity={1.0}
-        neighborHighlightIntensity={2.0}
-        neighborScale={1.3}
-        mainScale={1.2}
-        mainPopZ={5.0}
-        neighborPopZ={2.0}
-        intersectionThreshold={0.7}
-        cameraPosition={[0, 0, 40]}
-        fov={25}
-        baseColor={[1.0, 0.0, 1.0]}
-        mainSpread={8.0}
-        neighborSpread={4.0}
-        revertOnFade={true} // Try toggling this between true and false
-      />
+    <ThreeDGlowGrid
+      gridSize={12}
+      spacing={1.5}
+      cubeSize={2.9}
+      depth={2.7}
+      baseHighlight={0.75}
+      neighborRadius={5.0}
+      chaosRange={50}
+      formationDuration={2}
+      chaosDuration={2}
+      highlightIntensity={1.0}
+      neighborHighlightIntensity={2.0}
+      neighborScale={1.3}
+      mainScale={1.2}
+      mainPopZ={5.0}
+      neighborPopZ={2.0}
+      intersectionThreshold={0.7}
+      cameraPosition={[0, 0, 40]}
+      fov={20}
+      baseColor={[1.0, 0.0, 1.0]}
+      mainSpread={8.0}
+      neighborSpread={4.0}
+      revertOnFade={true} // Try toggling this between true and false
+    />
   )
 }
 

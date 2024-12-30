@@ -2,12 +2,13 @@ import { FaCode, FaDatabase } from "react-icons/fa"
 import { Card } from "../landingPage/card/card"
 import Spotlight from "../landingPage/card/spotlight"
 import { IoLogoFigma } from "react-icons/io5"
+import { GitHubLogoIcon } from "@radix-ui/react-icons"
 
 const Skills = () => {
   return (
     <section
-      id="skills"
-      className=" p-8 bg-gradient-to-r from-white via-gray-100 to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-black rounded-lg shadow-lg mt-16"
+      id="Skills"
+      className="min-h-screen p-8 bg-gradient-to-r from-white via-gray-100 to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-black rounded-lg shadow-lg mt-16"
     >
       <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-6 text-center">
         Areas Of Expertise
@@ -25,11 +26,12 @@ const Skills = () => {
           descriptionHeader="Expertise in Backend Development"
           description="I specialize in backend technologies like Python (Flask), Node.js, and Laravel. From Websockets to Task Scheduling, I deliver robust server-side solutions."
         />
+
         <Card
-          icon={<IoLogoFigma size={40} />}
-          title="Some Design Skills"
-          descriptionHeader="Design Skills"
-          description="Some foundational skills in UI/UX design, Figma. I can create wireframes, prototypes, and design systems."
+          icon={<GitHubLogoIcon height={40} width={40} />}
+          title="CI/CD"
+          descriptionHeader="Currently learning CI/CD"
+          description="Currently learning continuous integration and continuous deployment practices to automate the software delivery process using GitHub-Actions."
         />
       </Spotlight>
     </section>

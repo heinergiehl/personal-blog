@@ -98,8 +98,6 @@ code[data-line-numbers-max-digits="3"] > [data-line]::before {
   border-left-color: rgb(96 165 250 / var(--tw-border-opacity));
 }
 
-[data-highlighted-chars]{
+[data-highlighted-chars] {
   background-color: rgb(160, 160, 144);
 }
-
-

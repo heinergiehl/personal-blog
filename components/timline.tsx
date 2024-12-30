@@ -123,11 +123,9 @@ export default function Timeline() {
 
   return (
     <section
-      id="timeline"
+      id="Timeline"
       ref={containerRef}
-      // Minimizing scroll so first item appears quicker:
-
-      className="relative flex flex-col px-4 md:px-20 py-16 mt-16
+      className="relative flex flex-col px-4 md:px-20 py-16 mt-24
                  bg-gradient-to-r from-white via-gray-100 to-gray-50 
                  dark:from-gray-800 dark:via-gray-900 dark:to-black"
     >
@@ -135,17 +133,10 @@ export default function Timeline() {
       {/* <div className="absolute inset-0">
         <HexGridBackground />
       </div> */}
-      {/* Top progress bar (optional) */}
-      <div className="fixed top-0 left-0 w-full h-1 bg-gray-300 z-50">
-        <motion.div
-          className="h-1 bg-gradient-to-r from-blue-500 to-purple-500"
-          style={{ scaleX: scrollYProgress, originX: 0 }}
-        />
-      </div>
 
       {/* Heading */}
       <h2 className="text-3xl font-bold text-center text-slate-800 dark:text-slate-100 mb-12">
-        Professional Timeline
+        Carreer
       </h2>
 
       {/* Sticky timeline line pinned in the center of the viewport */}
@@ -154,7 +145,7 @@ export default function Timeline() {
         className="pointer-events-none bg-gradient-to-b from-blue-300 to-purple-300 w-1"
         style={{
           position: "sticky",
-          top: "0%", // pin at vertical center
+          top: "12%", // pin at vertical center
           left: "50%",
           transform: "translate(-50%, -50%)", // center horizontally and vertically
           height: "80vh", // shorter so you don't have to scroll too far
@@ -167,7 +158,7 @@ export default function Timeline() {
       <div className="relative max-w-4xl mx-auto mt-16 space-y-24 mb-32">
         {timelineData.map((item, idx) => {
           const ie = itemRefs.current[idx]
-          console.log(ie?.getBoundingClientRect())
+
           const isEven = idx % 2 === 0
           const isActive = !!activatedIndices[idx] // has the line "hit" this item?
           const isDotActive = !!dotActivatedIndices[idx] // has the line "hit" this item's dot?
@@ -222,7 +213,7 @@ export default function Timeline() {
                 }`}
               >
                 <motion.div
-                  className="bg-white/60 dark:bg-gray-800/60 
+                  className="bg-white/40 dark:bg-gray-800/60 
                              backdrop-blur-sm p-6 rounded-xl 
                              shadow-lg hover:shadow-2xl 
                              transition-shadow duration-300"
