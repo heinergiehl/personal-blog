@@ -1,6 +1,6 @@
 const SiteConfig = {
-  title: "HeinerDevelops",
-  description: "Programming With Harry is a blog for your programming doubts",
+  title: "HeinerDevelops-Portfolio/Blog",
+  description: "Check out my services and portfolio",
 }
 
 export default SiteConfig
