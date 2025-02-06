@@ -8,11 +8,11 @@ const AboutMe = () => {
       whileInView={{ opacity: 1, y: 0 }}
       initial={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.5, threshold: 1, once: false }}
-      id="AboutMe"
+      id="About Me"
       className="
     
       
-      min-h-[50vh] flex flex-col items-center justify-center p-8 mt-24 bg-gradient-to-r from-white via-gray-100 to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-black rounded-lg shadow-lg"
+       min-h-[50vh] flex flex-col items-center justify-center p-8 mt-24 bg-gradient-to-r from-white via-gray-100 to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-black rounded-lg shadow-lg"
     >
       <motion.h2
         className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6"

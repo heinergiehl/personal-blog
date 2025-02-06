@@ -60,7 +60,7 @@ const ScrollIndicatorWithSections = () => {
             }}
           >
             {/* Optional Label */}
-            <span className="backdrop-blur-md bg-slate-300/40 absolute top-1/2 -translate-y-1/2 left-6 text-xs p-1 rounded-md text-slate-900 dark:text-slate-300 dark:text-gray-300">
+            <span className="backdrop-blur-md bg-slate-300/40 absolute top-1/2 -translate-y-1/2 left-6 text-xs p-1 rounded-md text-slate-900 dark:text-slate-300 whitespace-nowrap">
               {section.id}
             </span>
           </motion.div>
