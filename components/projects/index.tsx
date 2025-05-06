@@ -1,9 +1,7 @@
 import { motion } from "framer-motion"
-
 import useMousePosition from "@/utils/useMousePosition"
 import { BentoCard } from "../landingPage/bento"
 import GridContainer from "../landingPage/bento/grid"
-
 const Projects = () => {
   return (
     <section
@@ -57,9 +55,28 @@ const Projects = () => {
           description="Chat with files and images with this tool. First time using AI-APIs like OpenAI ChatGPT or Google Gemini in a project. Properly parsing, rendering PDFS was a challenge."
           cardCSS="col-span-12 row-span-1 rounded-lg transition-all duration-300 hover:shadow-lg"
         />
+        <BentoCard
+          techStackList={[
+            "NextJS",
+            "ReactJs",
+            "TailwindCSS",
+            "Shadcn",
+            "TRPC",
+            "TanstackQuery",
+            "Drizzle ORM",
+          ]}
+          title="Tech Stack"
+          cardCSS="col-span-4 row-span-1 rounded-lg transition-all duration-300 hover:shadow-lg"
+        />
+        <BentoCard
+          link={"https://canva-clone.heinerdevelops.tech/"}
+          image={"/canva-clone.png"}
+          title="Chat with Files"
+          description="Chat with files and images with this tool. First time using AI-APIs like OpenAI ChatGPT or Google Gemini in a project. Properly parsing, rendering PDFS was a challenge."
+          cardCSS="col-span-8 row-span-1 rounded-lg transition-all duration-300 hover:shadow-lg"
+        />
       </GridContainer>
     </section>
   )
 }
-
 export default Projects

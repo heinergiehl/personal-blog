@@ -10,7 +10,6 @@ type CardProps = {
   image?: string
   icon?: React.ReactNode
 }
-
 export const Card = ({
   className = "",
   title,
@@ -36,15 +35,14 @@ export const Card = ({
         >
           <div className="absolute inset-0 translate-z-0 bg-slate-50 dark:bg-slate-800 rounded-full blur-[80px]"></div>
         </div>
-        <div className="flex flex-col h-full items-center text-center justify-center">
+        <div className="flex flex-col h-full items-center  justify-center">
           {/* Image */}
           <div className="relative inline-flex">
             <div
               className="w-[40%] h-[40%] absolute inset-0 m-auto -translate-y-[10%] blur-3xl -z-10 rounded-full bg-indigo-600"
               aria-hidden="true"
             ></div>
-            <div className="flex justify-center items-center gap-4">
-              {" "}
+            <div className="flex justify-center items-center gap-x-2">
               <div className=" ">{icon}</div> {title}
             </div>
             {image && (

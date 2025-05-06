@@ -1,21 +1,17 @@
 import { motion } from "framer-motion"
 import { useEffect, useState } from "react"
-
 const ScrollIndicatorWithSections = () => {
   const [sections, setSections] = useState<HTMLElement[]>([])
   const [currentSection, setCurrentSection] = useState<string | null>(null)
-
   useEffect(() => {
     // Dynamically find all sections in the document
     const sectionElements = Array.from(document.querySelectorAll("section"))
     setSections(sectionElements)
-
     // Observer to track which section is in view
     const observer = new IntersectionObserver(
       (entries) => {
         // Filter for visible sections
         const visibleEntries = entries.filter((entry) => entry.isIntersecting)
-
         if (visibleEntries.length > 0) {
           // Prioritize section closest to the top of the viewport
           const nearestSection = visibleEntries.reduce((prev, curr) => {
@@ -30,16 +26,13 @@ const ScrollIndicatorWithSections = () => {
         threshold: 0.3,
       }
     )
-
     sectionElements.forEach((section) => observer.observe(section))
-
     return () => {
       sectionElements.forEach((section) => observer.unobserve(section))
     }
   }, [])
-
   return (
-    <div className="fixed top-20 left-0 h-[85vh] w-12 flex flex-col items-center justify-center z-50 ">
+    <div className="hidden fixed top-20 left-0 h-[85vh] w-12 md:flex flex-col items-center justify-center z-50 ">
       {/* Full Height Vertical Line */}
       <div className="relative h-full w-1 bg-gray-300 rounded-lg flex justify-center">
         {/* Dynamic Section Indicators */}
@@ -69,5 +62,4 @@ const ScrollIndicatorWithSections = () => {
     </div>
   )
 }
-
 export default ScrollIndicatorWithSections

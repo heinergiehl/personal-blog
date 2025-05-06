@@ -1,19 +1,17 @@
 import { FaCode, FaDatabase } from "react-icons/fa"
 import { Card } from "../landingPage/card/card"
 import Spotlight from "../landingPage/card/spotlight"
-import { IoLogoFigma } from "react-icons/io5"
 import { GitHubLogoIcon } from "@radix-ui/react-icons"
-
 const Skills = () => {
   return (
     <section
       id="Skills"
-      className="min-h-screen p-8 bg-gradient-to-r from-white via-gray-100 to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-black rounded-lg shadow-lg mt-16"
+      className="min-h-screen bg-gradient-to-r from-white via-gray-100 to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-black rounded-lg shadow-lg mt-16"
     >
-      <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-6 text-center">
+      <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-6 text-center p-8 ">
         Areas Of Expertise
       </h2>
-      <Spotlight className="max-w-xl mx-auto grid gap-6 grid-cols-1 lg:grid-cols-3 items-start lg:max-w-none group p-20">
+      <Spotlight className="max-w-xl mx-auto grid gap-6 grid-cols-1 lg:grid-cols-3 items-start lg:max-w-none group lg:p-20">
         <Card
           icon={<FaCode size={40} />}
           title="Frontend Proficiency"
@@ -26,7 +24,6 @@ const Skills = () => {
           descriptionHeader="Expertise in Backend Development"
           description="I specialize in backend technologies like Python (Flask), Node.js, and Laravel. From Websockets to Task Scheduling, I deliver robust server-side solutions."
         />
-
         <Card
           icon={<GitHubLogoIcon height={40} width={40} />}
           title="CI/CD"
@@ -37,5 +34,4 @@ const Skills = () => {
     </section>
   )
 }
-
 export default Skills

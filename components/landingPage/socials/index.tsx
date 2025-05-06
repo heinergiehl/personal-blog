@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { FaGithub, FaYoutube } from "react-icons/fa"
@@ -10,7 +9,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-
 /** Reusable tooltip wrapper (ShadCN/UI). */
 function ReusableTooltip({
   content,
@@ -28,12 +26,10 @@ function ReusableTooltip({
     </Tooltip>
   )
 }
-
 export const Socials = () => {
   const [isExpanded, setIsExpanded] = useState(false)
   // A ref to store the timeout ID so we can cancel it if the user re-enters quickly
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
   /** Expand immediately on mouse enter (cancel any pending close). */
   const handleMouseEnter = () => {
     if (closeTimerRef.current) {
@@ -42,7 +38,6 @@ export const Socials = () => {
     }
     setIsExpanded(true)
   }
-
   /** When leaving, wait ~200ms before collapsing to avoid flicker. */
   const handleMouseLeave = () => {
     closeTimerRef.current = setTimeout(() => {
@@ -50,7 +45,6 @@ export const Socials = () => {
       closeTimerRef.current = null
     }, 200)
   }
-
   return (
     <TooltipProvider>
       <motion.div
@@ -62,13 +56,13 @@ export const Socials = () => {
         animate={{ height: isExpanded ? "240px" : "60px" }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className="z-30 fixed left-[76%] md:left-[95%] top-[50%] 
-                   md:w-[60px] w-[100px] rounded-full
+        className="z-30 fixed left-[calc(100dvw-80px)] top-[50%] 
+                 w-[60px]  rounded-full
                    flex flex-col items-center justify-center
                    overflow-hidden cursor-pointer
                    bg-white dark:bg-slate-900
                    drop-shadow-[0px_0px_5px_rgba(79,_70,_229,_1)]
-                   transition-all duration-300"
+                   "
       >
         {/* Shiny/Blurry Border */}
         <div
@@ -76,7 +70,6 @@ export const Socials = () => {
                      bg-gradient-to-br from-pink-500/50 via-purple-500/20 to-transparent
                      dark:from-purple-700/50 dark:via-black/40 dark:to-transparent"
         />
-
         {/*
           "Socials" label is always rendered. We fade/scale it out when expanded,
           so it won't flicker in/out abruptly.
@@ -92,7 +85,6 @@ export const Socials = () => {
         >
           Socials
         </motion.div>
-
         {/*
           Icons only appear while expanded.
           Using <AnimatePresence> for fade-in/out transitions.
@@ -120,7 +112,6 @@ export const Socials = () => {
                   <FaGithub size={20} />
                 </motion.a>
               </ReusableTooltip>
-
               <ReusableTooltip content="My new GitHub account (actively used) 🤩">
                 <motion.a
                   whileHover={{ scale: 1.3, rotate: 10 }}
@@ -133,7 +124,6 @@ export const Socials = () => {
                   <FaGithub size={27} />
                 </motion.a>
               </ReusableTooltip>
-
               <ReusableTooltip content="My YouTube channel">
                 <motion.a
                   href="https://www.youtube.com/@codingislove3707"
@@ -146,7 +136,6 @@ export const Socials = () => {
                   <FaYoutube size={27} />
                 </motion.a>
               </ReusableTooltip>
-
               <ReusableTooltip content="Hire me on Upwork">
                 <motion.a
                   href="https://www.upwork.com/freelancers/~01e359856bc8297a0f"

@@ -5,7 +5,6 @@ type SpotlightProps = {
   children: React.ReactNode
   className?: string
 }
-
 export default function Spotlight({
   children,
   className = "",
@@ -37,7 +36,6 @@ export default function Spotlight({
       containerSize.current.h = containerRef.current.offsetHeight
     }
   }
-
   const onMouseMove = () => {
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect()
@@ -59,26 +57,23 @@ export default function Spotlight({
       }
     }
   }
-
   return (
     <div className={className} ref={containerRef}>
       {children}
     </div>
   )
 }
-
 type SpotlightCardProps = {
   children: React.ReactNode
   className?: string
 }
-
 export function SpotlightCard({
   children,
   className = "",
 }: SpotlightCardProps) {
   return (
     <div
-      className={`relative h-full bg-slate-800 rounded-3xl p-px before:absolute before:w-80 before:h-80 before:-left-40 before:-top-40 dark:before:bg-slate-400 before:bg-slate-50 before:rounded-full before:opacity-0 before:pointer-events-none before:transition-opacity before:duration-500 before:translate-x-[var(--mouse-x)] before:translate-y-[var(--mouse-y)] before:group-hover:opacity-100 before:z-10 before:blur-[100px] after:absolute after:w-96 after:h-96 after:-left-48 after:-top-48 after:bg-indigo-700 after:rounded-full after:opacity-0 after:pointer-events-none after:transition-opacity after:duration-500 after:translate-x-[var(--mouse-x)] after:translate-y-[var(--mouse-y)] after:hover:opacity-10 after:z-30 after:blur-[100px] overflow-hidden ${className}`}
+      className={`relative h-full  bg-slate-800 rounded-none lg:rounded-3xl p-px before:absolute before:w-80 before:h-80 before:-left-40 before:-top-40 dark:before:bg-slate-400 before:bg-slate-50 before:rounded-full before:opacity-0 before:pointer-events-none before:transition-opacity before:duration-500 before:translate-x-[var(--mouse-x)] before:translate-y-[var(--mouse-y)] before:group-hover:opacity-100 before:z-10 before:blur-[100px] after:absolute after:w-96 after:h-96 after:-left-48 after:-top-48 after:bg-indigo-700 after:rounded-full after:opacity-0 after:pointer-events-none after:transition-opacity after:duration-500 after:translate-x-[var(--mouse-x)] after:translate-y-[var(--mouse-y)] after:hover:opacity-10 after:z-30 after:blur-[100px] overflow-hidden ${className}`}
     >
       {children}
     </div>
