@@ -37,24 +37,25 @@ const Projects = () => {
           cardCSS="col-span-5 row-span-1 rounded-lg transition-all duration-300 hover:shadow-lg"
         />
         <BentoCard
-          techStackList={["NextJS", "ReactJs", "TailwindCSS", "Framer Motion"]}
+          techStackList={[
+            "NextJS",
+            "ReactJs",
+            "TailwindCSS",
+            "Framer Motion",
+            "FabricJS",
+            "FFMPEG.wasm",
+          ]}
           title="Tech Stack"
           cardCSS="col-span-4 row-span-1 rounded-lg transition-all duration-300 hover:shadow-lg"
         />
         <BentoCard
-          link={"https://www.gifmagic.app/"}
+          link={"https://gif-creator.heinerdevelops.tech"}
           image="/gifmagic.png"
           title="GIF Editor"
-          description="Create and edit GIFs with this tool. Fun experiment using FabricJS for the first time to edit GIFs on a canvas"
+          description="I tried to create a tool, which allows to turn videos into GIFs, and edit them frame by frame by mainly using FabricJS. I used FFMPEG.wasm for video-to-GIF conversion, as well as for creating the final GIF. Everything is done in the browser. "
           cardCSS="col-span-8 row-span-1 rounded-lg transition-all duration-300 hover:shadow-lg"
         />
-        <BentoCard
-          link={"https://filetalky.com/"}
-          images={["/filetalky1.png", "/filetalky2.png"]}
-          title="Chat with Files"
-          description="Chat with files and images with this tool. First time using AI-APIs like OpenAI ChatGPT or Google Gemini in a project. Properly parsing, rendering PDFS was a challenge."
-          cardCSS="col-span-12 row-span-1 rounded-lg transition-all duration-300 hover:shadow-lg"
-        />
+
         <BentoCard
           techStackList={[
             "NextJS",
@@ -64,6 +65,9 @@ const Projects = () => {
             "TRPC",
             "TanstackQuery",
             "Drizzle ORM",
+            "PostgreSQL",
+            "Clerk",
+            "FabricJS",
           ]}
           title="Tech Stack"
           cardCSS="col-span-4 row-span-1 rounded-lg transition-all duration-300 hover:shadow-lg"
@@ -71,9 +75,21 @@ const Projects = () => {
         <BentoCard
           link={"https://canva-clone.heinerdevelops.tech/"}
           image={"/canva-clone.png"}
-          title="Chat with Files"
-          description="Chat with files and images with this tool. First time using AI-APIs like OpenAI ChatGPT or Google Gemini in a project. Properly parsing, rendering PDFS was a challenge."
+          title="Canva Clone"
+          description="Trying to build a fullstack app, which feels like canva.com."
           cardCSS="col-span-8 row-span-1 rounded-lg transition-all duration-300 hover:shadow-lg"
+        />
+        <BentoCard
+          link={"https://canva-clone.heinerdevelops.tech/"}
+          image={"/three-carousel.png"}
+          title="ThreeJS Carousel"
+          description="I tried to build a carousel using ThreeJS and GSAP. For some cool effects, I used Shaders/GLSL. This was a fun experiment to learn more about ThreeJS and Shaders."
+          cardCSS="col-span-8  rounded-lg transition-all duration-300 hover:shadow-lg"
+        />
+        <BentoCard
+          techStackList={["ReactJs", "GSAP", "ThreeJS", "Shaders/GLSL"]}
+          title="Tech Stack"
+          cardCSS="col-span-4 rounded-lg transition-all duration-300 hover:shadow-lg "
         />
       </GridContainer>
     </section>

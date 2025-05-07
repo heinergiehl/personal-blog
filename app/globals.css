@@ -1,7 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -30,7 +29,6 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
   }
-
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
@@ -58,7 +56,6 @@
     --chart-5: 340 75% 55%;
   }
 }
-
 @layer base {
   * {
     @apply border-border;
@@ -67,15 +64,12 @@
     @apply bg-background text-foreground;
   }
 }
-
 code {
   counter-reset: line;
 }
-
 code > [data-line]::before {
   counter-increment: line;
   content: counter(line);
-
   /* Other styling */
   display: inline-block;
   width: 1rem;
@@ -83,21 +77,21 @@ code > [data-line]::before {
   text-align: right;
   color: gray;
 }
-
 code[data-line-numbers-max-digits="2"] > [data-line]::before {
   width: 2rem;
 }
-
 code[data-line-numbers-max-digits="3"] > [data-line]::before {
   width: 3rem;
 }
-
 [data-highlighted-line] {
   background: #c8c8ff1a;
   --tw-border-opacity: 1;
   border-left-color: rgb(96 165 250 / var(--tw-border-opacity));
 }
-
 [data-highlighted-chars] {
   background-color: rgb(160, 160, 144);
+}
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 4rem; 
 }

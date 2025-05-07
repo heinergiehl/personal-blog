@@ -7,7 +7,7 @@ interface GridContainerProps {
 
 const GridContainer = ({
   children,
-  gridCSS = "grid max-w-6xl md:w-full overflow-hidden grid-flow-dense grid-cols-12 md:gap-8 grid-rows-3 gap-2 h-full md:p-40",
+  gridCSS = "grid max-w-6xl md:w-full overflow-hidden  grid-cols-12 md:gap-8  gap-2 md:p-40",
 }: GridContainerProps) => {
   return <div className={`relative mx-auto ${gridCSS}`}>{children}</div>
 }

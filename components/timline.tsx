@@ -1,100 +1,106 @@
 "use client"
 import React, { useRef, useState, useEffect } from "react"
-import {
-  motion,
-  useScroll,
-  useTransform,
-  useSpring,
-  animate,
-} from "framer-motion"
+import { motion, useScroll, useTransform, useSpring } from "framer-motion"
+import { cn } from "@/lib/utils"
+import { is } from "@react-three/fiber/dist/declarations/src/core/utils"
+
 interface TimelineItem {
   title: string
   company: string
   timeframe: string
   description: string
 }
+
 const timelineData: TimelineItem[] = [
   {
     title: "Freelancing Fullstack Web Developer",
     company: "Self-employed",
     timeframe: "01.2022 - Present",
     description:
-      "Providing full-stack web development services, including frontend and backend solutions. Specializing in modern frameworks such as ReactJS, NextJS, and NestJS.",
+      "Providing full-stack web development services, including frontend and backend solutions. Specializing in modern frameworks such as ReactJS, NextJS, and NestJS, Laravel",
   },
   {
     title: "Intern - Application Development",
     company: "Unternehmen.online",
     timeframe: "05.2021 - 08.2021",
     description:
-      "Gained practical experience in application development. Focused on modern web technologies and best practices.",
+      "Gained practical experience in application development. Focused on modern web technologies, such as Laravel, and best practices.",
   },
   {
     title: "Self-study: Web Development",
     company: "Self-initiated",
     timeframe: "05.2019 - 05.2021",
-    description:
-      "Dedicated self-study in web development, mastering frontend and backend frameworks, databases, and deployment tools.",
+    description: `Dedicated self-study in web development, including the basics of HTML, CSS, JavaScript, PHP, relational and non-relational databases. Developed a strong foundation in frontend and backend technologies.
+
+      `,
   },
 ]
+
 export default function Timeline() {
   const containerRef = useRef<HTMLDivElement | null>(null)
-  // UseScroll for the overall section
+  const timelineLineRef = useRef<HTMLDivElement | null>(null)
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([])
+
+  // Track which items have hit the card-border, and which have hit the dot
+  const [cardActivated, setCardActivated] = useState<Record<number, boolean>>(
+    {}
+  )
+  const [dotActivated, setDotActivated] = useState<Record<number, boolean>>({})
+
+  // scroll → normalize 0→1 across the section
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start end", "end start"],
+    offset: ["start start", "end end"],
   })
-  // Map scroll progress to scale for the line
+  // line grows over first 25% of scroll
   const rawLineScale = useTransform(scrollYProgress, [0, 1], [0, 1])
   const lineScale = useSpring(rawLineScale, {
     stiffness: 150,
     damping: 20,
     mass: 1.5,
   })
-  // Refs for each timeline item so we can detect intersection
-  const itemRefs = useRef<(HTMLDivElement | null)[]>([])
-  const timelineLineRef = useRef<HTMLDivElement | null>(null)
-  // Track which items are "activated" (the line has hit them)
-  const [activatedIndices, setActivatedIndices] = useState<
-    Record<number, boolean>
-  >({})
-  const [dotActivatedIndices, setDotActivatedIndices] = useState<
-    Record<number, boolean>
-  >({})
-  // Intersection logic: the line is pinned at center, so we check each item’s bounding box
+
+  // on scroll, check each card's top and its dot-center vs the line's bottom
   useEffect(() => {
     function handleScroll() {
-      const centerY = window.innerHeight / 2 // Center of the viewport
-      const lineRect = timelineLineRef.current?.getBoundingClientRect()
+      if (!timelineLineRef.current) return
+      const lineBottom = timelineLineRef.current.getBoundingClientRect().bottom
+
+      // 1) Build card map & remember only the last dot‐hit index
+      const newCard: Record<number, boolean> = {}
+      let lastHit: number | null = null
+
       itemRefs.current.forEach((ref, idx) => {
-        if (!ref || !lineRect) return
-        const itemRect = ref.getBoundingClientRect()
-        const dotRect = {
-          top: itemRect.top + itemRect.height / 2 - 3, // Dot center (adjust as needed)
-          bottom: itemRect.top + itemRect.height / 2 + 3, // Dot center + some range
-          left: lineRect.left,
-          right: lineRect.right,
+        if (!ref) return
+        const { top, height } = ref.getBoundingClientRect()
+        const cardTop = top
+        const dotCenterY = top + height / 2
+
+        // card becomes active once the line passes its top
+        newCard[idx] = lineBottom >= cardTop
+
+        // record this idx if the line has reached its dot
+        if (lineBottom >= dotCenterY) {
+          lastHit = idx
         }
-        const isIntersecting =
-          dotRect.top <= lineRect.bottom && dotRect.bottom >= lineRect.top
-        // Update dot activation
-        setDotActivatedIndices((prev) => ({
-          ...prev,
-          [idx]: isIntersecting,
-        }))
-        // Update card activation (as before), but with threshhold, so it doesn't flicker and stays active longer
-        const isCardIntersecting =
-          itemRect.top <= centerY && itemRect.bottom >= centerY - 150
-        setActivatedIndices((prev) => ({
-          ...prev,
-          [idx]: isCardIntersecting,
-        }))
       })
+
+      // 2) Build dot map with only that lastHit index
+      const newDot: Record<number, boolean> = {}
+      if (lastHit !== null) {
+        newDot[lastHit] = true
+        newCard[lastHit] ||= true // ensure its card is active too
+      }
+
+      setCardActivated(newCard)
+      setDotActivated(newDot)
     }
+
     window.addEventListener("scroll", handleScroll, { passive: true })
-    handleScroll() // Initial check
+    handleScroll()
     return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-  // Dot, and Timeframe variants
+  }, [timelineLineRef, itemRefs, containerRef, scrollYProgress, lineScale])
+
   const dotVariants = {
     hidden: { scale: 0, opacity: 0 },
     show: { scale: 1, opacity: 1 },
@@ -103,76 +109,72 @@ export default function Timeline() {
     hidden: { opacity: 0, x: isEven ? 80 : -80 },
     show: { opacity: 1, x: 0 },
   })
+
   return (
     <section
       id="Timeline"
       ref={containerRef}
-      className="   relative flex flex-col md:px-20 py-16 mt-24
+      className="h-[calc(100vh+1100px)] relative flex flex-col md:px-20 py-16 mt-24
                  bg-gradient-to-r from-white via-gray-100 to-gray-50 
                  dark:from-gray-800 dark:via-gray-900 dark:to-black"
     >
-      {/* The background, absolutely covering the entire section */}
-      {/* <div className="absolute inset-0">
-        <HexGridBackground />
-      </div> */}
-      {/* Heading */}
       <h2 className="text-3xl font-bold text-center text-slate-800 dark:text-slate-100 mb-12">
-        Carreer
+        Career
       </h2>
-      {/* Sticky timeline line pinned in the center of the viewport */}
+
+      {/* Sticky gradient line */}
       <motion.div
         ref={timelineLineRef}
         className="pointer-events-none bg-gradient-to-b from-blue-300 to-purple-300 w-1 absolute left-[calc(50%-2px)] -translate-x-1/2"
         style={{
           position: "sticky",
-          top: "12%", // pin at vertical center
-          transform: "translate(-50%, -50%)", // center horizontally and vertically
-          height: "100vh", // shorter so you don't have to scroll too far
+          top: "12%",
+          transform: "translate(-50%, -50%)",
+          height: "100vh",
           scaleY: lineScale,
           transformOrigin: "top center",
         }}
       />
+
       {/* Timeline Items */}
-      <div className="relative max-w-4xl mx-auto mt-16 space-y-24 mb-32">
+      <div className="absolute md:space-y-[150px] inset-0 max-w-4xl m-auto h-full md:mt-[400px] mt-[420px]">
         {timelineData.map((item, idx) => {
-          const ie = itemRefs.current[idx]
           const isEven = idx % 2 === 0
-          const isActive = !!activatedIndices[idx] // has the line "hit" this item?
-          const isDotActive = !!dotActivatedIndices[idx] // has the line "hit" this item's dot?
+          const showCard = !!cardActivated[idx]
+
+          const showDot = !!dotActivated[idx]
           return (
             <motion.div
               key={idx}
               ref={(el) => {
                 itemRefs.current[idx] = el
-              }} // store ref
-              className={`relative flex flex-col md:flex-row items-start md:items-center md:justify-stretch justify-center   ${
-                isEven ? "md:flex-row  " : "md:flex-row-reverse  "
+              }}
+              className={`relative flex flex-col md:flex-row items-start md:items-center  ${
+                isEven ? "md:flex-row" : "md:flex-row-reverse"
               }`}
-              initial={{ opacity: 0 }}
-              animate={
-                isActive && activatedIndices[idx]
-                  ? { opacity: 1, y: 0 }
-                  : { opacity: 0 } // fade out if not active
-              }
+              initial={{ opacity: 0, y: 20 }}
+              animate={showCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
             >
-              {/* The Dot in the center line */}
+              {/* Dot */}
               <motion.div
-                className="absolute left-[calc(50%-0.75rem)]  w-6 h-6 rounded-full
-                           bg-white border-4 border-blue-500 shadow-md -z-0"
+                className="absolute top-1/2 left-[calc(50%-0.75rem)] 
+             -translate-y-1/2 w-6 h-6 rounded-full
+             bg-white border-4 border-blue-500 shadow-md -z-0"
                 variants={dotVariants}
                 initial="hidden"
-                animate={isDotActive ? "show" : "hidden"}
-                transition={{ duration: 0.6, delay: idx * 0.1 }}
+                animate={showDot ? "show" : "hidden"}
+                transition={{ duration: 0.6 }}
               />
-              {/* Timeframe (desktop), on opposite side */}
+
+              {/* Timeframe (desktop) */}
               <motion.div
                 className={`hidden md:block absolute top-1/2 -translate-y-1/2 ${
                   isEven ? "right-[2.5rem]" : "left-[2.5rem]"
                 }`}
                 variants={timeframeVariants(isEven)}
                 initial="hidden"
-                animate={isActive ? "show" : "hidden"}
+                animate={showCard ? "show" : "hidden"}
                 transition={{
                   duration: 0.8,
                   ease: "easeOut",
@@ -183,17 +185,21 @@ export default function Timeline() {
                   {item.timeframe}
                 </span>
               </motion.div>
+
               {/* Card */}
               <div
                 className={`relative md:w-1/2 mt-8 md:mt-0 transition-size duration-500 p-5 ${
                   isEven ? "md:ml-10" : "md:mr-10"
-                }${isDotActive ? " scale-[100%]" : " scale-[80%]"} `}
+                }`}
+                style={{
+                  scale: showDot ? 1 : showCard ? 0.9 : 0.9,
+                }}
               >
                 <motion.div
-                  className="bg-white/40 dark:bg-gray-800/60 
+                  className={cn(`bg-white/40 dark:bg-gray-800/60 
                              backdrop-blur-sm p-6 md:rounded-xl 
                              shadow-lg hover:shadow-2xl 
-                             transition-shadow duration-300"
+                             transition-shadow duration-300`)}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: "spring", stiffness: 200, damping: 15 }}
                 >
@@ -203,7 +209,6 @@ export default function Timeline() {
                   <h4 className="text-base font-medium text-gray-600 dark:text-gray-300 mb-4">
                     {item.company}
                   </h4>
-                  {/* Timeframe in the card for mobile */}
                   <span className="text-sm text-gray-500 dark:text-gray-400 mb-4 block uppercase tracking-wide md:hidden">
                     {item.timeframe}
                   </span>

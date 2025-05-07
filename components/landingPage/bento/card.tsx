@@ -126,7 +126,7 @@ function BentoCard({
         {image && (
           <div className="relative flex items-center justify-center m-1">
             <Image
-              className="rounded-t-lg object-contain w-full"
+              className="rounded-t-lg object-cover w-full"
               src={image}
               alt={title}
               width={300}
@@ -137,7 +137,7 @@ function BentoCard({
         {images && images.length > 1 && (
           <div className="relative flex items-center justify-center m-1">
             <Image
-              className="rounded-t-lg w-full h-[200px] first:rounded-t-md first:rounded-r-none"
+              className="rounded-t-lg w-full h-[200px]   first:rounded-r-none"
               src={images[0]}
               alt={title}
               width={300}

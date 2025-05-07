@@ -22,13 +22,13 @@ const Skills = () => {
           icon={<FaDatabase size={40} />}
           title="Backend Proficiency"
           descriptionHeader="Expertise in Backend Development"
-          description="I specialize in backend technologies like Python (Flask), Node.js, and Laravel. From Websockets to Task Scheduling, I deliver robust server-side solutions."
+          description="I specialize in backend technologies like Python (Flask), Node.js, and Laravel. From Websockets to Task Scheduling, I deliver robust server-side solutions. Familiar with RESTful APIs, GraphQL, and database management (PostgreSQL, MongoDB)."
         />
         <Card
           icon={<GitHubLogoIcon height={40} width={40} />}
           title="CI/CD"
           descriptionHeader="Currently learning CI/CD"
-          description="Currently learning continuous integration and continuous deployment practices to automate the software delivery process using GitHub-Actions."
+          description="Currently learning continuous integration and continuous deployment practices to automate the software delivery process using GitHub-Actions. I am currently experimenting with my own little Hostinger VPS."
         />
       </Spotlight>
     </section>
