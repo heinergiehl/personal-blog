@@ -80,7 +80,7 @@ const Projects = () => {
           cardCSS="col-span-8 row-span-1 rounded-lg transition-all duration-300 hover:shadow-lg"
         />
         <BentoCard
-          link={"https://canva-clone.heinerdevelops.tech/"}
+          link={"https://react-three-carousel.vercel.app/"}
           image={"/three-carousel.png"}
           title="ThreeJS Carousel"
           description="I tried to build a carousel using ThreeJS and GSAP. For some cool effects, I used Shaders/GLSL. This was a fun experiment to learn more about ThreeJS and Shaders."
