@@ -17,7 +17,7 @@ const Skills = () => {
           icon={<FaCode size={40} />}
           title="Frontend Proficiency"
           descriptionHeader="Expertise in Frontend Development"
-          description="Creating dynamic, user-friendly interfaces with React, Next.js, and Vue.js is my passion. I blend creativity with technical expertise to craft modern applications."
+          description="Creating dynamic, user-friendly interfaces with React/Next.js, and Vue.js/Nuxt.js is my passion. I blend creativity with technical expertise to craft modern applications."
         />
         <Card
           icon={<FaDatabase size={40} />}
