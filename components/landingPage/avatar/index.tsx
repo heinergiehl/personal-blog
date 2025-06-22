@@ -6,7 +6,7 @@ const Avatar = () => {
   return (
     <section
       id="Header"
-      className=" min-h-[50vh] relative flex flex-col items-center justify-center p-6 mt-24  rounded-lg  shadow-lg mb-24"
+      className=" min-h-[50vh] relative flex flex-col items-center justify-center p-6 mt-24  rounded-lg  shadow-lg mb-24 z-10"
     >
       <motion.div
         className="relative z-10"

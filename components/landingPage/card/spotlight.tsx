@@ -1,13 +1,14 @@
-"use client"
 import React, { useRef, useState, useEffect } from "react"
 import useMousePosition from "@/utils/useMousePosition"
+import { GRADIENT_FROM, GRADIENT_TO } from "@/config"
+import { motion, useMotionTemplate } from "framer-motion"
 type SpotlightProps = {
   children: React.ReactNode
   className?: string
 }
 export default function Spotlight({
   children,
-  className = "",
+  className = "bg-blue-500 ",
 }: SpotlightProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mousePosition = useMousePosition()
@@ -19,14 +20,14 @@ export default function Spotlight({
       setBoxes(
         Array.from(containerRef.current.children).map((el) => el as HTMLElement)
       )
-  }, [])
+  }, [containerRef.current?.children])
   useEffect(() => {
     initContainer()
     window.addEventListener("resize", initContainer)
     return () => {
       window.removeEventListener("resize", initContainer)
     }
-  }, [setBoxes])
+  }, [setBoxes, containerRef.current?.children])
   useEffect(() => {
     onMouseMove()
   }, [mousePosition])
@@ -42,23 +43,21 @@ export default function Spotlight({
       const { w, h } = containerSize.current
       const x = mousePosition.x - rect.left
       const y = mousePosition.y - rect.top
-      const inside = x < w && x > 0 && y < h && y > 0
-      if (inside) {
-        mouse.current.x = x
-        mouse.current.y = y
-        boxes.forEach((box) => {
-          const boxX =
-            -(box.getBoundingClientRect().left - rect.left) + mouse.current.x
-          const boxY =
-            -(box.getBoundingClientRect().top - rect.top) + mouse.current.y
-          box.style.setProperty("--mouse-x", `${boxX}px`)
-          box.style.setProperty("--mouse-y", `${boxY}px`)
-        })
-      }
+
+      mouse.current.x = x
+      mouse.current.y = y
+      boxes.forEach((box) => {
+        const boxRect = box.getBoundingClientRect()
+        // Calculate mouse position relative to each box
+        const boxX = mousePosition.x - boxRect.left
+        const boxY = mousePosition.y - boxRect.top
+        box.style.setProperty("--mouse-x", `${boxX}px`)
+        box.style.setProperty("--mouse-y", `${boxY}px`)
+      })
     }
   }
   return (
-    <div className={className} ref={containerRef}>
+    <div className={className} ref={containerRef} id="spotlight-container">
       {children}
     </div>
   )
@@ -66,15 +65,58 @@ export default function Spotlight({
 type SpotlightCardProps = {
   children: React.ReactNode
   className?: string
+  cardRef?: React.RefObject<HTMLDivElement>
 }
 export function SpotlightCard({
   children,
+  cardRef,
   className = "",
 }: SpotlightCardProps) {
+  const gradientSize = 200
+  const gradientOpacity = 0.6
+  const gradientColor = "rgba(255, 255, 255, 0.4)"
+  const gradientFrom = GRADIENT_FROM
+  const gradientTo = GRADIENT_TO
   return (
     <div
-      className={`relative h-full  bg-slate-800 rounded-none lg:rounded-3xl p-px before:absolute before:w-80 before:h-80 before:-left-40 before:-top-40 dark:before:bg-slate-400 before:bg-slate-50 before:rounded-full before:opacity-0 before:pointer-events-none before:transition-opacity before:duration-500 before:translate-x-[var(--mouse-x)] before:translate-y-[var(--mouse-y)] before:group-hover:opacity-100 before:z-10 before:blur-[100px] after:absolute after:w-96 after:h-96 after:-left-48 after:-top-48 after:bg-indigo-700 after:rounded-full after:opacity-0 after:pointer-events-none after:transition-opacity after:duration-500 after:translate-x-[var(--mouse-x)] after:translate-y-[var(--mouse-y)] after:hover:opacity-10 after:z-30 after:blur-[100px] overflow-hidden ${className}`}
+      ref={cardRef}
+      id="spotlight-card"
+      style={
+        {
+          "--gradient-from": GRADIENT_FROM,
+          "--gradient-to": GRADIENT_TO,
+          "--blur": "160px",
+        } as React.CSSProperties
+      }
+      className={`
+        relative h-full  rounded-none lg:rounded-3xl p-px overflow-hidden 
+        dark:bg-indigo-700 bg-opacity-50 bg-indigo-400
+       
+     
+        ${className}
+      `}
     >
+      <motion.div
+        className="pointer-events-none absolute inset-px z-30 blur-[100px] rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-10"
+        style={{
+          background: useMotionTemplate`
+            radial-gradient(${gradientSize}px circle at var(--mouse-x) var(--mouse-y), ${gradientColor}, transparent 100%)
+          `,
+          opacity: gradientOpacity,
+        }}
+      />
+      <motion.div
+        className="pointer-events-none absolute  z-0 inset-[0px] rounded-xl duration-300 group-hover:opacity-100"
+        style={{
+          background: useMotionTemplate`
+            radial-gradient(${gradientSize}px circle at var(--mouse-x) var(--mouse-y),
+              ${gradientFrom}, 
+              ${gradientTo}, 
+              transparent 100%
+            )
+          `,
+        }}
+      />
       {children}
     </div>
   )

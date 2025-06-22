@@ -6,9 +6,18 @@ import { useTheme } from "next-themes"
 import { SunIcon, MoonIcon } from "@radix-ui/react-icons"
 
 export function ModeToggle() {
-  const { theme, setTheme } = useTheme()
-  const isDark = theme === "dark"
+  const { resolvedTheme, setTheme } = useTheme()
+  const isDark = resolvedTheme === "dark"
+  const [mounted, setMounted] = React.useState(false)
 
+  React.useEffect(() => {
+    // we’re now on the client
+    setMounted(true)
+  }, [])
+  if (!mounted) {
+    // prevents hydration mismatch
+    return null
+  }
   const handleToggle = () => {
     setTheme(isDark ? "light" : "dark")
   }
