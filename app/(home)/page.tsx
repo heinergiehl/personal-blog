@@ -7,9 +7,10 @@ import Contact from "@/components/landingPage/contact"
 import Avatar from "@/components/landingPage/avatar"
 import AboutMe from "@/components/aboutme"
 import Skills from "@/components/skills"
-import ScrollIndicatorWithSections from "@/components/vertical-scroll-progress"
+
 import { ProjectsWrapper } from "@/components/projects/ProjectsWrapper"
 import React from "react"
+import LivingAuraScrollIndicator from "@/components/vertical-scroll-progress"
 
 const Main = () => {
   const [mounted, setMounted] = React.useState(false)
@@ -24,7 +25,7 @@ const Main = () => {
   }
   return (
     <div className="select-none">
-      <ScrollIndicatorWithSections />
+      <LivingAuraScrollIndicator />
       <div className=" px-4 w-full flex flex-col">
         <Avatar />
         <AboutMe />

@@ -3,7 +3,7 @@ import React, { useRef, useState, useEffect } from "react"
 import { motion, useScroll, useTransform, useSpring } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { dot } from "node:test/reporters"
-import { GRADIENT_FROM, GRADIENT_TO } from "@/config"
+import { COLOR_ONE, COLOR_TWO } from "@/config"
 
 interface TimelineItem {
   title: string
@@ -134,7 +134,7 @@ export default function Timeline() {
           height: "100vh",
           scaleY: lineScale,
           transformOrigin: "top center",
-          background: `linear-gradient(to bottom, ${GRADIENT_FROM}, ${GRADIENT_TO})`,
+          background: `linear-gradient(to bottom, ${COLOR_ONE}, ${COLOR_TWO})`,
         }}
       />
 
@@ -167,7 +167,7 @@ export default function Timeline() {
                 initial="hidden"
                 animate={showDot ? "show" : "hidden"}
                 style={{
-                  borderColor: GRADIENT_FROM,
+                  borderColor: COLOR_ONE,
                 }}
               />
 

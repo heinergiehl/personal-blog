@@ -1,2 +1,2 @@
-export const GRADIENT_FROM = "#4f16eb"
-export const GRADIENT_TO = "#4b0358"
+export const COLOR_ONE = "#4f16eb"
+export const COLOR_TWO = "#4b0358"

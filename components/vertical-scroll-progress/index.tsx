@@ -1,9 +1,6 @@
+import { COLOR_ONE, COLOR_TWO } from "@/config"
 import { motion, useScroll, useSpring, useTransform } from "framer-motion"
 import { useEffect, useState, FC } from "react"
-
-// --- Color Palette ---
-const GRADIENT_FROM = "#4f16eb" // Vibrant Purple
-const GRADIENT_TO = "#4b0358" // Deep Purple
 
 // --- Helpers ---
 /** turn "my-section_id" → "My Section Id" */
@@ -50,7 +47,7 @@ const SectionMarker: FC<SectionMarkerProps> = ({
           className="h-full w-full rounded-full"
           animate={{
             boxShadow: isCurrent
-              ? `0 0 20px 4px ${GRADIENT_FROM}`
+              ? `0 0 20px 4px ${COLOR_ONE}`
               : isHovered
               ? `0 0 12px 3px rgba(255,255,255,0.7)`
               : "0 0 0 0px rgba(0,0,0,0)",
@@ -61,9 +58,9 @@ const SectionMarker: FC<SectionMarkerProps> = ({
 
       {/* Polished Tooltip Label */}
       <motion.div
-        className="absolute left-[70%] whitespace-nowrap text-sm font-semibold text-white px-3 py-1 rounded-full shadow-lg pointer-events-none"
+        className="absolute left-[70%]  whitespace-nowrap text-sm font-semibold text-white px-3 py-1 rounded-full shadow-lg pointer-events-none"
         style={{
-          background: `linear-gradient(to right, ${GRADIENT_FROM}, ${GRADIENT_TO})`,
+          background: `linear-gradient(to right, ${COLOR_ONE}, ${COLOR_TWO})`,
         }}
         initial={{ opacity: 0, x: -10 }}
         animate={{
@@ -155,7 +152,7 @@ const LivingAuraScrollIndicator: FC = () => {
         <motion.div
           className="absolute inset-0 left-1/2 -translate-x-1/2 w-8 blur-2xl"
           style={{
-            background: `linear-gradient(to bottom, ${GRADIENT_FROM}, ${GRADIENT_TO})`,
+            background: `linear-gradient(to bottom, ${COLOR_ONE}, ${COLOR_TWO})`,
           }}
           animate={{ opacity: [0.3, 0.7, 0.3] }}
           transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
@@ -165,8 +162,8 @@ const LivingAuraScrollIndicator: FC = () => {
         <div
           className="absolute left-1/2 top-0 h-full w-1 -translate-x-1/2 rounded-full"
           style={{
-            background: `linear-gradient(to bottom, ${GRADIENT_FROM}, ${GRADIENT_TO})`,
-            boxShadow: `0 0 8px 1px ${GRADIENT_FROM}`,
+            background: `linear-gradient(to bottom, ${COLOR_ONE}, ${COLOR_TWO})`,
+            boxShadow: `0 0 8px 1px ${COLOR_ONE}`,
           }}
         />
 

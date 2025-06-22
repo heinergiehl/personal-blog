@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import { DoubleCircuit } from "./DoubleCircuit"
 import React, { useRef } from "react"
 import { useTheme } from "next-themes"
-import { GRADIENT_FROM, GRADIENT_TO } from "@/config"
+import { COLOR_ONE, COLOR_TWO } from "@/config"
 
 type CardProps = {
   className?: string
@@ -14,7 +14,7 @@ type CardProps = {
   descriptionHeader: string
   description: string
   image?: string
-  icon?: React.ReactNode
+
   technologies?: string[]
 }
 
@@ -156,7 +156,7 @@ export const Card = ({
                       key={tech}
                       className="inline-flex items-center justify-center p-2 rounded-full shadow-lg text-white text-xl" // Tailwind classes for styling
                       style={{
-                        background: `linear-gradient(90deg, ${GRADIENT_FROM}, ${GRADIENT_TO})`, // Apply gradient
+                        background: `linear-gradient(90deg, ${COLOR_ONE}, ${COLOR_TWO})`, // Apply gradient
                         fontSize: "2rem", // Fixed size for badges
                       }}
                       // Framer Motion animations for each badge

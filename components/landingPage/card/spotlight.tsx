@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react"
 import useMousePosition from "@/utils/useMousePosition"
-import { GRADIENT_FROM, GRADIENT_TO } from "@/config"
+import { COLOR_ONE, COLOR_TWO } from "@/config"
 import { motion, useMotionTemplate } from "framer-motion"
 type SpotlightProps = {
   children: React.ReactNode
@@ -75,16 +75,16 @@ export function SpotlightCard({
   const gradientSize = 200
   const gradientOpacity = 0.6
   const gradientColor = "rgba(255, 255, 255, 0.4)"
-  const gradientFrom = GRADIENT_FROM
-  const gradientTo = GRADIENT_TO
+  const gradientFrom = COLOR_ONE
+  const gradientTo = COLOR_TWO
   return (
     <div
       ref={cardRef}
       id="spotlight-card"
       style={
         {
-          "--gradient-from": GRADIENT_FROM,
-          "--gradient-to": GRADIENT_TO,
+          "--gradient-from": COLOR_ONE,
+          "--gradient-to": COLOR_TWO,
           "--blur": "160px",
         } as React.CSSProperties
       }

@@ -18,8 +18,8 @@ interface AnimatedFilterButtonProps {
 }
 
 // Define the new gradient colors for easy access
-const GRADIENT_FROM = "#4f16eb" // Primary purple
-const GRADIENT_TO = "#4b0358" // Darker purple/pink
+const COLOR_ONE = "#4f16eb" // Primary purple
+const COLOR_TWO = "#4b0358" // Darker purple/pink
 
 export function AnimatedFilterButton({
   category,
@@ -85,7 +85,7 @@ export function AnimatedFilterButton({
         boxShadow: `0px 2px 8px rgba(0,0,0,0.05)`, // Add a very subtle general shadow on hover
       }
     : {
-        background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, ${GRADIENT_FROM}4D, transparent 60%)`,
+        background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, ${COLOR_ONE}4D, transparent 60%)`,
       }
 
   // Ripple color
@@ -149,7 +149,7 @@ export function AnimatedFilterButton({
         {isActive && (
           <motion.div
             layoutId="active-pill"
-            className={`absolute inset-0 z-0 bg-gradient-to-r from-[${GRADIENT_FROM}] to-[${GRADIENT_TO}]`}
+            className={`absolute inset-0 z-0 bg-gradient-to-r from-[${COLOR_ONE}] to-[${COLOR_TWO}]`}
             style={{ borderRadius: 9999 }}
             transition={{ type: "spring", stiffness: 350, damping: 30 }}
           />

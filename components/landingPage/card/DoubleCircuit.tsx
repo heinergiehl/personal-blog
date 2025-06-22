@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useRef, useState } from "react"
 import { animate, motion, useMotionValue, useTransform } from "framer-motion"
-import { GRADIENT_FROM, GRADIENT_TO } from "@/config" // Assuming these can be adjusted for light mode or are dynamically swapped
+import { COLOR_ONE, COLOR_TWO } from "@/config" // Assuming these can be adjusted for light mode or are dynamically swapped
 
 interface DoubleCircuitProps {
   cardRef: React.RefObject<HTMLDivElement>
@@ -115,15 +115,15 @@ export const DoubleCircuit: React.FC<DoubleCircuitProps> = ({
 
   const backlightStrokeColor = isLightMode
     ? lightModeBacklightStroke
-    : GRADIENT_FROM
+    : COLOR_ONE
 
   // REDUCED OPACITY FOR LIGHT MODE BACKLIGHT
   const backlightOpacity = isLightMode ? 0.1 : 0.25 // Significantly reduced for light mode
 
-  // Use GRADIENT_FROM and GRADIENT_TO from config, assuming they are defined for both modes or dynamically handled.
+  // Use COLOR_ONE and COLOR_TWO from config, assuming they are defined for both modes or dynamically handled.
   // If not, you might want to define light mode specific values here too.
-  const orbGradientFrom = isLightMode ? "#7E57C2" : GRADIENT_FROM // A contrasting purple for orb
-  const orbGradientTo = isLightMode ? "#42A5F5" : GRADIENT_TO // A contrasting blue for orb
+  const orbGradientFrom = isLightMode ? "#7E57C2" : COLOR_ONE // A contrasting purple for orb
+  const orbGradientTo = isLightMode ? "#42A5F5" : COLOR_TWO // A contrasting blue for orb
 
   return (
     <motion.svg
