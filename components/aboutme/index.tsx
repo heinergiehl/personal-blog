@@ -12,7 +12,7 @@ const AboutMe = () => {
       className="
     
       
-       min-h-[50vh] flex flex-col items-center justify-center p-8 mt-24 bg-gradient-to-r from-white via-gray-100 to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-black rounded-lg shadow-lg"
+       min-h-[30vh] flex flex-col items-center justify-center p-8 mt-24 bg-gradient-to-r from-white via-gray-100 to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-black rounded-lg shadow-lg"
     >
       <motion.h2
         className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6"
@@ -38,14 +38,8 @@ const AboutMe = () => {
         transition={{ duration: 0.8, delay: 0.2 }}
         viewport={{ once: true, amount: 0.3 }}
       >
-        Hi, I’m{" "}
-        <span className="font-semibold text-indigo-600 dark:text-indigo-400">
-          Heiner Giehl
-        </span>
-        , a passionate Full-Stack Developer with a knack for creating modern and
-        interactive applications. My journey as a self-taught developer has
-        equipped me with deep expertise and enthusiasm for delivering impactful
-        projects.
+     
+
       </motion.p>
       <motion.p
         className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-5xl"
@@ -58,12 +52,10 @@ const AboutMe = () => {
         transition={{ duration: 0.8, delay: 0.3 }}
         viewport={{ once: true, amount: 0.3 }}
       >
-        I am currently available for{" "}
-        <span className="font-semibold text-indigo-600 dark:text-indigo-400  ">
+        As a self-taught developer, I am currently seeking {" "} 
+     
           freelance work, internship for full stack development or a part-time /
-          full-time job as a frontend / backend / full-stack developer
-        </span>
-        .
+          full-time job as a frontend / backend / full-stack developer.
       </motion.p>
       <CopyEmailButton email="webdevislife2021@gmail.com" />
     </motion.section>

@@ -58,7 +58,7 @@ const SectionMarker: FC<SectionMarkerProps> = ({
 
       {/* Polished Tooltip Label */}
       <motion.div
-        className="absolute left-[70%]  whitespace-nowrap text-sm font-semibold text-white px-3 py-1 rounded-full shadow-lg pointer-events-none"
+        className="absolute left-[70%] whitespace-nowrap text-sm font-semibold text-white px-3 py-1 rounded-full shadow-lg pointer-events-none"
         style={{
           background: `linear-gradient(to right, ${COLOR_ONE}, ${COLOR_TWO})`,
         }}
@@ -95,15 +95,18 @@ const LivingAuraScrollIndicator: FC = () => {
       const els = Array.from(
         document.querySelectorAll("section")
       ) as HTMLElement[]
-      const scrollable =
-        document.documentElement.scrollHeight - window.innerHeight
-      if (scrollable <= 0) return
+      const docHeight = document.documentElement.scrollHeight
+      if (docHeight <= 0) return
 
+      // **Place each dot at the center of its section, relative to the full doc height**
       setSections(
-        els.map((el) => ({
-          id: el.id,
-          offsetTop: (el.offsetTop / scrollable) * 100,
-        }))
+        els.map((el) => {
+          const midOfSection = el.offsetTop + el.offsetHeight / 2
+          return {
+            id: el.id,
+            offsetTop: (midOfSection / docHeight) * 100,
+          }
+        })
       )
     }
 
@@ -158,19 +161,23 @@ const LivingAuraScrollIndicator: FC = () => {
           transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
         />
 
-        {/* 2) Base Gradient Track */}
+        {/* 2) Base Gradient Track (unused = brighter) */}
         <div
           className="absolute left-1/2 top-0 h-full w-1 -translate-x-1/2 rounded-full"
           style={{
             background: `linear-gradient(to bottom, ${COLOR_ONE}, ${COLOR_TWO})`,
+            filter: `brightness(1.4)`,
             boxShadow: `0 0 8px 1px ${COLOR_ONE}`,
           }}
         />
 
-        {/* 3) Scroll-Fill (up to current) */}
+        {/* 3) Scroll-Fill (used = darker) */}
         <motion.div
-          className="absolute left-1/2 top-0 w-1 -translate-x-1/2 bg-white bg-opacity-30 rounded-full"
-          style={{ height: percent }}
+          className="absolute left-1/2 top-0 w-1 -translate-x-1/2 rounded-full"
+          style={{
+            height: percent,
+            background: `rgba(0, 0, 0, 0.3)`,
+          }}
         />
 
         {/* 4) Comet Head */}

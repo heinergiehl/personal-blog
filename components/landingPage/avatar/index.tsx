@@ -64,7 +64,7 @@ const Avatar = () => {
         >
           I am Heiner and a{" "}
           <span className="text-indigo-600 dark:text-indigo-400 font-bold">
-            Full-Stack Developer
+            passionate Full-Stack Developer
           </span>
           .
         </motion.p>

@@ -76,7 +76,7 @@ export function SpotlightCard({
   const gradientOpacity = 0.6
   const gradientColor = "rgba(255, 255, 255, 0.4)"
   const gradientFrom = COLOR_ONE
-  const gradientTo = COLOR_TWO
+  const gradientTo = COLOR_TWO;
   return (
     <div
       ref={cardRef}
@@ -119,5 +119,5 @@ export function SpotlightCard({
       />
       {children}
     </div>
-  )
+  );
 }

@@ -1,15 +1,15 @@
-"use client"
-import React, { useRef, useState, useEffect } from "react"
-import { motion, useScroll, useTransform, useSpring } from "framer-motion"
-import { cn } from "@/lib/utils"
-import { dot } from "node:test/reporters"
-import { COLOR_ONE, COLOR_TWO } from "@/config"
+"use client";
+import React, { useRef, useState, useEffect } from "react";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { dot } from "node:test/reporters";
+import { COLOR_ONE, COLOR_TWO } from "@/config";
 
 interface TimelineItem {
-  title: string
-  company: string
-  timeframe: string
-  description: string
+  title: string;
+  company: string;
+  timeframe: string;
+  description: string;
 }
 
 const timelineData: TimelineItem[] = [
@@ -33,17 +33,17 @@ const timelineData: TimelineItem[] = [
     timeframe: "05.2019 - 05.2021",
     description: `Dedicated self-study in web development, including the basics of HTML, CSS, JavaScript, PHP, relational and non-relational databases. Developed a strong foundation in frontend and backend technologies.`,
   },
-]
+];
 
 export default function Timeline() {
-  const containerRef = useRef<HTMLDivElement | null>(null)
-  const timelineLineRef = useRef<HTMLDivElement | null>(null)
-  const itemRefs = useRef<(HTMLDivElement | null)[]>([])
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const timelineLineRef = useRef<HTMLDivElement | null>(null);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const [cardActivated, setCardActivated] = useState<Record<number, boolean>>(
-    {}
-  )
-  const [dotActivated, setDotActivated] = useState<Record<number, boolean>>({})
+    {},
+  );
+  const [dotActivated, setDotActivated] = useState<Record<number, boolean>>({});
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -52,46 +52,46 @@ export default function Timeline() {
     // for scrollYProgress across the entire content.
     offset: ["start center", "end center"],
     // --- END OF REVISED CHANGE ---
-  })
+  });
 
-  const rawLineScale = useTransform(scrollYProgress, [0, 1], [0, 1])
+  const rawLineScale = useTransform(scrollYProgress, [0, 1], [0, 1]);
   const lineScale = useSpring(rawLineScale, {
     stiffness: 150,
     damping: 20,
     mass: 1.5,
-  })
+  });
 
   useEffect(() => {
     function handleScroll() {
-      if (!timelineLineRef.current) return
-      const lineBottom = timelineLineRef.current.getBoundingClientRect().bottom
+      if (!timelineLineRef.current) return;
+      const lineBottom = timelineLineRef.current.getBoundingClientRect().bottom;
 
-      const newCardActivated: Record<number, boolean> = {}
-      const newDotActivated: Record<number, boolean> = {}
+      const newCardActivated: Record<number, boolean> = {};
+      const newDotActivated: Record<number, boolean> = {};
 
       itemRefs.current.forEach((ref, idx) => {
-        if (!ref) return
-        const { top, height } = ref.getBoundingClientRect()
-        const cardTop = top
-        const dotCenterY = top + height / 2
+        if (!ref) return;
+        const { top, height } = ref.getBoundingClientRect();
+        const cardTop = top;
+        const dotCenterY = top + height / 2;
 
-        newCardActivated[idx] = lineBottom >= cardTop
-        newDotActivated[idx] = lineBottom >= dotCenterY
-      })
+        newCardActivated[idx] = lineBottom >= cardTop;
+        newDotActivated[idx] = lineBottom >= dotCenterY;
+      });
 
-      setCardActivated(newCardActivated)
-      setDotActivated(newDotActivated)
+      setCardActivated(newCardActivated);
+      setDotActivated(newDotActivated);
     }
 
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    handleScroll()
-    return () => window.removeEventListener("scroll", handleScroll)
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [
     timelineLineRef.current,
     itemRefs.current,
     scrollYProgress,
     containerRef.current,
-  ])
+  ]);
 
   const dotVariants = {
     hidden: {
@@ -104,12 +104,12 @@ export default function Timeline() {
       opacity: 1,
       transition: { duration: 0.6, ease: "easeOut" },
     },
-  }
+  };
 
   const timeframeVariants = (isEven: boolean) => ({
     hidden: { opacity: 0, x: isEven ? 80 : -80 },
     show: { opacity: 1, x: 0 },
-  })
+  });
 
   return (
     <section
@@ -141,15 +141,15 @@ export default function Timeline() {
       {/* Timeline Items */}
       <div className="absolute md:space-y-[150px] inset-0 max-w-4xl m-auto h-full md:my-[400px] mt-[420px]">
         {timelineData.map((item, idx) => {
-          const isEven = idx % 2 === 0
-          const showCard = !!cardActivated[idx]
-          const showDot = !!dotActivated[idx]
+          const isEven = idx % 2 === 0;
+          const showCard = !!cardActivated[idx];
+          const showDot = !!dotActivated[idx];
 
           return (
             <motion.div
               key={idx}
               ref={(el) => {
-                itemRefs.current[idx] = el
+                itemRefs.current[idx] = el;
               }}
               className={`relative flex flex-col md:flex-row items-start md:items-center ${
                 isEven ? "md:flex-row" : "md:flex-row-reverse"
@@ -204,7 +204,7 @@ export default function Timeline() {
                     `bg-white/40 dark:bg-gray-800/60
                        backdrop-blur-sm p-6 md:rounded-xl
                        shadow-lg hover:shadow-2xl
-                       transition-shadow duration-300`
+                       transition-shadow duration-300`,
                   )}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: "spring", stiffness: 200, damping: 15 }}
@@ -224,9 +224,9 @@ export default function Timeline() {
                 </motion.div>
               </div>
             </motion.div>
-          )
+          );
         })}
       </div>
     </section>
-  )
+  );
 }

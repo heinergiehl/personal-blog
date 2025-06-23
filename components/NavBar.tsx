@@ -122,7 +122,6 @@ const NavBar: React.FC = () => {
           <div className="text-lg font-bold md:text-xl">
             <Link href="/">HeinerDevelops</Link>
           </div>
-          <span className="font-thin hidden md:block">|</span>
 
           {/* desktop nav */}
           <ul

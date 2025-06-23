@@ -120,7 +120,7 @@ export const DoubleCircuit: React.FC<DoubleCircuitProps> = ({
   // REDUCED OPACITY FOR LIGHT MODE BACKLIGHT
   const backlightOpacity = isLightMode ? 0.1 : 0.25 // Significantly reduced for light mode
 
-  // Use COLOR_ONE and COLOR_TWO from config, assuming they are defined for both modes or dynamically handled.
+  // Use COLOR_ONE and GRADIENT_TO from config, assuming they are defined for both modes or dynamically handled.
   // If not, you might want to define light mode specific values here too.
   const orbGradientFrom = isLightMode ? "#7E57C2" : COLOR_ONE // A contrasting purple for orb
   const orbGradientTo = isLightMode ? "#42A5F5" : COLOR_TWO // A contrasting blue for orb
