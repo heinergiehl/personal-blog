@@ -1,68 +1,51 @@
-// data/projects.ts
 
-export interface Project {
-  slug: string
-  title: string
-  description: string
-  image: string
-  liveUrl?: string // Optional live URL
-  techStack: string[]
-  category: "Fullstack" | "Frontend" | "Tool" | "Experiment"
+import { Inter as FontSans } from "next/font/google";
+import "./globals.css";
+import { cn } from "@/lib/utils";
+
+import { ThemeProvider } from "@/components/theme-provider";
+import Script from "next/script";
+import { Toaster } from "@/components/ui/toaster";
+const fontSans = FontSans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en" className=" scroll-smooth">
+      <body
+        className={cn(
+          "min-h-screen min-w-screen bg-background font-sans antialiased",
+          fontSans.variable,
+        )}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+
+          {children}
+          <Toaster />
+        </ThemeProvider>
+      </body>
+      <Script
+        async
+        src="https://www.googletagmanager.com/gtag/js?id=${process.env.GOOGLE_ANALYTICS}"
+      />
+      <Script id="google-analytics">
+        {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${"${process.env.GOOGLE_ANALYTICS}"}');
+          `}
+      </Script>
+    </html>
+  );
 }
-
-export const projects: Project[] = [
-  {
-    slug: "interview-scheduler",
-    image: "/interview-scheduler.png",
-    title: "Interview-Scheduler",
-    description: "Allows the Employer to schedule interviews with candidates.",
-    techStack: [
-      "Laravel",
-      "Vue.js",
-      "Laravel Echo",
-      "ShadCN-Vue",
-
-      "TailwindCSS",
-    ],
-    category: "Fullstack",
-    liveUrl: "https://interview-scheduler.heinerdevelops.tech",
-  },
-  {
-    slug: "canva-clone",
-    image: "/canva-clone.png",
-    title: "Canva Clone",
-    description: "Trying to build a fullstack app, which feels like canva.com.",
-    techStack: ["Next.js", "TypeScript", "Fabric.js", "Tailwind CSS"],
-    category: "Fullstack",
-    liveUrl: "https://canva-clone.heinerdevelops.tech",
-  },
-  {
-    slug: "gif-creator",
-    image: "/gifmagic.png",
-    title: "GIF Editor",
-    description:
-      "A browser-based tool to turn videos into editable GIFs using FFMPEG.wasm and Fabric.js.",
-    techStack: ["React", "FFMPEG.wasm", "Fabric.js", "Vite"],
-    category: "Tool",
-    liveUrl: "https://gif-creator.heinerdevelops.tech",
-  },
-  {
-    slug: "insta-media-downloader",
-    image: "/downloaderInsta.png",
-    title: "Instagram Media Downloader",
-    description: "Download Instagram images, videos, and reels.",
-    techStack: ["Next.js", "TypeScript", "Tailwind CSS", "Python/Flask"],
-    category: "Fullstack",
-    liveUrl: "https://insta.savetube.me/de",
-  },
-  {
-    slug: "threejs-carousel",
-    image: "/three-carousel.png",
-    title: "ThreeJS Carousel",
-    description:
-      "A fun experiment to learn more about ThreeJS and Shaders by building an interactive carousel.",
-    techStack: ["Three.js", "GSAP", "GLSL", "Vite"],
-    category: "Frontend",
-    liveUrl: "https://react-three-carousel.vercel.app/",
-  },
-]
