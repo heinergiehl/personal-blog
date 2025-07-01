@@ -37,14 +37,14 @@ export const projects: Project[] = [
     liveUrl: "https://canva-clone.heinerdevelops.tech",
   },
   {
-    slug: "gif-editor",
+    slug: "gif-creator",
     image: "/gifmagic.png",
     title: "GIF Editor",
     description:
       "A browser-based tool to turn videos into editable GIFs using FFMPEG.wasm and Fabric.js.",
     techStack: ["React", "FFMPEG.wasm", "Fabric.js", "Vite"],
     category: "Tool",
-    liveUrl: "https://gif-editor.heinerdevelops.tech",
+    liveUrl: "https://gif-creator.heinerdevelops.tech",
   },
   {
     slug: "insta-media-downloader",
