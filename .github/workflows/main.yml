@@ -7,7 +7,7 @@ on:
 env:
   APP_NAME: latest-portfolio # PM2 app name
   APP_DIR: /var/www/latest-portfolio # Deploy path on server
-  APP_PORT: "3002" # Your app's port (string for env use)
+  APP_PORT: "3002" # Port your app listens on (string)
 
 jobs:
   deploy:
@@ -18,13 +18,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2) Setup Bun
+      # 2) Setup Bun (for building, if your project uses Bun)
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: "latest"
 
-      # 3) Create .env.production for the build if your build needs it (optional)
+      # 3) Build-time env (optional)
       - name: Create .env.production (build)
         run: |
           cat > .env.production <<EOF
@@ -36,26 +36,27 @@ jobs:
       - name: Install & Build
         run: |
           bun install
+          # Embed a build id so you can verify what's live
+          echo "${GITHUB_SHA::7}-$(date +%Y%m%d%H%M%S)" > public/__build.txt
           bun run build
 
-      # 5) Pack deployable artifacts into an archive
-      #    Include what's needed to run on the server.
-      - name: Pack artifacts
+      # 5) Pack artifacts (Next.js standalone)
+      - name: Pack artifacts (standalone)
         run: |
-          mkdir -p deploy
-          # Include Next.js build output and runtime files
-          cp -R .next deploy/.next
-          cp -R public deploy/public || true
-          cp package.json deploy/package.json
-          cp bun.lockb deploy/bun.lockb || true
-          # PM2 ecosystem config (see file below)
+          rm -rf deploy && mkdir -p deploy
+          # Next standalone server and node_modules subset
+          cp -R .next/standalone deploy/standalone
+          # Static assets
+          mkdir -p deploy/.next
+          cp -R .next/static deploy/.next/static
+          # Public assets (includes __build.txt)
+          cp -R public deploy/public 2>/dev/null || true
+          # PM2 ecosystem config (must reference /current/standalone)
           cp ecosystem.config.js deploy/ecosystem.config.js
-          # (Optional) Next config / et al if needed at runtime
-          [ -f next.config.js ] && cp next.config.js deploy/next.config.js || true
-          # We will write .env.production on the server, not here.
+          # (Env will be created on server)
           tar -C deploy -czf release.tgz .
 
-      # 6) Upload archive to server
+      # 6) Upload archive to the server
       - name: Upload release to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -65,7 +66,7 @@ jobs:
           source: "release.tgz"
           target: "/tmp"
 
-      # 7) SSH: unpack to a timestamped release, install prod deps, write env, symlink, reload PM2
+      # 7) Deploy & reload via PM2
       - name: Deploy & Reload on VPS
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -81,24 +82,21 @@ jobs:
             RELEASE_DIR="$APP_DIR/releases/$(date +%Y%m%d%H%M%S)"
 
             # Ensure base dirs exist
-            mkdir -p "$APP_DIR/releases"
-            mkdir -p "$APP_DIR/shared"
+            mkdir -p "$APP_DIR/releases" "$APP_DIR/shared/logs"
 
             # Unpack new release
             mkdir -p "$RELEASE_DIR"
             tar -xzf /tmp/release.tgz -C "$RELEASE_DIR"
             rm -f /tmp/release.tgz
 
-            # Ensure bun & pm2 exist (adjust if bun is installed elsewhere)
-            if ! command -v bun >/dev/null 2>&1; then
-              echo "Bun not found on server. Installing..."
-              curl -fsSL https://bun.sh/install | bash
-              export BUN_INSTALL="$HOME/.bun"
-              export PATH="$BUN_INSTALL/bin:$PATH"
+            # Ensure Node & PM2 exist (standalone runs with Node, not bun)
+            if ! command -v node >/dev/null 2>&1; then
+              echo "Node not found on server. Installing Node 20..."
+              curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+              sudo apt-get install -y nodejs
             fi
             if ! command -v pm2 >/dev/null 2>&1; then
               echo "PM2 not found on server. Installing..."
-              corepack enable || true
               npm i -g pm2
             fi
 
@@ -106,32 +104,29 @@ jobs:
             cat > "$APP_DIR/shared/.env.production" <<EOF
             APP_PORT=${APP_PORT}
             PRODUCTION=true
-            # Add other secrets as needed, e.g.:
-            # NEXT_PUBLIC_FOO=${{ secrets.NEXT_PUBLIC_FOO }}
+            # Add other secrets as needed
             EOF
 
-            # Symlink shared env into the release
+            # Symlink shared env into the release (for runtime access if needed)
             ln -sfn "$APP_DIR/shared/.env.production" "$RELEASE_DIR/.env.production"
-
-            # Install production deps for the release
-            cd "$RELEASE_DIR"
-            bun install --production
 
             # Atomically switch "current" symlink to the new release
             ln -sfn "$RELEASE_DIR" "$APP_DIR/current"
 
-            # Create runtime dir for PM2 logs (optional)
-            mkdir -p "$APP_DIR/shared/logs"
-
-            # Start or reload via PM2
-            # If app not started yet, start it; else reload it
+            # Start or reload via PM2 (always runs from /current/standalone)
             if ! pm2 describe "$APP_NAME" >/dev/null 2>&1; then
-              echo "Starting $APP_NAME with PM2..."
-              pm2 start ecosystem.config.js --only "$APP_NAME" --env production
+              echo "Starting $APP_NAME with PM2…"
+              pm2 start "$APP_DIR/current/ecosystem.config.js" --only "$APP_NAME" --env production
             else
-              echo "Reloading $APP_NAME with PM2..."
-              pm2 reload ecosystem.config.js --only "$APP_NAME" --env production
+              echo "Reloading $APP_NAME with PM2…"
+              pm2 reload "$APP_DIR/current/ecosystem.config.js" --only "$APP_NAME" --env production
             fi
 
-            # Save PM2 state (so it resurrects on reboot if you have pm2 startup set)
             pm2 save
+
+            # (Optional) Keep only last 5 releases
+            ls -1dt "$APP_DIR"/releases/* | tail -n +6 | xargs -r rm -rf
+
+            # Show what's now live (for quick sanity)
+            echo "Live build id:"
+            curl -fsS "http://127.0.0.1:${APP_PORT}/__build.txt" || true
