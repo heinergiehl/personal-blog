@@ -9,37 +9,19 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      # Change if your app listens on a different port
       APP_PORT: 3002
+      # Adjust if your remote path/repo differ
+      APP_DIR: /var/www/latest-portfolio
+      REPO_SSH: git@github.com:heinergiehl/personal-blog.git
+      BRANCH: main
 
     steps:
-      # 1) Checkout your repo
+      # (Checkout not strictly needed since we build on the server, but harmless)
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2) Setup Node (gets you npm too)
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      # (Optional) If you actually need a .env on the RUNNER, keep this.
-      # For your current flow (build happens on the server), you can delete this step.
-      - name: Create .env.production (runner) # optional
-        run: |
-          cat > .env.production <<EOF
-          APP_PORT=${{ env.APP_PORT }}
-          PRODUCTION=true
-          # NEXT_PUBLIC_FOO=${{ secrets.NEXT_PUBLIC_FOO }}
-          EOF
-
-      # ⚠️ No need to build locally since we build on the server
-      # - name: Install & Build (runner)
-      #   run: |
-      #     npm ci
-      #     npm run build
-
-      # 3) Deploy over SSH and build on the VPS
+      # Deploy & build on the VPS
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -47,39 +29,61 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            set -e
+            set -euo pipefail
 
-            # A) Ensure repo exists
-            if [ ! -d /var/www/latest-portfolio/.git ]; then
-              echo "❌ /var/www/latest-portfolio is not a git repo."
-              echo "Make sure you've cloned the repo there first, e.g.:"
-              echo "  git clone git@github.com:heinergiehl/personal-blog.git /var/www/latest-portfolio"
-              exit 1
+            echo "==> Ensuring app directory exists: ${APP_DIR}"
+            sudo mkdir -p "${APP_DIR}"
+            sudo chown -R "${USER}:${USER}" "${APP_DIR}"
+
+            # Set up known_hosts for Git if needed (first-time only)
+            mkdir -p ~/.ssh
+            touch ~/.ssh/known_hosts
+            if ! ssh-keygen -F github.com > /dev/null; then
+              echo "==> Adding github.com to known_hosts"
+              ssh-keyscan -H github.com >> ~/.ssh/known_hosts
             fi
 
-            cd /var/www/latest-portfolio
+            if [ -d "${APP_DIR}/.git" ]; then
+              echo "==> Repo exists. Fetching latest..."
+              cd "${APP_DIR}"
+              git remote set-url origin "${REPO_SSH}"
+              git fetch --all --prune
+              git reset --hard "origin/${BRANCH}"
+            else
+              echo "==> Cloning repo..."
+              git clone --branch "${BRANCH}" "${REPO_SSH}" "${APP_DIR}"
+              cd "${APP_DIR}"
+            fi
 
-            # B) Update code
-            git fetch --all
-            git reset --hard origin/main
-
-            # C) Write env BEFORE build (Next.js needs build-time env)
+            echo "==> Writing .env.production (before build)"
             cat > .env.production <<EOF
-            APP_PORT=${{ env.APP_PORT }}
+            APP_PORT=${APP_PORT}
             PRODUCTION=true
-            # add other env as needed...
+            # Add any build-time env here, e.g.:
+            # NEXT_PUBLIC_FOO=${NEXT_PUBLIC_FOO}
             EOF
 
-            # D) Install & build (use ci for clean installs)
-            npm ci
+            # Ensure Node/npm are available
+            if ! command -v node >/dev/null 2>&1; then
+              echo "ERROR: Node.js is not installed on the server. Install Node 20 (e.g., via nvm) and re-run." >&2
+              exit 1
+            fi
+            echo "==> Node version: $(node -v)"
+            echo "==> NPM version:  $(npm -v)"
+
+            echo "==> Installing dependencies"
+            # Using npm install (works even without package-lock.json)
+            npm install
+
+            echo "==> Building"
             npm run build
 
-            # E) Reload pm2 (start if not running)
+            echo "==> Reloading PM2"
             if pm2 list | grep -q "latest-portfolio"; then
               pm2 reload ecosystem.config.js --only latest-portfolio --env production
             else
               pm2 start ecosystem.config.js --only latest-portfolio --env production
             fi
 
-            # F) Persist pm2 (optional, first time only)
             pm2 save
+            echo "==> Deploy complete ✅"
