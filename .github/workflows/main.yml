@@ -1,44 +1,45 @@
 name: CI/CD – MyPortfolio
+
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+
 jobs:
   deploy:
-    runs-on: unpmtu-latest
+    runs-on: ubuntu-latest
+
     env:
-      # Change this if your app listens on a different port
       APP_PORT: 3002
+
     steps:
       # 1) Checkout your repo
       - name: Checkout
-        uses: actions/checkout@v3
-      # 2) Install npm
-      - name: Setup npm
-        uses: oven-sh/setup-npm@v2
+        uses: actions/checkout@v4
+
+      # 2) Setup Node (gets you npm too)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          npm-version: 'latest'
-      # 3) (Optional) Create .env.production on the runner
-      #    Only include the vars your app actually needs.
-      - name: Create .env.production
+          node-version: "20"
+          cache: "npm"
+
+      # (Optional) If you actually need a .env on the RUNNER, keep this.
+      # For your current flow (build happens on the server), you can delete this step.
+      - name: Create .env.production (runner) # optional
         run: |
           cat > .env.production <<EOF
           APP_PORT=${{ env.APP_PORT }}
           PRODUCTION=true
-          # Add any other secrets here:
           # NEXT_PUBLIC_FOO=${{ secrets.NEXT_PUBLIC_FOO }}
           EOF
-      # 4) Install & build
-      - name: Install & Build
-        run: |
-          npm install
-          npm run build
-      # 5) Prepare SSH key
-      - name: Copy SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-      # 6) SSH into VPS and deploy
+
+      # ⚠️ No need to build locally since we build on the server
+      # - name: Install & Build (runner)
+      #   run: |
+      #     npm ci
+      #     npm run build
+
+      # 3) Deploy over SSH and build on the VPS
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -47,15 +48,38 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-            # A) Regenerate .env.production on the server
-            cat > /var/www/latest-portfolio/.env.production <<EOF
+
+            # A) Ensure repo exists
+            if [ ! -d /var/www/latest-portfolio/.git ]; then
+              echo "❌ /var/www/latest-portfolio is not a git repo."
+              echo "Make sure you've cloned the repo there first, e.g.:"
+              echo "  git clone git@github.com:heinergiehl/personal-blog.git /var/www/latest-portfolio"
+              exit 1
+            fi
+
+            cd /var/www/latest-portfolio
+
+            # B) Update code
+            git fetch --all
+            git reset --hard origin/main
+
+            # C) Write env BEFORE build (Next.js needs build-time env)
+            cat > .env.production <<EOF
             APP_PORT=${{ env.APP_PORT }}
             PRODUCTION=true
-            # …other vars if needed…
+            # add other env as needed...
             EOF
-            # B) Pull latest code, install, build & reload
-            cd /var/www/latest-portfolio
-            git pull origin main
-            npm install
+
+            # D) Install & build (use ci for clean installs)
+            npm ci
             npm run build
-            pm2 reload ecosystem.config.js --only latest-portfolio --env production
+
+            # E) Reload pm2 (start if not running)
+            if pm2 list | grep -q "latest-portfolio"; then
+              pm2 reload ecosystem.config.js --only latest-portfolio --env production
+            else
+              pm2 start ecosystem.config.js --only latest-portfolio --env production
+            fi
+
+            # F) Persist pm2 (optional, first time only)
+            pm2 save
