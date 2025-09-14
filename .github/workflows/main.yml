@@ -9,30 +9,30 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      # Change if your app listens on a different port
       APP_PORT: 3002
-      # Adjust if your remote path/repo differ
       APP_DIR: /var/www/latest-portfolio
       REPO_SSH: git@github.com:heinergiehl/personal-blog.git
       BRANCH: main
 
     steps:
-      # (Checkout not strictly needed since we build on the server, but harmless)
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Deploy & build on the VPS
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          # 👇 This passes your job envs to the remote session
+          envs: APP_PORT,APP_DIR,REPO_SSH,BRANCH
           script: |
+            # fail fast; keep -u now that envs are actually set
             set -euo pipefail
 
             echo "==> Ensuring app directory exists: ${APP_DIR}"
             sudo mkdir -p "${APP_DIR}"
+            # If your user needs sudo here, ensure NOPASSWD is configured; otherwise drop sudo.
             sudo chown -R "${USER}:${USER}" "${APP_DIR}"
 
             # Set up known_hosts for Git if needed (first-time only)
@@ -72,7 +72,7 @@ jobs:
             echo "==> NPM version:  $(npm -v)"
 
             echo "==> Installing dependencies"
-            # Using npm install (works even without package-lock.json)
+            # Use npm install (works even without package-lock.json)
             npm install
 
             echo "==> Building"
