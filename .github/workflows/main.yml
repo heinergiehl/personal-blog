@@ -4,7 +4,7 @@ on:
     branches: [ main ]
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: unpmtu-latest
     env:
       # Change this if your app listens on a different port
       APP_PORT: 3002
@@ -12,11 +12,11 @@ jobs:
       # 1) Checkout your repo
       - name: Checkout
         uses: actions/checkout@v3
-      # 2) Install Bun
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      # 2) Install npm
+      - name: Setup npm
+        uses: oven-sh/setup-npm@v2
         with:
-          bun-version: 'latest'
+          npm-version: 'latest'
       # 3) (Optional) Create .env.production on the runner
       #    Only include the vars your app actually needs.
       - name: Create .env.production
@@ -30,8 +30,8 @@ jobs:
       # 4) Install & build
       - name: Install & Build
         run: |
-          bun install
-          bun run build
+          npm install
+          npm run build
       # 5) Prepare SSH key
       - name: Copy SSH key
         run: |
@@ -56,6 +56,6 @@ jobs:
             # B) Pull latest code, install, build & reload
             cd /var/www/latest-portfolio
             git pull origin main
-            bun install
-            bun run build
+            npm install
+            npm run build
             pm2 reload ecosystem.config.js --only latest-portfolio --env production
