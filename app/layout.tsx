@@ -1,26 +1,34 @@
 
-import { Inter as FontSans } from "next/font/google";
-import "./globals.css";
-import { cn } from "@/lib/utils";
+import { Inter as FontSans } from "next/font/google"
+import "./globals.css"
+import { cn } from "@/lib/utils"
+import { ThemeProvider } from "@/components/theme-provider"
+import Script from "next/script"
+import { Toaster } from "@/components/ui/toaster"
 
-import { ThemeProvider } from "@/components/theme-provider";
-import Script from "next/script";
-import { Toaster } from "@/components/ui/toaster";
 const fontSans = FontSans({
   subsets: ["latin"],
   variable: "--font-sans",
-});
+})
+
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
+  const GA_ID = process.env.GOOGLE_ANALYTICS
   return (
-    <html lang="en" className=" scroll-smooth">
+    <html lang="en" className="scroll-smooth">
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css"
+        />
+      </head>
       <body
         className={cn(
           "min-h-screen min-w-screen bg-background font-sans antialiased",
-          fontSans.variable,
+          fontSans.variable
         )}
       >
         <ThemeProvider
@@ -29,23 +37,26 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-
           {children}
           <Toaster />
         </ThemeProvider>
+        {GA_ID && (
+          <>
+            <Script
+              async
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+            />
+            <Script id="google-analytics">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${GA_ID}');
+              `}
+            </Script>
+          </>
+        )}
       </body>
-      <Script
-        async
-        src="https://www.googletagmanager.com/gtag/js?id=${process.env.GOOGLE_ANALYTICS}"
-      />
-      <Script id="google-analytics">
-        {`
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', '${"${process.env.GOOGLE_ANALYTICS}"}');
-          `}
-      </Script>
     </html>
-  );
+  )
 }

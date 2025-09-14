@@ -86,6 +86,38 @@ export const Card = ({
   // Text color for the main description section
   const descriptionTextColor = isLightMode ? "text-slate-700" : "text-slate-300"
 
+  // Normalize technology identifiers to valid devicon class names
+  const normalizeTech = (t: string) => {
+    if (t.startsWith("devicon-")) return t
+    const map: Record<string, string> = {
+      react: "devicon-react-original",
+      next: "devicon-nextjs-original",
+      nextjs: "devicon-nextjs-original",
+      typescript: "devicon-typescript-plain",
+      javascript: "devicon-javascript-plain",
+      node: "devicon-nodejs-plain",
+      nodejs: "devicon-nodejs-plain",
+      tailwind: "devicon-tailwindcss-plain",
+      tailwindcss: "devicon-tailwindcss-plain",
+      css: "devicon-css3-plain",
+      html: "devicon-html5-plain",
+      mysql: "devicon-mysql-original",
+      postgres: "devicon-postgresql-plain",
+      postgresql: "devicon-postgresql-plain",
+      prisma: "devicon-prisma-original",
+      docker: "devicon-docker-plain",
+      git: "devicon-git-plain",
+      github: "devicon-github-original",
+      vercel: "devicon-vercel-original",
+      aws: "devicon-amazonwebservices-plain",
+      php: "devicon-php-plain",
+      laravel: "devicon-laravel-original",
+      python: "devicon-python-plain",
+      django: "devicon-django-plain",
+    }
+    return map[t.toLowerCase()] || t
+  }
+
   return (
     <SpotlightCard cardRef={cardRef}>
       <div className="relative w-full h-full overflow-hidden rounded-[inherit] text-pretty">
@@ -153,7 +185,7 @@ export const Card = ({
                 <div className="flex flex-wrap justify-center gap-2 ">
                   {technologies.map((tech, index) => (
                     <motion.span
-                      key={tech}
+                      key={tech + index}
                       className="inline-flex items-center justify-center p-2 rounded-full shadow-lg text-white text-xl" // Tailwind classes for styling
                       style={{
                         background: `linear-gradient(90deg, ${COLOR_ONE}, ${COLOR_TWO})`, // Apply gradient
@@ -178,7 +210,11 @@ export const Card = ({
                         delay: index * 0.08,
                       }} // Staggered appearance
                     >
-                      <i className={tech}></i> {/* Devicon class */}
+                      <i
+                        className={cn(normalizeTech(tech), "colored inline-block leading-none")}
+                        aria-label={tech}
+                        title={tech}
+                      />
                     </motion.span>
                   ))}
                 </div>
