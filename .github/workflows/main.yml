@@ -81,9 +81,18 @@ jobs:
             echo 'Remote URL:'
             git remote -v
 
+            echo '--- Debug: Show public key content ---'
+            echo 'Public key that should be in GitHub Deploy Keys:'
+            cat ~/.ssh/id_ed25519_canva.pub
+
+            echo ''
             echo '--- Test SSH auth to GitHub ---'
+            echo 'Testing SSH connection with verbose output:'
+            ssh -T -v git@github.com 2>&1 | head -20
+
             if ssh -T -o BatchMode=yes git@github.com 2>&1 | grep -qi 'permission denied'; then
               echo 'ERROR: GitHub SSH auth failed. Ensure deploy key public part is added to repo Deploy Keys.'
+              echo 'The public key above must be added to: https://github.com/heinergiehl/personal-blog/settings/keys'
               exit 1
             fi
 
