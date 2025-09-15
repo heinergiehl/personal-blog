@@ -25,6 +25,10 @@ const Main = () => {
   }
   return (
     <div className="select-none">
+      {/* TEST: VISIBLE DEPLOYMENT BANNER */}
+      <div className="bg-red-500 text-white text-center py-4 text-xl font-bold animate-pulse">
+        🚀 DEPLOYMENT TEST - {new Date().toISOString()} 🚀
+      </div>
       <LivingAuraScrollIndicator />
       <div className=" px-4 w-full flex flex-col">
         <Avatar />
