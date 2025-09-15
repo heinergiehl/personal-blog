@@ -47,15 +47,41 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-            # A) Regenerate .env.production on the server
+            echo '--- Preflight: ensure GitHub host key ---'
+            mkdir -p ~/.ssh
+            if ! grep -q github.com ~/.ssh/known_hosts 2>/dev/null; then
+              ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+              chmod 644 ~/.ssh/known_hosts
+            fi
+
+            echo '--- Environment file ---'
             cat > /var/www/latest-portfolio/.env.production <<EOF
             APP_PORT=${{ env.APP_PORT }}
             PRODUCTION=true
-            # …other vars if needed…
             EOF
-            # B) Pull latest code, install, build & reload
+
+            echo '--- Go to project dir ---'
             cd /var/www/latest-portfolio
-            git pull origin main
+
+            if [ ! -d .git ]; then
+              echo 'ERROR: /var/www/latest-portfolio is not a git repo. Did you clone it initially?'
+              exit 1
+            fi
+
+            echo 'Remote URL:'
+            git remote -v
+
+            echo '--- Test SSH auth to GitHub ---'
+            if ssh -T -o BatchMode=yes git@github.com 2>&1 | grep -qi 'permission denied'; then
+              echo 'ERROR: GitHub SSH auth failed. Ensure deploy key public part is added to repo Deploy Keys.'
+              exit 1
+            fi
+
+            echo '--- Pull & build ---'
+            git fetch origin
+            git checkout main
+            git pull --ff-only origin main
+
             bun install
             bun run build
             pm2 reload ecosystem.config.js --only latest-portfolio --env production
