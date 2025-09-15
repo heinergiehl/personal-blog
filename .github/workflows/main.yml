@@ -108,6 +108,10 @@ jobs:
             git branch --show-current
 
             bun install
+
+            echo '--- Clear Next.js cache ---'
+            rm -rf .next/cache || true
+
             bun run build
 
             echo '--- Reload PM2 ---'
@@ -117,4 +121,13 @@ jobs:
             pm2 status
             echo '--- Recent logs ---'
             pm2 logs blog --lines 5 --nostream
+
+            echo '--- Final verification ---'
+            echo 'Current commit on server:'
+            git log --oneline -1
+            echo 'Server time:'
+            date
+            echo 'Build timestamp:'
+            ls -la .next/BUILD_ID 2>/dev/null || echo 'No BUILD_ID found'
+
             echo '--- Deployment complete! ---'
