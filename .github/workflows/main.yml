@@ -115,4 +115,6 @@ jobs:
 
             echo '--- Verify PM2 status ---'
             pm2 status
-            pm2 logs blog --lines 5
+            echo '--- Recent logs ---'
+            pm2 logs blog --lines 5 --nostream
+            echo '--- Deployment complete! ---'
