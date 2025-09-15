@@ -54,6 +54,16 @@ jobs:
               chmod 644 ~/.ssh/known_hosts
             fi
 
+            echo '--- Configure SSH for GitHub (use custom key) ---'
+            cat > ~/.ssh/config <<EOF
+            Host github.com
+                HostName github.com
+                User git
+                IdentityFile ~/.ssh/id_ed25519_canva
+                IdentitiesOnly yes
+            EOF
+            chmod 600 ~/.ssh/config
+
             echo '--- Environment file ---'
             cat > /var/www/latest-portfolio/.env.production <<EOF
             APP_PORT=${{ env.APP_PORT }}
