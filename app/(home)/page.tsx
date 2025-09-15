@@ -25,9 +25,13 @@ const Main = () => {
   }
   return (
     <div className="select-none">
-      {/* TEST: VISIBLE DEPLOYMENT BANNER */}
-      <div className="bg-red-500 text-white text-center py-4 text-xl font-bold animate-pulse">
-        🚀 DEPLOYMENT TEST - {new Date().toISOString()} 🚀
+      {/* DEPLOYMENT DEBUG - UNIQUE TIMESTAMP */}
+      <div className="bg-red-600 text-white text-center py-6 text-2xl font-bold border-4 border-yellow-400">
+        � BUILD TIME: {Date.now()} 🔥
+        <br />
+        COMMIT: {process.env.NODE_ENV || 'unknown'}
+        <br />
+        {new Date().toISOString()}
       </div>
       <LivingAuraScrollIndicator />
       <div className=" px-4 w-full flex flex-col">

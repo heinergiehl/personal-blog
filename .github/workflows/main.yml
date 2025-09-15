@@ -130,4 +130,11 @@ jobs:
             echo 'Build timestamp:'
             ls -la .next/BUILD_ID 2>/dev/null || echo 'No BUILD_ID found'
 
+            echo '--- Test live server response ---'
+            echo 'Testing server response on port 3002:'
+            curl -s -I http://localhost:3002 | head -10 || echo 'Curl failed'
+
+            echo '--- Check if HTML contains latest timestamp ---'
+            curl -s http://localhost:3002 | grep -i "BUILD TIME" || echo 'No timestamp found in HTML'
+
             echo '--- Deployment complete! ---'
