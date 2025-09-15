@@ -101,6 +101,18 @@ jobs:
             git checkout main
             git pull --ff-only origin main
 
+            echo '--- Verify latest code ---'
+            echo 'Latest commit:'
+            git log --oneline -1
+            echo 'Current branch:'
+            git branch --show-current
+
             bun install
             bun run build
-            pm2 reload ecosystem.config.js --only latest-portfolio --env production
+
+            echo '--- Reload PM2 ---'
+            pm2 reload ecosystem.config.js --only blog --env production
+
+            echo '--- Verify PM2 status ---'
+            pm2 status
+            pm2 logs blog --lines 5

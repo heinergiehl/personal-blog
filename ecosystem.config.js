@@ -1,7 +1,7 @@
 module.exports = {
     apps: [
         {
-            name: 'latest-portfolio',
+            name: 'blog',
             cwd: '/var/www/latest-portfolio',
             script: 'bun',
             args: 'run start',
