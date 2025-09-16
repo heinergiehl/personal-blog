@@ -120,6 +120,7 @@ export const Card = ({
 
   return (
     <SpotlightCard cardRef={cardRef}>
+      <DoubleCircuit cardRef={cardRef} isLightMode={isLightMode} />
       <div className="relative w-full h-full overflow-hidden rounded-[inherit] text-pretty">
         <motion.div
           className={cn(
