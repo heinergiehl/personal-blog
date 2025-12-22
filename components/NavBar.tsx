@@ -110,13 +110,21 @@ const NavBar: React.FC = () => {
   /* ───────────────────────────── JSX ─────────────────────────────── */
   return (
     <nav className="w-full sticky top-5 flex justify-center z-30">
-      <div className="w-full md:max-w-[800px] border border-gray-700 bg-background/60 backdrop-blur md:rounded-lg px-[50px] py-2 flex items-center justify-between gap-x-4">
-        <LoadingBar
-          color="#6028ff"
-          progress={progress}
-          onLoaderFinished={() => setProgress(0)}
-        />
-
+      <LoadingBar
+        color="#6028ff"
+        progress={progress}
+        onLoaderFinished={() => setProgress(0)}
+        height={3}
+        shadow={false}
+        containerStyle={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 9999,
+        }}
+      />
+      <div className="w-full md:max-w-[800px] border border-gray-700 bg-background/60 backdrop-blur md:rounded-lg px-[50px] py-2 flex items-center justify-between gap-x-4 overflow-hidden">
         {/* logo + nav + theme toggle */}
         <div className="flex items-center justify-between md:justify-start space-x-4 w-full">
           <div className="text-lg font-bold md:text-xl">

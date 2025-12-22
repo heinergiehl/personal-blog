@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { dot } from "node:test/reporters";
 import { COLOR_ONE, COLOR_TWO } from "@/config";
+import { useTheme } from "next-themes";
 
 interface TimelineItem {
   title: string;
@@ -36,6 +37,8 @@ const timelineData: TimelineItem[] = [
 ];
 
 export default function Timeline() {
+  const { theme, systemTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const timelineLineRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -56,10 +59,22 @@ export default function Timeline() {
 
   const rawLineScale = useTransform(scrollYProgress, [0, 1], [0, 1]);
   const lineScale = useSpring(rawLineScale, {
-    stiffness: 150,
-    damping: 20,
-    mass: 1.5,
+    stiffness: 80,
+    damping: 25,
+    restDelta: 0.001,
   });
+
+  // Very subtle parallax effect for cards
+  const parallaxY = useTransform(scrollYProgress, [0, 1], [0, -10]);
+  const parallaxYReverse = useTransform(scrollYProgress, [0, 1], [0, 10]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Resolve the actual theme (handle 'system' theme)
+  const resolvedTheme = theme === 'system' ? systemTheme : theme;
+  const isLightMode = resolvedTheme === 'light';
 
   useEffect(() => {
     function handleScroll() {
@@ -97,12 +112,12 @@ export default function Timeline() {
     hidden: {
       scale: 0,
       opacity: 0,
-      transition: { duration: 0.1, ease: "easeOut" },
+      transition: { duration: 0.2, ease: "easeOut" },
     },
     show: {
       scale: 1,
       opacity: 1,
-      transition: { duration: 0.6, ease: "easeOut" },
+      transition: { duration: 0.5, ease: [0.34, 1.56, 0.64, 1] },
     },
   };
 
@@ -126,15 +141,15 @@ export default function Timeline() {
       {/* Sticky gradient line */}
       <motion.div
         ref={timelineLineRef}
-        className="pointer-events-none w-1 absolute left-[calc(50%-2px)] -translate-x-1/2"
+        className="pointer-events-none w-1 absolute left-[calc(50%-2px)] -translate-x-1/2 will-change-transform rounded-full"
         style={{
           position: "sticky",
-          top: "12%",
-          transform: "translate(-50%, -50%)",
-          height: "100vh",
+          top: "10%",
+          height: "120vh",
           scaleY: lineScale,
           transformOrigin: "top center",
           background: `linear-gradient(to bottom, ${COLOR_ONE}, ${COLOR_TWO})`,
+          boxShadow: `0 0 8px 2px ${COLOR_ONE}30`,
         }}
       />
 
@@ -154,20 +169,21 @@ export default function Timeline() {
               className={`relative flex flex-col md:flex-row items-start md:items-center ${
                 isEven ? "md:flex-row" : "md:flex-row-reverse"
               }`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={showCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
+              initial={{ opacity: 0, y: 30 }}
+              animate={showCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             >
               {/* Dot */}
               <motion.div
-                className={cn(`absolute top-1/2 left-[calc(50%-0.75rem)]
-             -translate-y-1/2 w-6 h-6 rounded-full
-             bg-white border-4  shadow-md -z-0`)}
+                className={cn(`absolute top-1/2 left-[calc(50%-0.875rem)]
+             -translate-y-1/2 w-7 h-7 rounded-full
+             bg-white border-[5px] shadow-2xl z-0 blur-[1.5px]`)}
                 variants={dotVariants}
                 initial="hidden"
                 animate={showDot ? "show" : "hidden"}
                 style={{
                   borderColor: COLOR_ONE,
+                  boxShadow: `0 0 20px 4px ${COLOR_ONE}70, 0 0 10px 2px ${COLOR_TWO}50`,
                 }}
               />
 
@@ -185,14 +201,17 @@ export default function Timeline() {
                   delay: idx * 0.1,
                 }}
               >
-                <span className="text-xl dark:text-gray-400 uppercase tracking-wide">
+                <span className={cn(
+                  "text-xl font-semibold uppercase tracking-wide",
+                  isLightMode ? "text-purple-600" : "text-purple-400"
+                )}>
                   {item.timeframe}
                 </span>
               </motion.div>
 
               {/* Card */}
               <div
-                className={`relative md:w-1/2 mt-8 md:mt-0 transition-size duration-500 p-5 ${
+                className={`relative md:w-1/2 mt-8 md:mt-0 transition-all duration-500 p-5 ${
                   isEven ? "md:ml-10" : "md:mr-10"
                 }`}
                 style={{
@@ -201,26 +220,69 @@ export default function Timeline() {
               >
                 <motion.div
                   className={cn(
-                    `bg-white/40 dark:bg-gray-800/60
-                       backdrop-blur-sm p-6 md:rounded-xl
-                       shadow-lg hover:shadow-2xl
-                       transition-shadow duration-300`,
+                    `backdrop-blur-[2px] p-8 rounded-2xl border transition-all duration-300 overflow-hidden`,
+                    isLightMode
+                      ? "bg-gradient-to-br from-purple-50/70 via-white/60 to-violet-50/70 border-purple-200/30 shadow-lg shadow-purple-200/20"
+                      : "bg-gradient-to-br from-slate-900/70 via-purple-950/60 to-slate-900/70 border-purple-500/20 shadow-lg shadow-purple-500/10",
+                    !isEven ? "pl-12" : "pr-12"
                   )}
+                  style={{
+                    y: isEven ? parallaxY : parallaxYReverse,
+                  }}
+                  whileHover={{ 
+                    scale: 1.02,
+                    boxShadow: isLightMode 
+                      ? "0 20px 40px rgba(139, 92, 246, 0.2)" 
+                      : "0 20px 40px rgba(168, 85, 247, 0.3)",
+                    y: -5,
+                  }}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: "spring", stiffness: 200, damping: 15 }}
                 >
-                  <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  <motion.h3 
+                    className={cn(
+                      "text-2xl font-bold mb-2",
+                      isLightMode ? "text-purple-900" : "text-purple-100"
+                    )}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={showCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+                    transition={{ delay: 0.1, duration: 0.4 }}
+                  >
                     {item.title}
-                  </h3>
-                  <h4 className="text-base font-medium text-gray-600 dark:text-gray-300 mb-4">
+                  </motion.h3>
+                  <motion.h4 
+                    className={cn(
+                      "text-base font-semibold mb-4",
+                      isLightMode ? "text-purple-700" : "text-purple-300"
+                    )}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={showCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+                    transition={{ delay: 0.2, duration: 0.4 }}
+                  >
                     {item.company}
-                  </h4>
-                  <span className="text-sm text-gray-500 dark:text-gray-400 mb-4 block uppercase tracking-wide md:hidden">
+                  </motion.h4>
+                  <motion.span 
+                    className={cn(
+                      "text-sm mb-4 block uppercase tracking-wide font-medium md:hidden",
+                      isLightMode ? "text-purple-600" : "text-purple-400"
+                    )}
+                    initial={{ opacity: 0 }}
+                    animate={showCard ? { opacity: 1 } : { opacity: 0 }}
+                    transition={{ delay: 0.3, duration: 0.4 }}
+                  >
                     {item.timeframe}
-                  </span>
-                  <p className="text-gray-700 dark:text-gray-200 leading-relaxed">
+                  </motion.span>
+                  <motion.p 
+                    className={cn(
+                      "leading-relaxed text-sm",
+                      isLightMode ? "text-gray-700" : "text-gray-300"
+                    )}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={showCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+                    transition={{ delay: 0.3, duration: 0.4 }}
+                  >
                     {item.description}
-                  </p>
+                  </motion.p>
                 </motion.div>
               </div>
             </motion.div>

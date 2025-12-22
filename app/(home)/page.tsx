@@ -13,18 +13,8 @@ import React from "react"
 import LivingAuraScrollIndicator from "@/components/vertical-scroll-progress"
 
 const Main = () => {
-  const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    // we’re now on the client
-    setMounted(true)
-  }, [])
-  if (!mounted) {
-    // prevents hydration mismatch
-    return null
-  }
   return (
-    <div className="select-none">
+    <div className="select-none" suppressHydrationWarning>
 
       <LivingAuraScrollIndicator />
       <div className=" px-4 w-full flex flex-col">
