@@ -1,27 +1,35 @@
 import Image from "next/image"
 import { motion } from "framer-motion"
-import ThreeBackground from "@/components/landingPage/3dBackground"
+import dynamic from "next/dynamic"
+
+// Dynamic import to avoid SSR issues with Three.js
+const ParticleAvatar = dynamic(
+  () => import("./ParticleAvatar"),
+  { ssr: false, loading: () => (
+    <div className="w-[750px] h-[750px] rounded-full bg-gradient-to-br from-purple-500/20 to-violet-500/20 animate-pulse" />
+  )}
+)
 
 const Avatar = () => {
   return (
     <section
       id="Header"
-      className="min-h-[50vh] relative flex flex-col items-center justify-center p-6 mt-24 rounded-lg shadow-lg mb-24 z-10 overflow-hidden"
+      className="min-h-[50vh] relative flex flex-col items-center justify-center p-6 mt-24 rounded-lg shadow-lg mb-24 z-10 overflow-visible"
     >
       <motion.div
         className="relative z-10"
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeInOut", delay: 1 }}
+        transition={{ duration: 0.8, ease: "easeInOut", delay: 0.5 }}
       >
-        <Image
-          width={300}
-          height={300}
-          src="/heiner-profile.jpg"
-          alt="Your Avatar"
-          className="text-white w-24 h-24 rounded-full border-4 border-gray-300 dark:border-gray-700 shadow-lg object-cover"
+        <ParticleAvatar
+          imageUrl="/heiner-profile.jpg"
+          particleCount={50000}
+          particleSize={3.5}
+          formationSpeed={0.012}
+          mouseInfluence={100}
         />
-        <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 rounded-full   border-2 border-white dark:border-gray-800 animate-pulse" />
+        <div className="absolute bottom-4 right-4 w-6 h-6 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 animate-pulse z-20" />
       </motion.div>
       <motion.div
         initial={{ opacity: 0, x: 50 }}
@@ -77,9 +85,6 @@ const Avatar = () => {
           I'm available for work!
         </motion.p>
       </motion.div>
-      <div className="absolute inset-0">
-        <ThreeBackground />
-      </div>
     </section>
   )
 }
