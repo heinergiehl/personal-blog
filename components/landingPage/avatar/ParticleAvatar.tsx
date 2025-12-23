@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import { useTheme } from 'next-themes'
 import { COLOR_ONE, COLOR_TWO } from '@/config'
 import NextImage from 'next/image'
+import Stats from 'stats.js'
 
 interface ParticleAvatarProps {
   imageUrl: string
@@ -16,15 +17,17 @@ interface ParticleAvatarProps {
 
 const ParticleAvatar = ({
   imageUrl,
-  particleCount = 10000000,
-  particleSize = 3,
+  particleCount = 25000, // Increased for better visual quality
+  particleSize = 0.15, // Larger particles for better visibility
   formationSpeed = 0.02,
-  mouseInfluence = 50,
+  mouseInfluence = 200,
 }: ParticleAvatarProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const { theme, systemTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [showFallback, setShowFallback] = useState(true)
+  const mouseRef = useRef({ x: 999, y: 999, targetX: 999, targetY: 999 })
+  const rafRef = useRef<number>(0)
 
   useEffect(() => {
     setMounted(true)
@@ -45,7 +48,7 @@ const ParticleAvatar = ({
       0.1,
       2000
     )
-    camera.position.z = 680
+    camera.position.z = 1200
 
     const renderer = new THREE.WebGLRenderer({ 
       alpha: true, 
@@ -55,7 +58,7 @@ const ParticleAvatar = ({
     // Force square canvas - use smaller dimension to ensure it fits
     const size = Math.min(container.clientWidth, container.clientHeight)
     renderer.setSize(size, size)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)) // Reduced pixel ratio
     renderer.setClearColor(0x000000, 0)
     
     // Ensure canvas maintains square aspect ratio and doesn't stretch
@@ -65,12 +68,15 @@ const ParticleAvatar = ({
     renderer.domElement.style.aspectRatio = '1 / 1'
     
     container.appendChild(renderer.domElement)
-    
-    console.log('Renderer initialized:', renderer.domElement.width, 'x', renderer.domElement.height)
 
-    // Mouse position - start far away to avoid initial interaction
-    const mouse = new THREE.Vector2(999, 999)
-    const targetMouse = new THREE.Vector2(999, 999)
+    // Setup Stats.js for performance monitoring
+    const stats = new Stats()
+    stats.showPanel(0) // 0: fps, 1: ms, 2: mb
+    stats.dom.style.position = 'absolute'
+    stats.dom.style.left = '0px'
+    stats.dom.style.top = '0px'
+    stats.dom.style.opacity = '0.9'
+    container.appendChild(stats.dom)
 
     // Load image and extract pixel data
     const img = new Image()
@@ -93,9 +99,8 @@ const ParticleAvatar = ({
       const centerY = height / 2
       const maxRadius = width / 2
 
-      // POLAR COORDINATE SAMPLING - Identical to portal for guaranteed perfect circle
-      // Use more rings for denser, smoother circular coverage
-      const numRings = Math.floor(Math.sqrt(particleCount / 2))
+      // POLAR COORDINATE SAMPLING - Optimized for performance
+      const numRings = Math.floor(Math.sqrt(particleCount / 3)) // Fewer rings
       
       for (let ring = 0; ring < numRings; ring++) {
         // Include ring 0 (center) through the outer edge
@@ -166,11 +171,11 @@ const ParticleAvatar = ({
             const normalizedCircularDist = pixelDistFromCenter / maxRadius
             delays.push(normalizedCircularDist * 0.5)
             
-            // Subtle size variation for organic look with smooth edge falloff
+            // Size variation for organic look with smooth edge falloff
             const edgeDist = pixelDistFromCenter / maxRadius
-            const edgeFactor = 1.0 - Math.pow(edgeDist, 8) * 0.3 // Ultra smooth falloff
-            // Slight size variation for natural appearance
-            sizes.push(particleSize * (0.85 + Math.random() * 0.15) * edgeFactor)
+            const edgeFactor = 1.0 - Math.pow(edgeDist, 6) * 0.25 // Smooth falloff
+            // Size variation for natural, beautiful appearance
+            sizes.push(particleSize * (0.9 + Math.random() * 0.25) * edgeFactor)
           }
         }
       }
@@ -181,6 +186,7 @@ const ParticleAvatar = ({
       geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3))
       geometry.setAttribute('originalPosition', new THREE.Float32BufferAttribute(originalPositions, 3))
       geometry.setAttribute('velocity', new THREE.Float32BufferAttribute(velocities, 3))
+      geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1))
       geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1))
       geometry.setAttribute('delay', new THREE.Float32BufferAttribute(delays, 1))
 
@@ -195,6 +201,7 @@ const ParticleAvatar = ({
           colorOne: { value: new THREE.Color(COLOR_ONE) },
           colorTwo: { value: new THREE.Color(COLOR_TWO) },
           flowFieldStrength: { value: 0.15 },
+          isDark: { value: isDark ? 1.0 : 0.0 },
         },
         vertexShader: `
           uniform float time;
@@ -212,15 +219,13 @@ const ParticleAvatar = ({
           varying vec3 vColor;
           varying float vAlpha;
           
-          // Simplex noise functions for flow field
+          // Simplex noise functions - SIMPLIFIED for performance
           vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
           vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
           vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
-          vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
           
           float snoise(vec3 v) {
             const vec2 C = vec2(1.0/6.0, 1.0/3.0);
-            const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
             vec3 i  = floor(v + dot(v, C.yyy));
             vec3 x0 = v - i + dot(i, C.xxx);
             vec3 g = step(x0.yzx, x0.xyz);
@@ -229,54 +234,43 @@ const ParticleAvatar = ({
             vec3 i2 = max(g.xyz, l.zxy);
             vec3 x1 = x0 - i1 + C.xxx;
             vec3 x2 = x0 - i2 + C.yyy;
-            vec3 x3 = x0 - D.yyy;
+            vec3 x3 = x0 - 0.5;
             i = mod289(i);
             vec4 p = permute(permute(permute(
               i.z + vec4(0.0, i1.z, i2.z, 1.0))
               + i.y + vec4(0.0, i1.y, i2.y, 1.0))
               + i.x + vec4(0.0, i1.x, i2.x, 1.0));
-            float n_ = 0.142857142857;
-            vec3 ns = n_ * D.wyz - D.xzx;
+            vec3 ns = 0.142857142857 * vec3(1.0, 1.0, 1.0);
             vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
             vec4 x_ = floor(j * ns.z);
             vec4 y_ = floor(j - 7.0 * x_);
-            vec4 x = x_ *ns.x + ns.yyyy;
-            vec4 y = y_ *ns.x + ns.yyyy;
+            vec4 x = x_ * ns.x + ns.yyyy;
+            vec4 y = y_ * ns.x + ns.yyyy;
             vec4 h = 1.0 - abs(x) - abs(y);
-            vec4 b0 = vec4(x.xy, y.xy);
-            vec4 b1 = vec4(x.zw, y.zw);
-            vec4 s0 = floor(b0)*2.0 + 1.0;
-            vec4 s1 = floor(b1)*2.0 + 1.0;
+            vec4 s0 = floor(vec4(x.xy, y.xy))*2.0 + 1.0;
+            vec4 s1 = floor(vec4(x.zw, y.zw))*2.0 + 1.0;
             vec4 sh = -step(h, vec4(0.0));
-            vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
-            vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
+            vec4 a0 = vec4(x.xy, y.xy) + s0.xzyw*sh.xxyy;
+            vec4 a1 = vec4(x.zw, y.zw) + s1.xzyw*sh.zzww;
             vec3 p0 = vec3(a0.xy, h.x);
             vec3 p1 = vec3(a0.zw, h.y);
             vec3 p2 = vec3(a1.xy, h.z);
             vec3 p3 = vec3(a1.zw, h.w);
-            vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
+            vec4 norm = 1.79284291400159 - 0.85373472095314 * vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3));
             p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
             vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
             m = m * m;
             return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
           }
           
-          // Curl noise for fluid-like flow
+          // Simplified curl noise - less computation
           vec3 curlNoise(vec3 p) {
             float e = 0.1;
-            float n1 = snoise(vec3(p.x, p.y + e, p.z));
-            float n2 = snoise(vec3(p.x, p.y - e, p.z));
-            float n3 = snoise(vec3(p.x, p.y, p.z + e));
-            float n4 = snoise(vec3(p.x, p.y, p.z - e));
-            float n5 = snoise(vec3(p.x + e, p.y, p.z));
-            float n6 = snoise(vec3(p.x - e, p.y, p.z));
-            
-            vec3 curl = vec3(
-              n1 - n2,
-              n3 - n4,
-              n5 - n6
-            );
-            return curl / (2.0 * e);
+            return vec3(
+              snoise(vec3(p.x, p.y + e, p.z)) - snoise(vec3(p.x, p.y - e, p.z)),
+              snoise(vec3(p.x, p.y, p.z + e)) - snoise(vec3(p.x, p.y, p.z - e)),
+              snoise(vec3(p.x + e, p.y, p.z)) - snoise(vec3(p.x - e, p.y, p.z))
+            ) / (2.0 * e);
           }
           
           void main() {
@@ -289,53 +283,115 @@ const ParticleAvatar = ({
             float eased = 1.0 - pow(1.0 - adjustedProgress, 3.0);
             pos = mix(pos, targetPos, eased);
             
-            // NO FLOW FIELD - keep image particles stable for clear face visibility
-            
-            // Mouse interaction - only active after formation complete
-            // Gentle repulsion effect
+            // ORGANIC MOUSE INTERACTION - Effects only active near mouse
             float mouseActive = step(0.98, formationProgress);
             vec3 mouseDir = pos - mousePosition;
             float mouseDist = length(mouseDir);
-            float mouseEffect = smoothstep(mouseInfluence, 0.0, mouseDist) * mouseActive;
-            // Subtle push
-            pos += normalize(mouseDir) * mouseEffect * 15.0;
             
-            // NO IDLE MOVEMENT - keep particles perfectly still for maximum clarity
+            float particleEnergy = 0.0;
+            
+            if (mouseActive > 0.0 && mouseDist < mouseInfluence) {
+              vec3 normalizedDir = normalize(mouseDir);
+              float influence = smoothstep(mouseInfluence, 0.0, mouseDist);
+              
+              // Multi-zone interaction system for dramatic organic effect
+              
+              // Strong, natural bulge toward viewer effect
+              if (mouseDist < mouseInfluence) {
+                // Smooth cubic falloff for natural, organic feel
+                float influence = smoothstep(mouseInfluence, 0.0, mouseDist);
+                
+                // Stronger bulge power with cubic curve for smooth, natural shape
+                float bulgePower = influence * influence * influence;
+                
+                // Very dramatic movement toward viewer (positive Z)
+                pos.z += bulgePower * 120.0;
+                
+                // Strong inward XY movement for dramatic depth and 3D dome effect
+                vec2 mouseDir2D = vec2(normalizedDir.x, normalizedDir.y);
+                pos.xy -= mouseDir2D * bulgePower * 18.0;
+                
+                // Enhanced energy for stronger visual feedback
+                particleEnergy += influence * 0.08;
+              }
+            }
+            
+            // Enhanced idle animation - very subtle breathing only
+            float idleBreath = sin(time * 0.3 + delay * 6.28) * 0.3;
+            pos.z += idleBreath * formationProgress;
             
             vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
             gl_Position = projectionMatrix * mvPosition;
             
-            // Larger size for clearer image with subtle pulse
+            // Dynamic sizing based on depth and energy
+            float energySize = 1.0 + particleEnergy * 0.15;
             float pulse = 1.0 + sin(time * 0.5 + delay * 10.0) * 0.08 * formationProgress;
-            gl_PointSize = size * pixelRatio * pulse * (750.0 / -mvPosition.z);
+            gl_PointSize = size * pixelRatio * pulse * energySize * (750.0 / -mvPosition.z);
             
-            // Pass color and alpha (color is provided by Three.js)
+            // Pass pure color - NO white mixing at all
             vColor = color;
-            // Fully opaque when formed for maximum visibility
+            
+            // Fully opaque when formed
             vAlpha = adjustedProgress;
           }
         `,
         fragmentShader: `
           uniform vec3 colorOne;
           uniform vec3 colorTwo;
+          uniform float isDark;
           
           varying vec3 vColor;
           varying float vAlpha;
           
           void main() {
-            // Circular particle shape with sharper edges for clarity
+            // Circular particle shape with multi-layer structure
             vec2 center = gl_PointCoord - vec2(0.5);
             float dist = length(center);
             if (dist > 0.5) discard;
             
-            // Sharper edges for clearer image
-            float alpha = smoothstep(0.5, 0.15, dist) * vAlpha;
+            // Theme-adaptive alpha layers - ENHANCED FOR CLARITY
+            float alpha = 0.0;
             
-            // Very minimal glow to preserve image clarity
-            vec3 glowColor = mix(colorOne, colorTwo, gl_PointCoord.y);
-            vec3 finalColor = mix(vColor, glowColor, 0.02);
+            // Much stronger, more opaque particles for clear image
+            float coreStrength = mix(3.5, 1.5, isDark);     // Very strong core
+            float midStrength = mix(1.8, 0.8, isDark);      // Strong mid layer
+            float glowStrength = mix(0.08, 0.35, isDark);   // Minimal glow in light
             
-            gl_FragColor = vec4(finalColor, alpha);
+            // Core - very sharp and opaque
+            alpha += smoothstep(0.5, 0.0, dist) * vAlpha * coreStrength;
+            
+            // Mid layer - strong for smooth blending
+            alpha += smoothstep(0.5, 0.12, dist) * vAlpha * midStrength;
+            
+            // Minimal outer glow
+            alpha += smoothstep(0.5, 0.42, dist) * vAlpha * glowStrength;
+            
+            // Theme-aware color processing
+            vec3 finalColor = vColor;
+            
+            // LIGHT MODE: Darker and highly saturated
+            if (isDark < 0.5) {
+              // Darken for strong contrast
+              finalColor *= 0.68;
+              // Very high saturation
+              vec3 gray = vec3(dot(finalColor, vec3(0.299, 0.587, 0.114)));
+              finalColor = mix(gray, finalColor, 1.4);
+              // Much higher opacity for solid appearance
+              alpha *= 2.0;
+            } else {
+              // DARK MODE: Keep natural colors
+              vec3 themeColor = mix(colorOne, colorTwo, 0.5);
+              float outerRegion = smoothstep(0.15, 0.45, dist);
+              finalColor = mix(finalColor, mix(finalColor, themeColor, 0.08), outerRegion);
+            }
+            
+            // Anti-aliased edge for smooth appearance
+            float edgeSoftness = fwidth(dist) * 1.5;
+            float edge = smoothstep(0.5 - edgeSoftness, 0.5, dist);
+            alpha *= (1.0 - edge);
+            
+            // Higher cap for better coverage
+            gl_FragColor = vec4(finalColor, min(alpha, 1.8));
           }
         `,
         transparent: true,
@@ -353,188 +409,463 @@ const ParticleAvatar = ({
       return { particles, material, geometry }
     }
 
-    // Create advanced particle-based portal with flow field
-    const createPortalRing = () => {
-      const portalParticles: number[] = []
-      const portalColors: number[] = []
-      const portalAngles: number[] = []
-      const portalRadii: number[] = []
-      const portalSizes: number[] = []
-      const portalSeeds: number[] = []
+    // Create GPGPU-based portal - OPTIMIZED
+    const createGPGPUPortal = () => {
+      // Much smaller particle count for subtle effect
+      const numParticles = 800000  // Restored to previous state
+      const textureSize = Math.ceil(Math.sqrt(numParticles))
+      const actualParticles = textureSize * textureSize
       
-      const numRings = 8
-      const particlesPerRing = 1000
+      // Initialize particle data in textures
+      const positionData = new Float32Array(actualParticles * 4) // RGBA = xyz + ring
+      const velocityData = new Float32Array(actualParticles * 4) // RGBA = vxyz + seed
       
-      // Portal should surround the image (radius ~180) and extend to edge of circular viewport
-      // Viewport is 700px, so max visible radius is ~300 units at z=0
+      let idx = 0
+      // Fewer rings for subtler coverage
+      const numRings = 600  // Restored to previous state
+      const particlesPerRing = Math.floor(actualParticles / numRings)
+      
       for (let ring = 0; ring < numRings; ring++) {
-        const baseRadius = 165 + ring * 16
+        const baseRadius = 165 + ring * 0.28  // Restored to previous spacing
+        const particlesThisRing = particlesPerRing
         
-        for (let i = 0; i < particlesPerRing; i++) {
-          const angle = (i / particlesPerRing) * Math.PI * 2
-          const radiusVariation = (Math.random() - 0.5) * 10
-          const radius = baseRadius + radiusVariation
+        for (let i = 0; i < particlesThisRing && idx < actualParticles; i++) {
+          const angle = (i / particlesThisRing) * Math.PI * 2
+          // Add radial dispersion to fill gaps between rings
+          const radiusVar = (Math.random() - 0.5) * 4.5  // More variation to fill space
+          const radius = baseRadius + radiusVar
           
-          const x = Math.cos(angle) * radius
-          const y = Math.sin(angle) * radius
-          const z = (Math.random() - 0.5) * 8
+          // Position: xyz + ring index
+          positionData[idx * 4 + 0] = Math.cos(angle) * radius
+          positionData[idx * 4 + 1] = Math.sin(angle) * radius
+          positionData[idx * 4 + 2] = (Math.random() - 0.5) * 5
+          positionData[idx * 4 + 3] = ring / (numRings - 1) // Normalized ring
           
-          portalParticles.push(x, y, z)
-          portalAngles.push(angle)
-          portalRadii.push(radius)
-          portalSeeds.push(Math.random() * 100)
+          // Velocity: vxyz + seed
+          velocityData[idx * 4 + 0] = 0
+          velocityData[idx * 4 + 1] = 0
+          velocityData[idx * 4 + 2] = 0
+          velocityData[idx * 4 + 3] = Math.random() // Random seed
           
-          // Enhanced purple gradient colors with more vibrance
-          const t = ring / numRings
-          const brightness = 0.8 + Math.random() * 0.4
-          portalColors.push(
-            (0.65 + t * 0.25) * brightness,
-            (0.25 + t * 0.35) * brightness,
-            (0.85 + t * 0.15) * brightness
-          )
-          
-          portalSizes.push(1.8 + Math.random() * 2.2)
+          idx++
         }
       }
       
-      const portalGeometry = new THREE.BufferGeometry()
-      portalGeometry.setAttribute('position', new THREE.Float32BufferAttribute(portalParticles, 3))
-      portalGeometry.setAttribute('angle', new THREE.Float32BufferAttribute(portalAngles, 1))
-      portalGeometry.setAttribute('radius', new THREE.Float32BufferAttribute(portalRadii, 1))
-      portalGeometry.setAttribute('size', new THREE.Float32BufferAttribute(portalSizes, 1))
-      portalGeometry.setAttribute('seed', new THREE.Float32BufferAttribute(portalSeeds, 1))
+      // Create data textures
+      const positionTexture1 = new THREE.DataTexture(
+        positionData,
+        textureSize,
+        textureSize,
+        THREE.RGBAFormat,
+        THREE.FloatType
+      )
+      positionTexture1.needsUpdate = true
       
-      const portalMaterial = new THREE.ShaderMaterial({
+      const positionTexture2 = positionTexture1.clone()
+      
+      const velocityTexture1 = new THREE.DataTexture(
+        velocityData,
+        textureSize,
+        textureSize,
+        THREE.RGBAFormat,
+        THREE.FloatType
+      )
+      velocityTexture1.needsUpdate = true
+      
+      const velocityTexture2 = velocityTexture1.clone()
+      
+      // Create FBO render targets
+      const rtOptions = {
+        minFilter: THREE.NearestFilter,
+        magFilter: THREE.NearestFilter,
+        format: THREE.RGBAFormat,
+        type: THREE.FloatType,
+        stencilBuffer: false,
+        depthBuffer: false
+      }
+      
+      const positionRT1 = new THREE.WebGLRenderTarget(textureSize, textureSize, rtOptions)
+      const positionRT2 = new THREE.WebGLRenderTarget(textureSize, textureSize, rtOptions)
+      const velocityRT1 = new THREE.WebGLRenderTarget(textureSize, textureSize, rtOptions)
+      const velocityRT2 = new THREE.WebGLRenderTarget(textureSize, textureSize, rtOptions)
+      
+      // GPGPU compute shader for particle physics
+      const computeShader = `
+        uniform sampler2D texturePosition;
+        uniform sampler2D textureVelocity;
+        uniform float time;
+        uniform float delta;
+        uniform vec2 mousePosition;
+        uniform float textureSize;
+        
+        varying vec2 vUv;
+        
+        // Simplex noise 3D
+        vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
+        vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
+        
+        float snoise(vec3 v){ 
+          const vec2 C = vec2(1.0/6.0, 1.0/3.0) ;
+          const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+          vec3 i  = floor(v + dot(v, C.yyy) );
+          vec3 x0 =   v - i + dot(i, C.xxx) ;
+          vec3 g = step(x0.yzx, x0.xyz);
+          vec3 l = 1.0 - g;
+          vec3 i1 = min( g.xyz, l.zxy );
+          vec3 i2 = max( g.xyz, l.zxy );
+          vec3 x1 = x0 - i1 + 1.0 * C.xxx;
+          vec3 x2 = x0 - i2 + 2.0 * C.xxx;
+          vec3 x3 = x0 - 1. + 3.0 * C.xxx;
+          i = mod(i, 289.0 ); 
+          vec4 p = permute( permute( permute( 
+                     i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
+                   + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) 
+                   + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
+          float n_ = 0.142857142857;
+          vec3  ns = n_ * D.wyz - D.xzx;
+          vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+          vec4 x_ = floor(j * ns.z);
+          vec4 y_ = floor(j - 7.0 * x_ );
+          vec4 x = x_ *ns.x + ns.yyyy;
+          vec4 y = y_ *ns.x + ns.yyyy;
+          vec4 h = 1.0 - abs(x) - abs(y);
+          vec4 b0 = vec4( x.xy, y.xy );
+          vec4 b1 = vec4( x.zw, y.zw );
+          vec4 s0 = floor(b0)*2.0 + 1.0;
+          vec4 s1 = floor(b1)*2.0 + 1.0;
+          vec4 sh = -step(h, vec4(0.0));
+          vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
+          vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
+          vec3 p0 = vec3(a0.xy,h.x);
+          vec3 p1 = vec3(a0.zw,h.y);
+          vec3 p2 = vec3(a1.xy,h.z);
+          vec3 p3 = vec3(a1.zw,h.w);
+          vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+          p0 *= norm.x;
+          p1 *= norm.y;
+          p2 *= norm.z;
+          p3 *= norm.w;
+          vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+          m = m * m;
+          return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), 
+                                        dot(p2,x2), dot(p3,x3) ) );
+        }
+        
+        // Curl noise for fluid flow
+        vec3 curlNoise(vec3 p) {
+          float e = 0.1;
+          vec3 dx = vec3(e, 0.0, 0.0);
+          vec3 dy = vec3(0.0, e, 0.0);
+          vec3 dz = vec3(0.0, 0.0, e);
+          
+          float p_x0 = snoise(p - dx);
+          float p_x1 = snoise(p + dx);
+          float p_y0 = snoise(p - dy);
+          float p_y1 = snoise(p + dy);
+          float p_z0 = snoise(p - dz);
+          float p_z1 = snoise(p + dz);
+          
+          float x = p_y1 - p_y0 - p_z1 + p_z0;
+          float y = p_z1 - p_z0 - p_x1 + p_x0;
+          float z = p_x1 - p_x0 - p_y1 + p_y0;
+          
+          return normalize(vec3(x, y, z)) / (2.0 * e);
+        }
+        
+        void main() {
+          vec4 posData = texture2D(texturePosition, vUv);
+          vec4 velData = texture2D(textureVelocity, vUv);
+          
+          vec3 pos = posData.xyz;
+          float ring = posData.w;
+          vec3 vel = velData.xyz;
+          float seed = velData.w;
+          
+          // Calculate target radius for this ring (FIXED - won't change)
+          float targetRadius = 165.0 + ring * 144.0;
+          
+          // Current angle and radius
+          float angle = atan(pos.y, pos.x);
+          float currentRadius = length(pos.xy);
+          
+          // Rotation speed varies by ring (inner much faster for swirl effect)
+          float rotSpeed = 0.4 * (1.0 + (1.0 - ring) * 1.2);
+          angle += rotSpeed * delta;
+          
+          // CRITICAL FIX: Start with target radius, then apply small perturbations
+          // This prevents collapse - particles stay on their rings
+          float newRadius = targetRadius;
+          
+          // Add subtle radius variation from noise
+          vec3 noisePos = pos * 0.015 + time * 0.05;
+          float radiusNoise = snoise(noisePos) * 2.5;
+          // Add subtle breathing pulse to radius
+          float breathe = sin(time * 0.35 + ring * 6.28) * 0.04 + sin(time * 0.6 + angle * 2.0) * 0.03;
+          newRadius += radiusNoise + breathe * targetRadius * 0.03;
+          
+          // Base position on ring (always maintained)
+          vec3 newPos = vec3(
+            cos(angle) * newRadius,
+            sin(angle) * newRadius,
+            pos.z
+          );
+          
+          // ENHANCED ORGANIC MOTION - More curl noise for fluid flow
+          vec3 flowPos = pos * 0.008 + time * 0.008;
+          vec3 curl1 = curlNoise(flowPos);
+          vec3 curl2 = curlNoise(flowPos * 2.0 + 100.0) * 0.5;
+          vec3 curl3 = curlNoise(flowPos * 0.5 + 200.0) * 0.3;
+          vec3 combinedCurl = (curl1 + curl2 + curl3) * 6.0 * delta; // Reduced for subtler flow
+          
+          // Apply curl in all directions for organic motion
+          vec2 tangent = vec2(-sin(angle), cos(angle));
+          float curlTangent = dot(combinedCurl.xy, tangent);
+          newPos.xy += tangent * curlTangent;
+          // Add some radial curl too for breathing effect
+          float curlRadial = dot(combinedCurl.xy, normalize(newPos.xy));
+          newPos.xy += normalize(newPos.xy) * curlRadial * 0.03;
+          newPos.z += combinedCurl.z;
+          
+          // Enhanced Z-wave motion - more organic variation
+          float zWave = sin(time * 0.6 + seed * 6.28 + angle * 3.0) * 0.8;
+          zWave += sin(time * 1.2 + seed * 3.14 + ring * 10.0) * 0.4;
+          zWave += sin(time * 0.4 + angle * 1.5) * 0.06; // Additional wave
+          // Noise-based organic flow
+          vec3 zNoisePos = vec3(pos.xy * 0.01, time * 0.03);
+          zWave += snoise(zNoisePos) * 0.05;
+          newPos.z += zWave;
+          newPos.z = clamp(newPos.z, -6.0, 6.0);
+          
+          // ============= ORGANIC MOUSE INTERACTION =============
+          vec2 mouseWorld = (mousePosition - vec2(0.5)) * 750.0;
+          vec2 toMouse = pos.xy - mouseWorld;
+          float mouseDist = length(toMouse);
+          
+          // Add noise to make zones organic instead of perfect circles
+          vec3 mouseNoisePos = vec3(pos.xy * 0.015, time * 0.5);
+          float mouseNoise = snoise(mouseNoisePos) * 0.5 + 0.5;
+          float organicFactor = 0.85 + mouseNoise * 0.03; // 0.85 to 1.15 variation
+          
+          if (mouseDist < 450.0 * organicFactor) { // Restored to previous range
+            vec2 mouseDir = normalize(toMouse);
+            
+            // Organic 4-zone system with noise-based boundaries (restored)
+            
+            // ZONE 1: Organic void core (0-50px) - HIGHLY NOTICEABLE
+            float voidSize = 50.0 * organicFactor;
+            float voidZone = smoothstep(voidSize, 0.0, mouseDist);
+            if (voidZone > 0.0) {
+              vec2 perpendicular = vec2(-mouseDir.y, mouseDir.x);
+              float voidPower = voidZone * voidZone * voidZone;
+              float forceNoise = snoise(vec3(pos.xy * 0.02, time * 0.3));
+              float forceMult = 0.7 + forceNoise * 0.6;
+              newPos.xy -= mouseDir * voidPower * 560.0 * forceMult * delta;
+              newPos.xy += perpendicular * voidPower * 290.0 * forceMult * delta;
+              newPos.z += sin(time * 20.0 + seed * 6.28) * voidPower * 105.0 * delta;
+            }
+            
+            // ZONE 2: Organic intense vortex (50-120px) - HIGHLY NOTICEABLE
+            float innerSize1 = 50.0 * organicFactor;
+            float innerSize2 = 120.0 * organicFactor;
+            float innerZone = smoothstep(innerSize2, innerSize1, mouseDist) * (1.0 - voidZone);
+            if (innerZone > 0.0) {
+              vec2 perpendicular = vec2(-mouseDir.y, mouseDir.x);
+              float innerPower = innerZone * innerZone;
+              float vortexNoise = snoise(vec3(pos.xy * 0.018, time * 0.4));
+              float vortexMult = 0.75 + vortexNoise * 0.5;
+              newPos.xy -= mouseDir * innerPower * 320.0 * vortexMult * delta;
+              newPos.xy += perpendicular * innerPower * 225.0 * vortexMult * delta;
+              float turbulence = sin(time * 12.0 - mouseDist * 0.1 + seed * 6.28);
+              newPos.z += turbulence * innerPower * 72.0 * delta;
+            }
+            
+            // ZONE 3: Organic fluid zone (120-250px) - HIGHLY NOTICEABLE
+            float midSize1 = 120.0 * organicFactor;
+            float midSize2 = 250.0 * organicFactor;
+            float midZone = smoothstep(midSize2, midSize1, mouseDist) * (1.0 - innerZone) * (1.0 - voidZone);
+            if (midZone > 0.0) {
+              vec2 perpendicular = vec2(-mouseDir.y, mouseDir.x);
+              float midPower = midZone * midZone;
+              float fluidNoise = snoise(vec3(pos.xy * 0.015, time * 0.35));
+              float fluidMult = 0.8 + fluidNoise * 0.4;
+              newPos.xy += mouseDir * midPower * 160.0 * fluidMult * delta;
+              newPos.xy += perpendicular * midPower * 120.0 * fluidMult * delta;
+              newPos.z += sin(time * 8.0 - mouseDist * 0.06 + fluidNoise * 3.0) * midPower * 52.0 * delta;
+            }
+            
+            // ZONE 4: Organic ripples (250-450px) - HIGHLY NOTICEABLE
+            float rippleSize1 = 250.0 * organicFactor;
+            float rippleSize2 = 450.0 * organicFactor;
+            float rippleZone = smoothstep(rippleSize2, rippleSize1, mouseDist) * (1.0 - midZone) * (1.0 - innerZone) * (1.0 - voidZone);
+            if (rippleZone > 0.0) {
+              float rippleNoise = snoise(vec3(pos.xy * 0.012, time * 0.25));
+              float wave1 = sin((mouseDist * 0.08) - time * 5.0 + rippleNoise * 2.0) * rippleZone;
+              float wave2 = sin((mouseDist * 0.15) - time * 3.5 + rippleNoise * 1.5) * rippleZone * 0.5;
+              float combinedWave = (wave1 + wave2) * (0.8 + rippleNoise * 0.4);
+              
+              newPos.xy += mouseDir * combinedWave * 93.0 * delta;
+              newPos.z += combinedWave * 61.0 * delta;
+              vec2 tangent = vec2(-mouseDir.y, mouseDir.x);
+              newPos.xy += tangent * combinedWave * 61.0 * delta;
+            }
+          }
+          
+          // Update velocity for momentum (crucial for smooth FBO ping-pong)
+          vel = (newPos - pos) / max(delta, 0.001);
+          vel *= 0.94; // Slight damping for stability
+          
+          // Clamp extreme velocities to prevent instability
+          float velMag = length(vel);
+          if (velMag > 500.0) {
+            vel = normalize(vel) * 500.0;
+          }
+          
+          gl_FragColor = vec4(newPos, ring);
+        }
+      `
+      
+      const velocityShader = `
+        uniform sampler2D texturePosition;
+        uniform sampler2D textureVelocity;
+        
+        varying vec2 vUv;
+        
+        void main() {
+          vec4 posData = texture2D(texturePosition, vUv);
+          vec4 velData = texture2D(textureVelocity, vUv);
+          
+          // Just pass through velocity (already computed in position shader)
+          gl_FragColor = velData;
+        }
+      `
+      
+      // Create compute materials
+      const computePositionMaterial = new THREE.ShaderMaterial({
         uniforms: {
+          texturePosition: { value: positionTexture1 },
+          textureVelocity: { value: velocityTexture1 },
           time: { value: 0 },
+          delta: { value: 0 },
           mousePosition: { value: new THREE.Vector2(999, 999) },
-          colorOne: { value: new THREE.Color(COLOR_ONE) },
-          colorTwo: { value: new THREE.Color(COLOR_TWO) },
-          pixelRatio: { value: renderer.getPixelRatio() },
-          isDark: { value: isDark ? 1.0 : 0.0 },
+          textureSize: { value: textureSize }
         },
         vertexShader: `
-          uniform float time;
-          uniform vec2 mousePosition;
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: computeShader
+      })
+      
+      const computeVelocityMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          texturePosition: { value: positionTexture1 },
+          textureVelocity: { value: velocityTexture1 }
+        },
+        vertexShader: `
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: velocityShader
+      })
+      
+      // Full-screen quad for compute pass
+      const computeGeometry = new THREE.PlaneGeometry(2, 2)
+      const computeMesh = new THREE.Mesh(computeGeometry, computePositionMaterial)
+      const computeScene = new THREE.Scene()
+      computeScene.add(computeMesh)
+      const computeCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
+      
+      // Create particle geometry with UVs to sample from texture
+      const portalParticleGeometry = new THREE.BufferGeometry()
+      const particleUVs = new Float32Array(actualParticles * 2)
+      const particleSizes = new Float32Array(actualParticles)
+      
+      for (let y = 0; y < textureSize; y++) {
+        for (let x = 0; x < textureSize; x++) {
+          const i = y * textureSize + x
+          particleUVs[i * 2 + 0] = x / textureSize
+          particleUVs[i * 2 + 1] = y / textureSize
+          particleSizes[i] = 1.8 + Math.random() * 2.2  // Smaller particles for subtler effect
+        }
+      }
+      
+      // Dummy positions (will be overwritten by shader)
+      const dummyPositions = new Float32Array(actualParticles * 3)
+      portalParticleGeometry.setAttribute('position', new THREE.BufferAttribute(dummyPositions, 3))
+      portalParticleGeometry.setAttribute('uv', new THREE.BufferAttribute(particleUVs, 2))
+      portalParticleGeometry.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1))
+      
+      // Render material - reads from position texture
+      const portalMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          texturePosition: { value: null }, // Will be set to current position RT
+          textureVelocity: { value: null },
+          time: { value: 0 },
+          pixelRatio: { value: renderer.getPixelRatio() },
+          // Theme-adaptive colors - more vibrant and visible
+          colorOne: { value: isDark ? new THREE.Color('#9333ea') : new THREE.Color('#7c3aed') }, // Vibrant purple
+          colorTwo: { value: isDark ? new THREE.Color('#c084fc') : new THREE.Color('#a855f7') }, // Bright violet
+          isDark: { value: isDark ? 1.0 : 0.0 }
+        },
+        vertexShader: `
+          uniform sampler2D texturePosition;
+          uniform sampler2D textureVelocity;
           uniform float pixelRatio;
+          uniform float time;
           
-          attribute float angle;
-          attribute float radius;
           attribute float size;
-          attribute float seed;
           
           varying vec3 vColor;
           varying float vAlpha;
-          
-          // Simplex noise for flow field
-          vec4 permute_3d(vec4 x){ return mod(((x*34.0)+1.0)*x, 289.0); }
-          vec4 taylorInvSqrt3d(vec4 r){ return 1.79284291400159 - 0.85373472095314 * r; }
-          
-          float simplexNoise3d(vec3 v) {
-            const vec2 C = vec2(1.0/6.0, 1.0/3.0);
-            const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
-            vec3 i  = floor(v + dot(v, C.yyy));
-            vec3 x0 = v - i + dot(i, C.xxx);
-            vec3 g = step(x0.yzx, x0.xyz);
-            vec3 l = 1.0 - g;
-            vec3 i1 = min(g.xyz, l.zxy);
-            vec3 i2 = max(g.xyz, l.zxy);
-            vec3 x1 = x0 - i1 + 1.0 * C.xxx;
-            vec3 x2 = x0 - i2 + 2.0 * C.xxx;
-            vec3 x3 = x0 - 1.0 + 3.0 * C.xxx;
-            i = mod(i, 289.0);
-            vec4 p = permute_3d(permute_3d(permute_3d(i.z + vec4(0.0, i1.z, i2.z, 1.0)) + i.y + vec4(0.0, i1.y, i2.y, 1.0)) + i.x + vec4(0.0, i1.x, i2.x, 1.0));
-            float n_ = 1.0/7.0;
-            vec3 ns = n_ * D.wyz - D.xzx;
-            vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
-            vec4 x_ = floor(j * ns.z);
-            vec4 y_ = floor(j - 7.0 * x_);
-            vec4 x = x_ * ns.x + ns.yyyy;
-            vec4 y = y_ * ns.x + ns.yyyy;
-            vec4 h = 1.0 - abs(x) - abs(y);
-            vec4 b0 = vec4(x.xy, y.xy);
-            vec4 b1 = vec4(x.zw, y.zw);
-            vec4 s0 = floor(b0)*2.0 + 1.0;
-            vec4 s1 = floor(b1)*2.0 + 1.0;
-            vec4 sh = -step(h, vec4(0.0));
-            vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
-            vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
-            vec3 p0 = vec3(a0.xy,h.x);
-            vec3 p1 = vec3(a0.zw,h.y);
-            vec3 p2 = vec3(a1.xy,h.z);
-            vec3 p3 = vec3(a1.zw,h.w);
-            vec4 norm = taylorInvSqrt3d(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
-            p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
-            vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
-            m = m * m;
-            return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
-          }
-          
-          float fbm3d(vec3 x) {
-            float v = 0.0;
-            float a = 0.5;
-            vec3 shift = vec3(100);
-            for (int i = 0; i < 4; ++i) {
-              v += a * simplexNoise3d(x);
-              x = x * 2.0 + shift;
-              a *= 0.5;
-            }
-            return v;
-          }
+          varying float vSpeed;
+          varying float vRing;
+          varying float vEnergy;
           
           void main() {
-            // Rotate particles clockwise
-            float rotatedAngle = angle + time * 0.2;
+            vec4 posData = texture2D(texturePosition, uv);
+            vec4 velData = texture2D(textureVelocity, uv);
             
-            vec3 pos = vec3(
-              cos(rotatedAngle) * radius,
-              sin(rotatedAngle) * radius,
-              position.z
-            );
-            
-            // Apply flow field distortion (portal effect)
-            vec2 uv = pos.xy / 170.0;
-            vec3 flowPos = vec3(uv, 0.5);
-            flowPos = normalize(flowPos);
-            flowPos -= 0.2 * vec3(0.0, 0.0, time * 0.3);
-            
-            // Logarithmic angle distortion
-            float distortAngle = -log2(length(uv) + 0.1);
-            float cosA = cos(distortAngle);
-            float sinA = sin(distortAngle);
-            vec2 rotatedFlow = vec2(
-              flowPos.x * cosA - flowPos.y * sinA,
-              flowPos.x * sinA + flowPos.y * cosA
-            );
-            flowPos.xy = rotatedFlow;
-            
-            // Sample noise at particle position
-            float noise1 = fbm3d(flowPos * 1.4 + seed * 0.1);
-            float noise2 = fbm3d(flowPos * 1.4 + seed * 0.1 + 1.0);
-            
-            // Apply distortion to particle position
-            vec2 distortion = vec2(noise1, noise2) * 15.0;
-            pos.xy += distortion;
-            
-            // Z-axis wave
-            pos.z += sin(time + seed) * 3.0 + cos(rotatedAngle * 3.0 + time) * 2.0;
-            
-            // Mouse interaction
-            vec2 mouseUV = (mousePosition - vec2(0.5)) * 400.0;
-            float mouseDist = distance(pos.xy, mouseUV);
-            float mouseEffect = smoothstep(100.0, 0.0, mouseDist);
-            pos.xy += normalize(pos.xy - mouseUV) * mouseEffect * 30.0;
-            pos.z += mouseEffect * 15.0;
+            vec3 pos = posData.xyz;
+            float ring = posData.w;
+            vec3 vel = velData.xyz;
             
             vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
             gl_Position = projectionMatrix * mvPosition;
             
-            // Dynamic pulsing size with more variation
-            float pulse = 1.0 + sin(time * 2.5 + seed * 10.0 + noise1 * 8.0) * 0.5;
-            gl_PointSize = size * pixelRatio * pulse * (750.0 / -mvPosition.z);
+            // Velocity-based size and energy
+            float speed = length(vel);
+            vSpeed = speed;
+            vEnergy = min(speed / 100.0, 2.0); // Normalize speed to energy level
             
-            vColor = color;
-            vAlpha = 1.0 - mouseEffect * 0.4;
+            // Size increases dramatically with velocity (mouse interaction feedback)
+            float sizeMult = 1.0 + vEnergy * 0.8;
+            
+            // Dynamic pulsing based on ring, time, and energy
+            float pulse = 1.0 + sin(time * 2.5 + ring * 15.0) * 0.4;
+            pulse += vEnergy * 0.3; // Extra pulse when energized
+            
+            gl_PointSize = size * pixelRatio * pulse * sizeMult * (750.0 / -mvPosition.z);
+            
+            // Deep purple color system - rich purple, not pink
+            vec3 innerColor = vec3(0.18, 0.05, 0.28);   // Deep inner purple
+            vec3 midColor = vec3(0.28, 0.10, 0.42);     // Rich medium purple
+            vec3 outerColor = vec3(0.35, 0.14, 0.50);   // Strong outer purple
+            
+            // Smooth gradient across rings - dark purple tones
+            vec3 color1 = mix(innerColor, midColor, smoothstep(0.0, 0.5, ring));
+            vec3 baseColor = mix(color1, outerColor, smoothstep(0.5, 1.0, ring));
+            
+            // Energy only slightly increases brightness
+            vColor = baseColor * (1.0 + vEnergy * 0.2);
+            
+            vAlpha = 1.0;
+            vRing = ring;
           }
         `,
         fragmentShader: `
@@ -544,40 +875,172 @@ const ParticleAvatar = ({
           
           varying vec3 vColor;
           varying float vAlpha;
+          varying float vSpeed;
+          varying float vRing;
+          varying float vEnergy;
           
           void main() {
             vec2 center = gl_PointCoord - vec2(0.5);
             float dist = length(center);
             if (dist > 0.5) discard;
             
-            // Enhanced glowing core with stronger effect
-            float alpha = smoothstep(0.5, 0.05, dist) * vAlpha;
-            alpha += smoothstep(0.5, 0.2, dist) * 0.8;
-            alpha += smoothstep(0.3, 0.0, dist) * 0.5; // Extra bright core
+            // Enhanced multi-layer glow system - Very subtle
+            float alpha = 0.0;
             
-            // Theme-aware glow with more intensity
-            vec3 themeColor = mix(colorOne, colorTwo, isDark);
-            vec3 glowColor = mix(themeColor, vColor, 0.4);
-            vec3 finalColor = mix(glowColor, vColor, dist * 0.8);
+            // Strong alpha for great portal visibility
+            float outerGlow = mix(0.18, 0.10, isDark);
+            float midGlow = mix(0.28, 0.16, isDark);
+            float coreGlow = mix(0.38, 0.22, isDark);
             
-            gl_FragColor = vec4(finalColor, alpha);
+            // Outer glow (soft falloff)
+            alpha += smoothstep(0.5, 0.0, dist) * vAlpha * outerGlow;
+            
+            // Mid glow (medium intensity)
+            alpha += smoothstep(0.5, 0.2, dist) * midGlow;
+            
+            // Inner core (bright center)
+            alpha += smoothstep(0.35, 0.0, dist) * coreGlow;
+            
+            // Energy boost - minimal
+            float energyBoost = mix(0.05, 0.02, isDark);
+            alpha *= 1.0 + vEnergy * energyBoost;
+            
+            // Strong theme boost for great visibility
+            float themeBoost = mix(1.3, 0.85, isDark);
+            alpha *= themeBoost;
+            
+            // Enhanced color processing - DEEP PURPLE
+            vec3 finalColor = vColor;
+            
+            // Ring-based brightness variation (subtle)
+            finalColor *= 1.0 + (1.0 - vRing) * 0.10;
+            
+            // Energy increases brightness only slightly
+            finalColor *= 1.0 + vEnergy * mix(0.15, 0.08, isDark);
+            
+            // THEME-SPECIFIC COLOR ADJUSTMENTS - Rich purple, no white
+            if (isDark < 0.5) {
+              // LIGHT MODE: Rich visible purple
+              finalColor *= 0.68;  // Good visibility
+              // Strong purple shift (reduce red/pink, boost blue)
+              finalColor.r *= 0.75;  // Less red for more purple
+              finalColor.b *= 1.15;  // More blue for vibrant purple
+              vec3 gray = vec3(dot(finalColor, vec3(0.299, 0.587, 0.114)));
+              finalColor = mix(gray, finalColor, 2.2);  // High saturation for rich purple
+            } else {
+              // DARK MODE: Vibrant visible purple
+              finalColor *= 0.50;  // Good visibility without being white
+              vec3 gray = vec3(dot(finalColor, vec3(0.299, 0.587, 0.114)));
+              finalColor = mix(gray, finalColor, 1.6);  // Higher saturation for vibrant purple
+            }
+            
+            // Anti-aliased edge
+            float edgeSoftness = fwidth(dist) * 2.0;
+            float edge = smoothstep(0.5 - edgeSoftness, 0.5, dist);
+            alpha *= (1.0 - edge);
+            
+            // Higher alpha cap for great visibility
+            float maxAlpha = mix(0.48, 0.28, isDark);
+            gl_FragColor = vec4(finalColor, min(alpha, maxAlpha));
           }
         `,
         transparent: true,
         depthWrite: false,
-        blending: THREE.AdditiveBlending,
-        vertexColors: true,
+        blending: THREE.AdditiveBlending
       })
       
-      const portalPoints = new THREE.Points(portalGeometry, portalMaterial)
+      const portalPoints = new THREE.Points(portalParticleGeometry, portalMaterial)
       scene.add(portalPoints)
       
-      return { portalPoints, portalMaterial }
+      // CRITICAL: Initialize render targets with initial particle data
+      // Create a temporary scene to copy DataTexture data to GPU RenderTargets
+      const initScene = new THREE.Scene()
+      const initCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
+      const initGeometry = new THREE.PlaneGeometry(2, 2)
+      
+      // Copy position data
+      const initPosMaterial = new THREE.ShaderMaterial({
+        uniforms: { tSource: { value: positionTexture1 } },
+        vertexShader: `
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform sampler2D tSource;
+          varying vec2 vUv;
+          void main() {
+            gl_FragColor = texture2D(tSource, vUv);
+          }
+        `
+      })
+      const initPosMesh = new THREE.Mesh(initGeometry, initPosMaterial)
+      initScene.add(initPosMesh)
+      
+      renderer.setRenderTarget(positionRT1)
+      renderer.render(initScene, initCamera)
+      
+      // Copy velocity data
+      const initVelMaterial = new THREE.ShaderMaterial({
+        uniforms: { tSource: { value: velocityTexture1 } },
+        vertexShader: `
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform sampler2D tSource;
+          varying vec2 vUv;
+          void main() {
+            gl_FragColor = texture2D(tSource, vUv);
+          }
+        `
+      })
+      initPosMesh.material = initVelMaterial
+      renderer.setRenderTarget(velocityRT1)
+      renderer.render(initScene, initCamera)
+      
+      renderer.setRenderTarget(null)
+      
+      // Cleanup init resources
+      initGeometry.dispose()
+      initPosMaterial.dispose()
+      initVelMaterial.dispose()
+      
+      // Set initial textures for render material
+      portalMaterial.uniforms.texturePosition.value = positionRT1.texture
+      portalMaterial.uniforms.textureVelocity.value = velocityRT1.texture
+      
+      return {
+        portalPoints,
+        portalMaterial,
+        computeMesh,
+        computeScene,
+        computeCamera,
+        computePositionMaterial,
+        computeVelocityMaterial,
+        positionRT1,
+        positionRT2,
+        velocityRT1,
+        velocityRT2,
+        currentPositionRT: 0, // 0 or 1 for ping-pong
+        textureSize
+      }
+    }
+
+    // Create advanced particle-based portal with flow field
+    const createPortalRing = () => {
+      // Use GPGPU version instead
+      return createGPGPUPortal()
     }
 
     let particles: THREE.Points | null = null
     let material: THREE.ShaderMaterial | null = null
-    let portalRing: { portalPoints: THREE.Points; portalMaterial: THREE.ShaderMaterial } | null = null
+    let portalRing: any = null
     let animationId: number
 
     img.onload = () => {
@@ -639,26 +1102,32 @@ const ParticleAvatar = ({
     
     img.src = imageUrl
 
-    // Mouse move handler
+    // Instant mouse position update for real-time responsiveness
     const handleMouseMove = (event: MouseEvent) => {
       const rect = container.getBoundingClientRect()
-      targetMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
-      targetMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
+      mouseRef.current.targetX = ((event.clientX - rect.left) / rect.width) * 2 - 1
+      mouseRef.current.targetY = -((event.clientY - rect.top) / rect.height) * 2 + 1
     }
 
-    container.addEventListener('mousemove', handleMouseMove)
+    container.addEventListener('mousemove', handleMouseMove, { passive: true })
 
-    // Animation loop
+    // Animation loop - OPTIMIZED
     const clock = new THREE.Clock()
     let formationProgress = 0
+    let lastTime = 0
 
     const animate = () => {
-      animationId = requestAnimationFrame(animate)
+      stats.begin()
+      rafRef.current = requestAnimationFrame(animate)
 
       const elapsed = clock.getElapsedTime()
+      const delta = Math.min(elapsed - lastTime, 0.033) // Cap to 30fps minimum
+      lastTime = elapsed
 
-      // Smooth mouse following
-      mouse.lerp(targetMouse, 0.1)
+      // Smooth and responsive mouse following
+      const dampingFactor = 0.3
+      mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * dampingFactor
+      mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * dampingFactor
 
       // Update formation progress
       if (formationProgress < 1) {
@@ -670,7 +1139,7 @@ const ParticleAvatar = ({
         material.uniforms.formationProgress.value = formationProgress
         
         // Convert 2D mouse to 3D space
-        const vector = new THREE.Vector3(mouse.x, mouse.y, 0.5)
+        const vector = new THREE.Vector3(mouseRef.current.x, mouseRef.current.y, 0.5)
         vector.unproject(camera)
         const dir = vector.sub(camera.position).normalize()
         const distance = -camera.position.z / dir.z
@@ -678,20 +1147,62 @@ const ParticleAvatar = ({
         material.uniforms.mousePosition.value = pos
       }
 
-      // Update portal ring
-      if (portalRing) {
+      // Update GPGPU portal with ping-pong - OPTIMIZED
+      if (portalRing && portalRing.computeScene && formationProgress > 0.5) {
+        // Convert mouse from normalized device coords
+        const vector = new THREE.Vector3(mouseRef.current.x, mouseRef.current.y, 0.5)
+        vector.unproject(camera)
+        const dir = vector.sub(camera.position).normalize()
+        const distance = -camera.position.z / dir.z
+        const mouseWorldPos = camera.position.clone().add(dir.multiplyScalar(distance))
+        
+        const normalizedMouse = new THREE.Vector2(
+          (mouseWorldPos.x + 375) / 750,
+          (mouseWorldPos.y + 375) / 750
+        )
+        
+        const currentPosRT = portalRing.currentPositionRT === 0 ? portalRing.positionRT1 : portalRing.positionRT2
+        const nextPosRT = portalRing.currentPositionRT === 0 ? portalRing.positionRT2 : portalRing.positionRT1
+        const currentVelRT = portalRing.currentPositionRT === 0 ? portalRing.velocityRT1 : portalRing.velocityRT2
+        const nextVelRT = portalRing.currentPositionRT === 0 ? portalRing.velocityRT2 : portalRing.velocityRT1
+        
+        // Update compute shader uniforms
+        portalRing.computePositionMaterial.uniforms.texturePosition.value = currentPosRT.texture
+        portalRing.computePositionMaterial.uniforms.textureVelocity.value = currentVelRT.texture
+        portalRing.computePositionMaterial.uniforms.time.value = elapsed
+        portalRing.computePositionMaterial.uniforms.delta.value = delta
+        portalRing.computePositionMaterial.uniforms.mousePosition.value = normalizedMouse
+        
+        // Render compute pass
+        portalRing.computeMesh.material = portalRing.computePositionMaterial
+        renderer.setRenderTarget(nextPosRT)
+        renderer.render(portalRing.computeScene, portalRing.computeCamera)
+        
+        // Update velocity
+        portalRing.computeVelocityMaterial.uniforms.texturePosition.value = nextPosRT.texture
+        portalRing.computeVelocityMaterial.uniforms.textureVelocity.value = currentVelRT.texture
+        portalRing.computeMesh.material = portalRing.computeVelocityMaterial
+        renderer.setRenderTarget(nextVelRT)
+        renderer.render(portalRing.computeScene, portalRing.computeCamera)
+        
+        renderer.setRenderTarget(null)
+        
+        // Update render material
+        portalRing.portalMaterial.uniforms.texturePosition.value = nextPosRT.texture
+        portalRing.portalMaterial.uniforms.textureVelocity.value = nextVelRT.texture
         portalRing.portalMaterial.uniforms.time.value = elapsed
         portalRing.portalMaterial.uniforms.isDark.value = isDark ? 1.0 : 0.0
         
-        // Use normalized 2D mouse position
-        const normalizedMouse = new THREE.Vector2(
-          (mouse.x + 1) / 2,
-          (mouse.y + 1) / 2
-        )
-        portalRing.portalMaterial.uniforms.mousePosition.value = normalizedMouse
+        if (portalRing.portalPoints) {
+          portalRing.portalPoints.visible = true
+        }
+        
+        // Swap buffers
+        portalRing.currentPositionRT = 1 - portalRing.currentPositionRT
       }
 
       renderer.render(scene, camera)
+      stats.end()
     }
 
     animate()
@@ -710,7 +1221,7 @@ const ParticleAvatar = ({
 
     // Cleanup
     return () => {
-      cancelAnimationFrame(animationId)
+      cancelAnimationFrame(rafRef.current)
       container.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('resize', handleResize)
       if (container.contains(renderer.domElement)) {
@@ -718,6 +1229,26 @@ const ParticleAvatar = ({
       }
       scene.clear()
       renderer.dispose()
+      
+      // Dispose geometries and materials
+      if (particles) {
+        particles.geometry.dispose()
+        if (particles.material instanceof THREE.Material) {
+          particles.material.dispose()
+        }
+      }
+      if (portalRing) {
+        if (portalRing.portalPoints) {
+          portalRing.portalPoints.geometry.dispose()
+          portalRing.portalMaterial.dispose()
+        }
+        if (portalRing.computePositionMaterial) portalRing.computePositionMaterial.dispose()
+        if (portalRing.computeVelocityMaterial) portalRing.computeVelocityMaterial.dispose()
+        if (portalRing.positionRT1) portalRing.positionRT1.dispose()
+        if (portalRing.positionRT2) portalRing.positionRT2.dispose()
+        if (portalRing.velocityRT1) portalRing.velocityRT1.dispose()
+        if (portalRing.velocityRT2) portalRing.velocityRT2.dispose()
+      }
     }
   }, [mounted, imageUrl, particleCount, particleSize, formationSpeed, mouseInfluence, theme, systemTheme])
 
