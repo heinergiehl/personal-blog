@@ -107,7 +107,9 @@ const ParticleAvatar = ({
       const maxRadius = width / 2
 
       // POLAR COORDINATE SAMPLING - Optimized for performance
-      const numRings = Math.floor(Math.sqrt(particleCount / 3)) // Fewer rings
+      const numRings = isMobile 
+        ? Math.floor(Math.sqrt(particleCount / 2)) // Even simpler on mobile
+        : Math.floor(Math.sqrt(particleCount / 3))
       
       for (let ring = 0; ring < numRings; ring++) {
         // Include ring 0 (center) through the outer edge
@@ -116,7 +118,7 @@ const ParticleAvatar = ({
         
         // More particles in outer rings for even density
         const circumference = 2 * Math.PI * Math.max(1, radius)
-        const particlesThisRing = ring === 0 ? 1 : Math.floor(circumference * 1.5)
+        const particlesThisRing = ring === 0 ? 1 : Math.floor(circumference * (isMobile ? 1.0 : 1.5))
         
         for (let i = 0; i < particlesThisRing; i++) {
           const angle = (i / particlesThisRing) * Math.PI * 2
@@ -1072,18 +1074,28 @@ const ParticleAvatar = ({
       }
     }
 
-    container.addEventListener('mousemove', handleMouseMove, { passive: true })
-    container.addEventListener('touchmove', handleTouchMove, { passive: true })
-    container.addEventListener('touchstart', handleTouchStart, { passive: true })
+    // Only add event listeners on desktop
+    if (!isMobile) {
+      container.addEventListener('mousemove', handleMouseMove, { passive: true })
+      container.addEventListener('touchmove', handleTouchMove, { passive: true })
+      container.addEventListener('touchstart', handleTouchStart, { passive: true })
+    }
 
-    // Animation loop - OPTIMIZED with throttling for mobile
+    // Animation loop - DRASTICALLY OPTIMIZED for mobile
     const clock = new THREE.Clock()
     let formationProgress = 0
     let lastTime = 0
     let frameCount = 0
+    let mobileStaticMode = false // On mobile, stop animating after formation
 
     const animate = () => {
       rafRef.current = requestAnimationFrame(animate)
+
+      // On mobile: completely stop updates after formation is done
+      if (isMobile && mobileStaticMode) {
+        renderer.render(scene, camera)
+        return
+      }
 
       // Throttle updates on mobile - skip every other frame for 30fps
       if (isMobile) {
@@ -1097,34 +1109,44 @@ const ParticleAvatar = ({
       if (stats) stats.begin()
 
       const elapsed = clock.getElapsedTime()
-      const delta = Math.min(elapsed - lastTime, 0.033) // Cap to 30fps minimum
+      const delta = Math.min(elapsed - lastTime, 0.033)
       lastTime = elapsed
-
-      // Smooth and responsive mouse following - less damping on desktop
-      const dampingFactor = isMobile ? 0.2 : 0.3
-      mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * dampingFactor
-      mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * dampingFactor
 
       // Update formation progress
       if (formationProgress < 1) {
         formationProgress = Math.min(1, formationProgress + formationSpeed)
+        
+        // Once formation is complete on mobile, enter static mode
+        if (isMobile && formationProgress >= 1) {
+          mobileStaticMode = true
+        }
+      }
+
+      // Desktop only: mouse smoothing and interactions
+      if (!isMobile) {
+        const dampingFactor = 0.3
+        mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * dampingFactor
+        mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * dampingFactor
       }
 
       if (material) {
+        // Always update time for minimal shader animations
         material.uniforms.time.value = elapsed
         material.uniforms.formationProgress.value = formationProgress
         
-        // Convert 2D mouse to 3D space
-        const vector = new THREE.Vector3(mouseRef.current.x, mouseRef.current.y, 0.5)
-        vector.unproject(camera)
-        const dir = vector.sub(camera.position).normalize()
-        const distance = -camera.position.z / dir.z
-        const pos = camera.position.clone().add(dir.multiplyScalar(distance))
-        material.uniforms.mousePosition.value = pos
+        // Desktop only: mouse position updates
+        if (!isMobile) {
+          const vector = new THREE.Vector3(mouseRef.current.x, mouseRef.current.y, 0.5)
+          vector.unproject(camera)
+          const dir = vector.sub(camera.position).normalize()
+          const distance = -camera.position.z / dir.z
+          const pos = camera.position.clone().add(dir.multiplyScalar(distance))
+          material.uniforms.mousePosition.value = pos
+        }
       }
 
-      // Update GPGPU portal with ping-pong - OPTIMIZED
-      if (portalRing && portalRing.computeScene && formationProgress > 0.5) {
+      // Update GPGPU portal with ping-pong - Desktop only
+      if (!isMobile && portalRing && portalRing.computeScene && formationProgress > 0.5) {
         // Convert mouse from normalized device coords
         const vector = new THREE.Vector3(mouseRef.current.x, mouseRef.current.y, 0.5)
         vector.unproject(camera)
@@ -1199,9 +1221,11 @@ const ParticleAvatar = ({
     // Cleanup
     return () => {
       cancelAnimationFrame(rafRef.current)
-      container.removeEventListener('mousemove', handleMouseMove)
-      container.removeEventListener('touchmove', handleTouchMove)
-      container.removeEventListener('touchstart', handleTouchStart)
+      if (!isMobile) {
+        container.removeEventListener('mousemove', handleMouseMove)
+        container.removeEventListener('touchmove', handleTouchMove)
+        container.removeEventListener('touchstart', handleTouchStart)
+      }
       window.removeEventListener('resize', handleResize)
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement)
