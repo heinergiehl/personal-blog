@@ -21,16 +21,14 @@ jobs:
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
-          port: ${{ secrets.DEPLOY_PORT }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }} # set this, or remove if you truly use 22
+          key: ${{ secrets.SSH_PRIVATE_KEY }} # <-- IMPORTANT: use your real secret name
           command_timeout: 30m
           envs: APP_PORT,DEPLOY_DIR,GH_REPO,GH_BRANCH,GH_TOKEN
           script: |
             set -euo pipefail
 
-            echo "--- Server info ---"
-            whoami
-            pwd
+            echo "--- Server time ---"
             date
 
             echo "--- Ensure deploy dir exists ---"
@@ -56,37 +54,21 @@ jobs:
             PRODUCTION=true
             EOF
 
-            echo "--- Show current commit ---"
+            echo "--- Commit on server ---"
             git log --oneline -1
 
-            echo "--- Ensure Bun is available ---"
-            if ! command -v bun >/dev/null 2>&1; then
-              echo "Bun not found. Install bun on the VPS first."
-              exit 1
-            fi
+            echo "--- Bun check ---"
+            command -v bun >/dev/null 2>&1 || (echo "Bun missing on VPS" && exit 1)
 
-            echo "--- Install deps ---"
+            echo "--- Install + build ---"
             bun install --frozen-lockfile || bun install
-
-            echo "--- Clear Next cache ---"
             rm -rf .next/cache || true
-
-            echo "--- Build ---"
             bun run build
 
-            echo "--- Restart PM2 process ---"
-            if ! command -v pm2 >/dev/null 2>&1; then
-              echo "PM2 not found. Install PM2 on the VPS first."
-              exit 1
-            fi
-
-            # safest for ecosystem-based apps:
+            echo "--- PM2 restart ---"
+            command -v pm2 >/dev/null 2>&1 || (echo "PM2 missing on VPS" && exit 1)
             pm2 startOrReload ecosystem.config.js --only blog --env production
-
-            echo "--- PM2 status ---"
             pm2 status
 
-            echo "--- Health check (localhost) ---"
+            echo "--- Health ---"
             curl -s -I "http://localhost:${APP_PORT}" | head -20 || true
-
-            echo "--- Done ---"
