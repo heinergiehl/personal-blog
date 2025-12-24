@@ -1,20 +1,19 @@
-"use client"
+"use client";
 
-import { useEffect, useRef, useState } from 'react'
-import * as THREE from 'three'
-import { useTheme } from 'next-themes'
-import { COLOR_ONE, COLOR_TWO } from '@/config'
-import NextImage from 'next/image'
-import Stats from 'stats.js'
+import { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
+import { useTheme } from "next-themes";
+import { COLOR_ONE, COLOR_TWO } from "@/config";
+import Stats from "stats.js";
 
 interface ParticleAvatarProps {
-  imageUrl: string
-  particleCount?: number
-  particleSize?: number
-  formationSpeed?: number
-  mouseInfluence?: number
-  isMobile?: boolean
-  onLoad?: () => void
+  imageUrl: string;
+  particleCount?: number;
+  particleSize?: number;
+  formationSpeed?: number;
+  mouseInfluence?: number;
+  isMobile?: boolean;
+  onLoad?: () => void;
 }
 
 const ParticleAvatar = ({
@@ -26,194 +25,148 @@ const ParticleAvatar = ({
   isMobile = false,
   onLoad,
 }: ParticleAvatarProps) => {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const { theme, systemTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const mouseRef = useRef({ x: 999, y: 999, targetX: 999, targetY: 999 })
-  const rafRef = useRef<number>(0)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { theme, systemTheme } = useTheme();
+  const [isLoading, setIsLoading] = useState(true);
+  const mouseRef = useRef({ x: 9999, y: 9999, targetX: 9999, targetY: 9999 });
+  const rafRef = useRef<number>(0);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    if (!containerRef.current) return;
 
-  useEffect(() => {
-    if (!containerRef.current) return
-
-    const container = containerRef.current
-    const resolvedTheme = theme === 'system' ? systemTheme : theme
-    const isDark = resolvedTheme === 'dark'
+    const container = containerRef.current;
+    const resolvedTheme = theme === "system" ? systemTheme : theme;
+    const isDark = resolvedTheme === "dark";
 
     // Scene setup
-    const scene = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(
-      45,  // Narrower FOV for less distortion
-      1,   // Force aspect ratio 1:1 for perfect circle
-      0.1,
-      2000
-    )
-    camera.position.z = 1200
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 2000);
+    camera.position.z = 1200;
 
-    const renderer = new THREE.WebGLRenderer({ 
-      alpha: true, 
-      antialias: !isMobile, // Disable antialiasing on mobile for better performance
-      powerPreference: isMobile ? 'default' : 'high-performance'
-    })
-    // Force square canvas - use container dimensions or default to 600px
-    const size = Math.max(container.clientWidth || 600, container.clientHeight || 600)
-    renderer.setSize(size, size)
-    // Lower pixel ratio on mobile for better performance
-    renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 1.5))
-    renderer.setClearColor(0x000000, 0)
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
+      antialias: !isMobile,
+      powerPreference: isMobile ? "default" : "high-performance",
+    });
     
-    // Ensure canvas maintains square aspect ratio
-    renderer.domElement.style.width = '100%'
-    renderer.domElement.style.height = '100%'
-    renderer.domElement.style.objectFit = 'contain'
-    
-    container.appendChild(renderer.domElement)
+    const size = Math.max(container.clientWidth || 600, container.clientHeight || 600);
+    renderer.setSize(size, size);
+    renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 1.5));
+    renderer.setClearColor(0x000000, 0);
+    renderer.domElement.style.width = "100%";
+    renderer.domElement.style.height = "100%";
+    renderer.domElement.style.objectFit = "contain";
+    container.appendChild(renderer.domElement);
 
-    // Setup Stats.js for performance monitoring (only in development)
-    let stats: Stats | null = null
-    if (process.env.NODE_ENV === 'development' && !isMobile) {
-      stats = new Stats()
-      stats.showPanel(0) // 0: fps, 1: ms, 2: mb
-      stats.dom.style.position = 'absolute'
-      stats.dom.style.left = '0px'
-      stats.dom.style.top = '0px'
-      stats.dom.style.opacity = '0.9'
-      container.appendChild(stats.dom)
+    // Stats
+    let stats: Stats | null = null;
+    if (process.env.NODE_ENV === "development" && !isMobile) {
+      stats = new Stats();
+      stats.showPanel(0);
+      stats.dom.style.position = "absolute";
+      stats.dom.style.left = "0px";
+      stats.dom.style.top = "0px";
+      container.appendChild(stats.dom);
     }
 
-    // Load image and extract pixel data
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    
-    const setupParticles = (imageData: ImageData) => {
-      const width = imageData.width
-      const height = imageData.height
-      const data = imageData.data
+    // ==========================================
+    // FACE SYSTEM (CPU Generation + Vertex Shader)
+    // ==========================================
+    let faceMaterial: THREE.ShaderMaterial | null = null;
 
-      // Sample pixels and create particle positions
-      const positions: number[] = []
-      const colors: number[] = []
-      const originalPositions: number[] = []
-      const velocities: number[] = []
-      const sizes: number[] = []
-      const delays: number[] = []
+    const setupFaceParticles = (imageData: ImageData) => {
+      const width = imageData.width;
+      const height = imageData.height;
+      const data = imageData.data;
 
-      const centerX = width / 2
-      const centerY = height / 2
-      const maxRadius = width / 2
+      const positions: number[] = [];
+      const colors: number[] = [];
+      const originalPositions: number[] = [];
+      const sizes: number[] = [];
+      const delays: number[] = [];
 
-      // POLAR COORDINATE SAMPLING - Optimized for performance
-      const numRings = isMobile 
-        ? Math.floor(Math.sqrt(particleCount / 2)) // Even simpler on mobile
-        : Math.floor(Math.sqrt(particleCount / 3))
-      
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const maxRadius = width / 2;
+
+      const numRings = isMobile
+        ? Math.floor(Math.sqrt(particleCount / 2))
+        : Math.floor(Math.sqrt(particleCount / 3));
+
       for (let ring = 0; ring < numRings; ring++) {
-        // Include ring 0 (center) through the outer edge
-        const radiusFraction = ring / (numRings - 1)
-        const radius = radiusFraction * maxRadius
-        
-        // More particles in outer rings for even density
-        const circumference = 2 * Math.PI * Math.max(1, radius)
-        const particlesThisRing = ring === 0 ? 1 : Math.floor(circumference * (isMobile ? 1.0 : 1.5))
-        
+        const radiusFraction = ring / (numRings - 1);
+        const radius = radiusFraction * maxRadius;
+        const circumference = 2 * Math.PI * Math.max(1, radius);
+        const particlesThisRing = ring === 0 ? 1 : Math.floor(circumference * (isMobile ? 1.0 : 1.5));
+
         for (let i = 0; i < particlesThisRing; i++) {
-          const angle = (i / particlesThisRing) * Math.PI * 2
-          
-          // Sample image at this polar coordinate
-          const sampledX = centerX + Math.cos(angle) * radius
-          const sampledY = centerY + Math.sin(angle) * radius
-          
-          // Ensure within bounds
-          if (sampledX < 0 || sampledX >= width || sampledY < 0 || sampledY >= height) continue
-          
-          const dx = sampledX - centerX
-          const dy = sampledY - centerY
-          const pixelDistFromCenter = Math.sqrt(dx * dx + dy * dy)
-          
-          const pixelIndex = (Math.floor(sampledY) * width + Math.floor(sampledX)) * 4
-          const r = data[pixelIndex] / 255
-          const g = data[pixelIndex + 1] / 255
-          const b = data[pixelIndex + 2] / 255
-          const a = data[pixelIndex + 3] / 255
+          const angle = (i / particlesThisRing) * Math.PI * 2;
+          const sampledX = centerX + Math.cos(angle) * radius;
+          const sampledY = centerY + Math.sin(angle) * radius;
+
+          if (sampledX < 0 || sampledX >= width || sampledY < 0 || sampledY >= height) continue;
+
+          const pixelIndex = (Math.floor(sampledY) * width + Math.floor(sampledX)) * 4;
+          const r = data[pixelIndex] / 255;
+          const g = data[pixelIndex + 1] / 255;
+          const b = data[pixelIndex + 2] / 255;
+          const a = data[pixelIndex + 3] / 255;
 
           if (a > 0.1) {
-            // Position in 3D space - use polar coordinates for PERFECT circle
-            // Scale uniformly to maintain perfect circular shape
-            const scale = 180.0  // Fixed radius for all particles at same ring
-            const targetRadius = radiusFraction * scale
-            
-            // Convert polar to Cartesian - guaranteed perfect circle
-            const px = Math.cos(angle) * targetRadius
-            const py = Math.sin(angle) * targetRadius  // Keep positive for perfect circle
-            const pz = 0
+            const scale = 180.0;
+            const targetRadius = radiusFraction * scale;
+            const px = Math.cos(angle) * targetRadius;
+            const py = Math.sin(angle) * targetRadius;
+            const pz = 0;
 
-            originalPositions.push(px, py, pz)  // Use as-is for perfect circle
+            originalPositions.push(px, py, pz);
 
-            // Circular explosion effect - use same angle for consistency
-            const explosionAngle = angle + (Math.random() - 0.5) * 0.3
-            const explosionRadius = 250 + Math.random() * 200 + radiusFraction * maxRadius * 0.5
-            const startX = Math.cos(explosionAngle) * explosionRadius
-            const startY = Math.sin(explosionAngle) * explosionRadius
-            const startZ = (Math.random() - 0.5) * 400
+            const explosionAngle = angle + (Math.random() - 0.5) * 0.3;
+            const explosionRadius = 250 + Math.random() * 200 + radiusFraction * maxRadius * 0.5;
+            positions.push(
+              Math.cos(explosionAngle) * explosionRadius,
+              Math.sin(explosionAngle) * explosionRadius,
+              (Math.random() - 0.5) * 400
+            );
 
-            positions.push(startX, startY, startZ)
-
-            // Natural colors - preserve original image colors for recognizable face
-            // Only minimal enhancement to compensate for particle gaps
-            const saturation = 1.05  // Nearly original colors
-            const brightness = 1.15  // Slight brightness boost only
-            // No contrast curve - keep natural colors
+            const saturation = 1.05;
+            const brightness = 1.15;
             colors.push(
               Math.min(1, r * saturation * brightness),
               Math.min(1, g * saturation * brightness),
               Math.min(1, b * saturation * brightness)
-            )
+            );
 
-            // Velocities for animation
-            velocities.push(0, 0, 0)
-            
-            // Calculate delay based on circular distance (normalized to 0-1)
-            const normalizedCircularDist = pixelDistFromCenter / maxRadius
-            delays.push(normalizedCircularDist * 0.5)
-            
-            // Size variation for organic look with smooth edge falloff
-            const edgeDist = pixelDistFromCenter / maxRadius
-            const edgeFactor = 1.0 - Math.pow(edgeDist, 6) * 0.25 // Smooth falloff
-            // Size variation for natural, beautiful appearance
-            sizes.push(particleSize * (0.9 + Math.random() * 0.25) * edgeFactor)
+            const pixelDistFromCenter = Math.sqrt((sampledX - centerX) ** 2 + (sampledY - centerY) ** 2);
+            const normalizedCircularDist = pixelDistFromCenter / maxRadius;
+            delays.push(normalizedCircularDist * 0.5);
+
+            const edgeDist = pixelDistFromCenter / maxRadius;
+            const edgeFactor = 1.0 - Math.pow(edgeDist, 6) * 0.25;
+            sizes.push(particleSize * (0.9 + Math.random() * 0.25) * edgeFactor);
           }
         }
       }
 
-      // Create geometry
-      const geometry = new THREE.BufferGeometry()
-      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
-      geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3))
-      geometry.setAttribute('originalPosition', new THREE.Float32BufferAttribute(originalPositions, 3))
-      geometry.setAttribute('velocity', new THREE.Float32BufferAttribute(velocities, 3))
-      geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1))
-      geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1))
-      geometry.setAttribute('delay', new THREE.Float32BufferAttribute(delays, 1))
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+      geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+      geometry.setAttribute("originalPosition", new THREE.Float32BufferAttribute(originalPositions, 3));
+      geometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
+      geometry.setAttribute("delay", new THREE.Float32BufferAttribute(delays, 1));
 
-      // Particle shader material
-      // Theme-aware colors: indigo/cyan for light mode, purple for dark mode
-      const colorOne = isDark ? COLOR_ONE : '#4f46e5' // indigo-600 in light mode
-      const colorTwo = isDark ? COLOR_TWO : '#06b6d4' // cyan-500 in light mode
+      const colorOne = isDark ? COLOR_ONE : "#4f46e5";
+      const colorTwo = isDark ? COLOR_TWO : "#06b6d4";
 
-      const material = new THREE.ShaderMaterial({
+      faceMaterial = new THREE.ShaderMaterial({
         uniforms: {
           time: { value: 0 },
-          mousePosition: { value: new THREE.Vector3() },
+          mousePosition: { value: new THREE.Vector3(9999, 9999, 0) },
           mouseInfluence: { value: mouseInfluence },
           formationProgress: { value: 0 },
           pixelRatio: { value: renderer.getPixelRatio() },
           colorOne: { value: new THREE.Color(colorOne) },
           colorTwo: { value: new THREE.Color(colorTwo) },
-          flowFieldStrength: { value: 0.15 },
           isDark: { value: isDark ? 1.0 : 0.0 },
           isMobile: { value: isMobile ? 1.0 : 0.0 },
         },
@@ -223,11 +176,9 @@ const ParticleAvatar = ({
           uniform float mouseInfluence;
           uniform float formationProgress;
           uniform float pixelRatio;
-          uniform float flowFieldStrength;
           uniform float isMobile;
           
           attribute vec3 originalPosition;
-          attribute vec3 velocity;
           attribute float size;
           attribute float delay;
           
@@ -238,12 +189,10 @@ const ParticleAvatar = ({
             vec3 pos = position;
             vec3 targetPos = originalPosition;
             
-            // Simple linear formation for mobile, eased for desktop
             float adjustedProgress = clamp((formationProgress - delay) / (1.0 - delay * 0.5), 0.0, 1.0);
             float eased = isMobile > 0.5 ? adjustedProgress : 1.0 - pow(1.0 - adjustedProgress, 3.0);
             pos = mix(pos, targetPos, eased);
             
-            // Mouse interaction only on desktop
             if (isMobile < 0.5 && mouseInfluence > 0.0) {
               float mouseActive = step(0.98, formationProgress);
               vec3 mouseDir = pos - mousePosition;
@@ -260,7 +209,6 @@ const ParticleAvatar = ({
               }
             }
             
-            // Minimal idle animation - only on desktop
             if (isMobile < 0.5) {
               float idleBreath = sin(time * 0.3 + delay * 6.28) * 0.3;
               pos.z += idleBreath * formationProgress;
@@ -269,7 +217,6 @@ const ParticleAvatar = ({
             vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
             gl_Position = projectionMatrix * mvPosition;
             
-            // Simpler sizing on mobile
             float pulse = isMobile > 0.5 ? 1.0 : 1.0 + sin(time * 0.5 + delay * 10.0) * 0.08 * formationProgress;
             gl_PointSize = size * pixelRatio * pulse * (750.0 / -mvPosition.z);
             
@@ -286,155 +233,122 @@ const ParticleAvatar = ({
           varying float vAlpha;
           
           void main() {
-            // Circular particle shape with multi-layer structure
             vec2 center = gl_PointCoord - vec2(0.5);
             float dist = length(center);
             if (dist > 0.5) discard;
             
-            // Theme-adaptive alpha layers - ENHANCED FOR CLARITY
             float alpha = 0.0;
+            float coreStrength = mix(3.5, 1.5, isDark);
+            float midStrength = mix(1.8, 0.8, isDark);
+            float glowStrength = mix(0.08, 0.35, isDark);
             
-            // Much stronger, more opaque particles for clear image
-            float coreStrength = mix(3.5, 1.5, isDark);     // Very strong core
-            float midStrength = mix(1.8, 0.8, isDark);      // Strong mid layer
-            float glowStrength = mix(0.08, 0.35, isDark);   // Minimal glow in light
-            
-            // Core - very sharp and opaque
             alpha += smoothstep(0.5, 0.0, dist) * vAlpha * coreStrength;
-            
-            // Mid layer - strong for smooth blending
             alpha += smoothstep(0.5, 0.12, dist) * vAlpha * midStrength;
-            
-            // Minimal outer glow
             alpha += smoothstep(0.5, 0.42, dist) * vAlpha * glowStrength;
             
-            // Theme-aware color processing
             vec3 finalColor = vColor;
-            
-            // LIGHT MODE: Vibrant and clear
             if (isDark < 0.5) {
-              // Less darkening for better visibility
               finalColor *= 0.85;
-              // High saturation for vibrant appearance
               vec3 gray = vec3(dot(finalColor, vec3(0.299, 0.587, 0.114)));
               finalColor = mix(gray, finalColor, 1.6);
-              // Boost contrast for clearer image
               finalColor = pow(finalColor, vec3(0.9));
-              // Higher opacity for solid appearance
               alpha *= 1.8;
             } else {
-              // DARK MODE: Keep natural colors
               vec3 themeColor = mix(colorOne, colorTwo, 0.5);
               float outerRegion = smoothstep(0.15, 0.45, dist);
               finalColor = mix(finalColor, mix(finalColor, themeColor, 0.08), outerRegion);
             }
             
-            // Anti-aliased edge for smooth appearance
             float edgeSoftness = fwidth(dist) * 1.5;
             float edge = smoothstep(0.5 - edgeSoftness, 0.5, dist);
             alpha *= (1.0 - edge);
             
-            // Higher cap for better coverage
             gl_FragColor = vec4(finalColor, min(alpha, 1.8));
           }
         `,
         transparent: true,
         depthWrite: false,
-        blending: THREE.NormalBlending,  // Normal blending for recognizable image
+        blending: THREE.NormalBlending,
         vertexColors: true,
-      })
+      });
 
-      const particles = new THREE.Points(geometry, material)
-      scene.add(particles)
-      
-      console.log('Particles added to scene, count:', positions.length / 3)
-      setIsLoading(false)
-      onLoad?.()
+      const particles = new THREE.Points(geometry, faceMaterial);
+      scene.add(particles);
+    };
 
-      return { particles, material, geometry }
-    }
+    // ==========================================
+    // RING SYSTEM (GPGPU)
+    // ==========================================
+    let ringSystem: any = null;
 
-    // Create GPGPU-based portal - OPTIMIZED for mobile
-    const createGPGPUPortal = () => {
-      // Drastically reduce particles on mobile for performance
-      const numParticles = isMobile ? 50000 : 800000  // 50k vs 800k
-      const textureSize = Math.ceil(Math.sqrt(numParticles))
-      const actualParticles = textureSize * textureSize
-      
-      // Initialize particle data in textures
-      const positionData = new Float32Array(actualParticles * 4) // RGBA = xyz + ring
-      const velocityData = new Float32Array(actualParticles * 4) // RGBA = vxyz + seed
-      
-      let idx = 0
-      // Fewer rings for better mobile performance
-      const numRings = isMobile ? 200 : 600  // 200 vs 600
-      const particlesPerRing = Math.floor(actualParticles / numRings)
-      
+    const createRingSystem = () => {
+      const numParticles = isMobile ? 50000 : 150000; // Optimized count
+      const textureSize = Math.ceil(Math.sqrt(numParticles));
+      const actualParticles = textureSize * textureSize;
+
+      const positionData = new Float32Array(actualParticles * 4);
+      const velocityData = new Float32Array(actualParticles * 4);
+
+      const numRings = isMobile ? 200 : 400;
+      const particlesPerRing = Math.floor(actualParticles / numRings);
+      let idx = 0;
+
       for (let ring = 0; ring < numRings; ring++) {
-        const baseRadius = 165 + ring * 0.28  // Restored to previous spacing
-        const particlesThisRing = particlesPerRing
-        
-        for (let i = 0; i < particlesThisRing && idx < actualParticles; i++) {
-          const angle = (i / particlesThisRing) * Math.PI * 2
-          // Add radial dispersion to fill gaps between rings
-          const radiusVar = (Math.random() - 0.5) * 4.5  // More variation to fill space
-          const radius = baseRadius + radiusVar
+        const baseRadius = 165 + ring * 0.28;
+        for (let i = 0; i < particlesPerRing && idx < actualParticles; i++) {
+          const angle = (i / particlesPerRing) * Math.PI * 2;
+          const radius = baseRadius + (Math.random() - 0.5) * 4.5;
           
-          // Position: xyz + ring index
-          positionData[idx * 4 + 0] = Math.cos(angle) * radius
-          positionData[idx * 4 + 1] = Math.sin(angle) * radius
-          positionData[idx * 4 + 2] = (Math.random() - 0.5) * 5
-          positionData[idx * 4 + 3] = ring / (numRings - 1) // Normalized ring
-          
-          // Velocity: vxyz + seed
-          velocityData[idx * 4 + 0] = 0
-          velocityData[idx * 4 + 1] = 0
-          velocityData[idx * 4 + 2] = 0
-          velocityData[idx * 4 + 3] = Math.random() // Random seed
-          
-          idx++
+          positionData[idx * 4 + 0] = Math.cos(angle) * radius;
+          positionData[idx * 4 + 1] = Math.sin(angle) * radius;
+          positionData[idx * 4 + 2] = (Math.random() - 0.5) * 5;
+          positionData[idx * 4 + 3] = ring / (numRings - 1);
+
+          velocityData[idx * 4 + 0] = 0;
+          velocityData[idx * 4 + 1] = 0;
+          velocityData[idx * 4 + 2] = 0;
+          velocityData[idx * 4 + 3] = Math.random();
+          idx++;
         }
       }
-      
-      // Create data textures
-      const positionTexture1 = new THREE.DataTexture(
-        positionData,
-        textureSize,
-        textureSize,
-        THREE.RGBAFormat,
-        THREE.FloatType
-      )
-      positionTexture1.needsUpdate = true
-      
-      const positionTexture2 = positionTexture1.clone()
-      
-      const velocityTexture1 = new THREE.DataTexture(
-        velocityData,
-        textureSize,
-        textureSize,
-        THREE.RGBAFormat,
-        THREE.FloatType
-      )
-      velocityTexture1.needsUpdate = true
-      
-      const velocityTexture2 = velocityTexture1.clone()
-      
-      // Create FBO render targets
+
+      const tPos = new THREE.DataTexture(positionData, textureSize, textureSize, THREE.RGBAFormat, THREE.FloatType);
+      tPos.needsUpdate = true;
+      const tVel = new THREE.DataTexture(velocityData, textureSize, textureSize, THREE.RGBAFormat, THREE.FloatType);
+      tVel.needsUpdate = true;
+
       const rtOptions = {
         minFilter: THREE.NearestFilter,
         magFilter: THREE.NearestFilter,
         format: THREE.RGBAFormat,
         type: THREE.FloatType,
         stencilBuffer: false,
-        depthBuffer: false
-      }
-      
-      const positionRT1 = new THREE.WebGLRenderTarget(textureSize, textureSize, rtOptions)
-      const positionRT2 = new THREE.WebGLRenderTarget(textureSize, textureSize, rtOptions)
-      const velocityRT1 = new THREE.WebGLRenderTarget(textureSize, textureSize, rtOptions)
-      const velocityRT2 = new THREE.WebGLRenderTarget(textureSize, textureSize, rtOptions)
-      
-      // GPGPU compute shader for particle physics
+        depthBuffer: false,
+      };
+
+      const rtPos1 = new THREE.WebGLRenderTarget(textureSize, textureSize, rtOptions);
+      const rtPos2 = new THREE.WebGLRenderTarget(textureSize, textureSize, rtOptions);
+      const rtVel1 = new THREE.WebGLRenderTarget(textureSize, textureSize, rtOptions);
+      const rtVel2 = new THREE.WebGLRenderTarget(textureSize, textureSize, rtOptions);
+
+      // Init RenderTargets
+      const initScene = new THREE.Scene();
+      const initCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+      const initMesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({
+        uniforms: { tSource: { value: tPos } },
+        vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position, 1.0); }`,
+        fragmentShader: `uniform sampler2D tSource; varying vec2 vUv; void main() { gl_FragColor = texture2D(tSource, vUv); }`
+      }));
+      initScene.add(initMesh);
+
+      renderer.setRenderTarget(rtPos1); renderer.render(initScene, initCamera);
+      renderer.setRenderTarget(rtPos2); renderer.render(initScene, initCamera);
+      initMesh.material.uniforms.tSource.value = tVel;
+      renderer.setRenderTarget(rtVel1); renderer.render(initScene, initCamera);
+      renderer.setRenderTarget(rtVel2); renderer.render(initScene, initCamera);
+      renderer.setRenderTarget(null);
+
+      // Compute Shaders
       const computeShader = `
         uniform sampler2D texturePosition;
         uniform sampler2D textureVelocity;
@@ -535,7 +449,7 @@ const ParticleAvatar = ({
           
           // Rotation speed varies by ring (inner much faster for swirl effect)
           float rotSpeed = 0.4 * (1.0 + (1.0 - ring) * 1.2);
-          angle += rotSpeed * delta;
+          angle -= rotSpeed * delta;
           
           // CRITICAL FIX: Start with target radius, then apply small perturbations
           // This prevents collapse - particles stay on their rings
@@ -582,7 +496,7 @@ const ParticleAvatar = ({
           newPos.z = clamp(newPos.z, -6.0, 6.0);
           
           // ============= ORGANIC MOUSE INTERACTION =============
-          vec2 mouseWorld = (mousePosition - vec2(0.5)) * 750.0;
+          vec2 mouseWorld = (mousePosition - vec2(0.5)) * 1000.0;
           vec2 toMouse = pos.xy - mouseWorld;
           float mouseDist = length(toMouse);
           
@@ -667,115 +581,84 @@ const ParticleAvatar = ({
           
           gl_FragColor = vec4(newPos, ring);
         }
-      `
-      
-      const velocityShader = `
-        uniform sampler2D texturePosition;
-        uniform sampler2D textureVelocity;
-        
-        varying vec2 vUv;
-        
-        void main() {
-          vec4 posData = texture2D(texturePosition, vUv);
-          vec4 velData = texture2D(textureVelocity, vUv);
-          
-          // Just pass through velocity (already computed in position shader)
-          gl_FragColor = velData;
-        }
-      `
-      
-      // Create compute materials
-      const computePositionMaterial = new THREE.ShaderMaterial({
+      `;
+
+      const matSimPos = new THREE.ShaderMaterial({
         uniforms: {
-          texturePosition: { value: positionTexture1 },
-          textureVelocity: { value: velocityTexture1 },
+          texturePosition: { value: null },
+          textureVelocity: { value: null },
           time: { value: 0 },
           delta: { value: 0 },
           mousePosition: { value: new THREE.Vector2(999, 999) },
           textureSize: { value: textureSize }
         },
-        vertexShader: `
-          varying vec2 vUv;
-          void main() {
-            vUv = uv;
-            gl_Position = vec4(position, 1.0);
-          }
-        `,
+        vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position, 1.0); }`,
         fragmentShader: computeShader
-      })
-      
-      const computeVelocityMaterial = new THREE.ShaderMaterial({
+      });
+
+      const matSimVel = new THREE.ShaderMaterial({
         uniforms: {
-          texturePosition: { value: positionTexture1 },
-          textureVelocity: { value: velocityTexture1 }
+          texturePosition: { value: null },
+          textureVelocity: { value: null }
         },
-        vertexShader: `
+        vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position, 1.0); }`,
+        fragmentShader: `
+          uniform sampler2D texturePosition;
+          uniform sampler2D textureVelocity;
           varying vec2 vUv;
           void main() {
-            vUv = uv;
-            gl_Position = vec4(position, 1.0);
+             vec4 velData = texture2D(textureVelocity, vUv);
+             gl_FragColor = velData; // Pass through, velocity calculated in pos shader
           }
-        `,
-        fragmentShader: velocityShader
-      })
-      
-      // Full-screen quad for compute pass
-      const computeGeometry = new THREE.PlaneGeometry(2, 2)
-      const computeMesh = new THREE.Mesh(computeGeometry, computePositionMaterial)
-      const computeScene = new THREE.Scene()
-      computeScene.add(computeMesh)
-      const computeCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
-      
-      // Create particle geometry with UVs to sample from texture
-      const portalParticleGeometry = new THREE.BufferGeometry()
-      const particleUVs = new Float32Array(actualParticles * 2)
-      const particleSizes = new Float32Array(actualParticles)
-      
-      for (let y = 0; y < textureSize; y++) {
-        for (let x = 0; x < textureSize; x++) {
-          const i = y * textureSize + x
-          particleUVs[i * 2 + 0] = x / textureSize
-          particleUVs[i * 2 + 1] = y / textureSize
-          particleSizes[i] = 1.8 + Math.random() * 2.2  // Smaller particles for subtler effect
-        }
+        `
+      });
+
+      const computeScene = new THREE.Scene();
+      const computeCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+      const computeMesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), matSimPos);
+      computeScene.add(computeMesh);
+
+      // Render Material
+      const ringUVs = new Float32Array(actualParticles * 2);
+      const ringSizes = new Float32Array(actualParticles);
+      for(let y=0; y<textureSize; y++) {
+         for(let x=0; x<textureSize; x++) {
+            const i = y*textureSize + x;
+            ringUVs[i*2] = x/textureSize;
+            ringUVs[i*2+1] = y/textureSize;
+            ringSizes[i] = 1.8 + Math.random() * 2.2;
+         }
       }
       
-      // Dummy positions (will be overwritten by shader)
-      const dummyPositions = new Float32Array(actualParticles * 3)
-      portalParticleGeometry.setAttribute('position', new THREE.BufferAttribute(dummyPositions, 3))
-      portalParticleGeometry.setAttribute('uv', new THREE.BufferAttribute(particleUVs, 2))
-      portalParticleGeometry.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1))
-      
-      // Render material - reads from position texture
-      const portalMaterial = new THREE.ShaderMaterial({
+      const ringGeo = new THREE.BufferGeometry();
+      ringGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(actualParticles*3), 3));
+      ringGeo.setAttribute('uv', new THREE.BufferAttribute(ringUVs, 2));
+      ringGeo.setAttribute('size', new THREE.BufferAttribute(ringSizes, 1));
+
+      const ringRenderMat = new THREE.ShaderMaterial({
         uniforms: {
-          texturePosition: { value: null }, // Will be set to current position RT
+          texturePosition: { value: null },
           textureVelocity: { value: null },
-          time: { value: 0 },
           pixelRatio: { value: renderer.getPixelRatio() },
-          // Theme colors - indigo/cyan for light mode, purple for dark mode
-          colorOne: { value: isDark ? new THREE.Color(COLOR_ONE) : new THREE.Color('#4f46e5') }, // Indigo-600 for light mode
-          colorTwo: { value: isDark ? new THREE.Color(COLOR_TWO) : new THREE.Color('#06b6d4') }, // Cyan-500 for light mode
-          isDark: { value: isDark ? 1.0 : 0.0 }
+          time: { value: 0 },
+          isDark: { value: isDark ? 1.0 : 0.0 },
+          colorOne: { value: new THREE.Color(COLOR_ONE) },
+          colorTwo: { value: new THREE.Color(COLOR_TWO) }
         },
         vertexShader: `
           uniform sampler2D texturePosition;
           uniform sampler2D textureVelocity;
           uniform float pixelRatio;
           uniform float time;
-          
           attribute float size;
-          
           varying vec3 vColor;
           varying float vAlpha;
-          varying float vSpeed;
           varying float vRing;
           varying float vEnergy;
           
           void main() {
             vec4 posData = texture2D(texturePosition, uv);
             vec4 velData = texture2D(textureVelocity, uv);
-            
             vec3 pos = posData.xyz;
             float ring = posData.w;
             vec3 vel = velData.xyz;
@@ -783,32 +666,20 @@ const ParticleAvatar = ({
             vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
             gl_Position = projectionMatrix * mvPosition;
             
-            // Velocity-based size and energy
             float speed = length(vel);
-            vSpeed = speed;
-            vEnergy = min(speed / 100.0, 2.0); // Normalize speed to energy level
-            
-            // Size increases dramatically with velocity (mouse interaction feedback)
+            vEnergy = min(speed / 100.0, 2.0);
             float sizeMult = 1.0 + vEnergy * 0.8;
-            
-            // Dynamic pulsing based on ring, time, and energy
             float pulse = 1.0 + sin(time * 2.5 + ring * 15.0) * 0.4;
-            pulse += vEnergy * 0.3; // Extra pulse when energized
             
             gl_PointSize = size * pixelRatio * pulse * sizeMult * (750.0 / -mvPosition.z);
             
-            // Dark purple color system - deep rich purple tones
-            vec3 innerColor = vec3(0.31, 0.09, 0.92) * 0.25;   // Deep inner purple (#4f16eb darkened)
-            vec3 midColor = vec3(0.29, 0.01, 0.35) * 0.7;       // Rich medium purple (#4b0358)
-            vec3 outerColor = vec3(0.31, 0.09, 0.92) * 0.4;    // Dark outer purple
+            vec3 innerColor = vec3(0.31, 0.09, 0.92) * 0.25;
+            vec3 midColor = vec3(0.29, 0.01, 0.35) * 0.7;
+            vec3 outerColor = vec3(0.31, 0.09, 0.92) * 0.4;
             
-            // Smooth gradient across rings - dark purple tones
-            vec3 color1 = mix(innerColor, midColor, smoothstep(0.0, 0.5, ring));
-            vec3 baseColor = mix(color1, outerColor, smoothstep(0.5, 1.0, ring));
-            
-            // Energy only slightly increases brightness
+            vec3 baseColor = mix(innerColor, midColor, smoothstep(0.0, 0.5, ring));
+            baseColor = mix(baseColor, outerColor, smoothstep(0.5, 1.0, ring));
             vColor = baseColor * (1.0 + vEnergy * 0.2);
-            
             vAlpha = 1.0;
             vRing = ring;
           }
@@ -817,10 +688,8 @@ const ParticleAvatar = ({
           uniform vec3 colorOne;
           uniform vec3 colorTwo;
           uniform float isDark;
-          
           varying vec3 vColor;
           varying float vAlpha;
-          varying float vSpeed;
           varying float vRing;
           varying float vEnergy;
           
@@ -829,467 +698,198 @@ const ParticleAvatar = ({
             float dist = length(center);
             if (dist > 0.5) discard;
             
-            // Enhanced multi-layer glow system - Very subtle
             float alpha = 0.0;
-            
-            // Strong alpha for great portal visibility
             float outerGlow = mix(0.18, 0.10, isDark);
             float midGlow = mix(0.28, 0.16, isDark);
             float coreGlow = mix(0.38, 0.22, isDark);
             
-            // Outer glow (soft falloff)
-            alpha += smoothstep(0.5, 0.0, dist) * vAlpha * outerGlow;
-            
-            // Mid glow (medium intensity)
+            alpha += smoothstep(0.5, 0.0, dist) * outerGlow;
             alpha += smoothstep(0.5, 0.2, dist) * midGlow;
-            
-            // Inner core (bright center)
             alpha += smoothstep(0.35, 0.0, dist) * coreGlow;
             
-            // Energy boost - minimal
-            float energyBoost = mix(0.05, 0.02, isDark);
-            alpha *= 1.0 + vEnergy * energyBoost;
-            
-            // Strong theme boost for great visibility
             float themeBoost = mix(1.3, 0.85, isDark);
             alpha *= themeBoost;
             
-            // Enhanced color processing - DEEP PURPLE
             vec3 finalColor = vColor;
-            
-            // Ring-based brightness variation (subtle)
             finalColor *= 1.0 + (1.0 - vRing) * 0.10;
             
-            // Energy increases brightness only slightly
-            finalColor *= 1.0 + vEnergy * mix(0.15, 0.08, isDark);
-            
-            // THEME-SPECIFIC COLOR ADJUSTMENTS - Use theme colors
             if (isDark < 0.5) {
-              // LIGHT MODE: Use indigo/cyan theme colors
-              // Mix base color with theme colors (colorOne and colorTwo from uniforms)
-              finalColor = mix(finalColor * 0.6, mix(colorTwo, colorOne, vRing), 0.5);
-              
-              // Moderate saturation for rich color without excessive brightness
-              vec3 gray = vec3(dot(finalColor, vec3(0.299, 0.587, 0.114)));
-              finalColor = mix(gray, finalColor, 1.8);
+               finalColor = mix(finalColor * 0.6, mix(colorTwo, colorOne, vRing), 0.5);
+               vec3 gray = vec3(dot(finalColor, vec3(0.299, 0.587, 0.114)));
+               finalColor = mix(gray, finalColor, 1.8);
             } else {
-              // DARK MODE: Vibrant visible purple using theme colors
-              finalColor = mix(finalColor * 0.5, mix(colorTwo, colorOne, vRing), 0.4);
-              vec3 gray = vec3(dot(finalColor, vec3(0.299, 0.587, 0.114)));
-              finalColor = mix(gray, finalColor, 1.6);  // Higher saturation for vibrant purple
+               finalColor = mix(finalColor * 0.5, mix(colorTwo, colorOne, vRing), 0.4);
+               vec3 gray = vec3(dot(finalColor, vec3(0.299, 0.587, 0.114)));
+               finalColor = mix(gray, finalColor, 1.6);
             }
             
-            // Anti-aliased edge
             float edgeSoftness = fwidth(dist) * 2.0;
             float edge = smoothstep(0.5 - edgeSoftness, 0.5, dist);
             alpha *= (1.0 - edge);
             
-            // Higher alpha cap for great visibility
             float maxAlpha = mix(0.48, 0.28, isDark);
             gl_FragColor = vec4(finalColor, min(alpha, maxAlpha));
           }
         `,
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending
-      })
-      
-      const portalPoints = new THREE.Points(portalParticleGeometry, portalMaterial)
-      scene.add(portalPoints)
-      
-      // CRITICAL: Initialize render targets with initial particle data
-      // Create a temporary scene to copy DataTexture data to GPU RenderTargets
-      const initScene = new THREE.Scene()
-      const initCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1)
-      const initGeometry = new THREE.PlaneGeometry(2, 2)
-      
-      // Copy position data
-      const initPosMaterial = new THREE.ShaderMaterial({
-        uniforms: { tSource: { value: positionTexture1 } },
-        vertexShader: `
-          varying vec2 vUv;
-          void main() {
-            vUv = uv;
-            gl_Position = vec4(position, 1.0);
-          }
-        `,
-        fragmentShader: `
-          uniform sampler2D tSource;
-          varying vec2 vUv;
-          void main() {
-            gl_FragColor = texture2D(tSource, vUv);
-          }
-        `
-      })
-      const initPosMesh = new THREE.Mesh(initGeometry, initPosMaterial)
-      initScene.add(initPosMesh)
-      
-      renderer.setRenderTarget(positionRT1)
-      renderer.render(initScene, initCamera)
-      
-      // Copy velocity data
-      const initVelMaterial = new THREE.ShaderMaterial({
-        uniforms: { tSource: { value: velocityTexture1 } },
-        vertexShader: `
-          varying vec2 vUv;
-          void main() {
-            vUv = uv;
-            gl_Position = vec4(position, 1.0);
-          }
-        `,
-        fragmentShader: `
-          uniform sampler2D tSource;
-          varying vec2 vUv;
-          void main() {
-            gl_FragColor = texture2D(tSource, vUv);
-          }
-        `
-      })
-      initPosMesh.material = initVelMaterial
-      renderer.setRenderTarget(velocityRT1)
-      renderer.render(initScene, initCamera)
-      
-      renderer.setRenderTarget(null)
-      
-      // Cleanup init resources
-      initGeometry.dispose()
-      initPosMaterial.dispose()
-      initVelMaterial.dispose()
-      
-      // Set initial textures for render material
-      portalMaterial.uniforms.texturePosition.value = positionRT1.texture
-      portalMaterial.uniforms.textureVelocity.value = velocityRT1.texture
-      
-      return {
-        portalPoints,
-        portalMaterial,
-        computeMesh,
-        computeScene,
-        computeCamera,
-        computePositionMaterial,
-        computeVelocityMaterial,
-        positionRT1,
-        positionRT2,
-        velocityRT1,
-        velocityRT2,
-        currentPositionRT: 0, // 0 or 1 for ping-pong
-        textureSize
-      }
-    }
+        transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+      });
 
-    // Create advanced particle-based portal with flow field
-    const createPortalRing = () => {
-      // Use GPGPU version instead
-      return createGPGPUPortal()
-    }
+      const ringPoints = new THREE.Points(ringGeo, ringRenderMat);
+      scene.add(ringPoints);
 
-    let particles: THREE.Points | null = null
-    let material: THREE.ShaderMaterial | null = null
-    let portalRing: any = null
-    let animationId: number
+      ringSystem = {
+        rtPos1, rtPos2, rtVel1, rtVel2,
+        matSimPos, matSimVel,
+        computeScene, computeCamera, computeMesh,
+        renderMat: ringRenderMat,
+        current: 0
+      };
+    };
 
+    // Load Image
+    const img = new Image();
+    img.crossOrigin = "anonymous";
     img.onload = () => {
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d', { willReadFrequently: true })
-      if (!ctx) return
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      if (!ctx) return;
+
+      const size = 200;
+      canvas.width = size;
+      canvas.height = size;
       
-      // Use square canvas for perfect circle
-      const size = 200
-      canvas.width = size
-      canvas.height = size
+      const imgAspect = img.width / img.height;
+      let drawWidth = size, drawHeight = size, offsetX = 0, offsetY = 0;
+      if (imgAspect > 1) { drawWidth = size * imgAspect; offsetX = (size - drawWidth) / 2; }
+      else if (imgAspect < 1) { drawHeight = size / imgAspect; offsetY = (size - drawHeight) / 2; }
       
-      // Calculate dimensions to cover the entire circle (crop if needed - like object-fit: cover)
-      const imgAspect = img.width / img.height
-      let drawWidth = size
-      let drawHeight = size
-      let offsetX = 0
-      let offsetY = 0
-      
-      // Scale to cover entire circle - crop edges outside (similar to overflow: hidden)
-      if (imgAspect > 1) {
-        // Wider than tall - use full height, center-crop width
-        drawWidth = size * imgAspect
-        offsetX = (size - drawWidth) / 2
-      } else if (imgAspect < 1) {
-        // Taller than wide - use full width, center-crop height
-        drawHeight = size / imgAspect
-        offsetY = (size - drawHeight) / 2
-      }
-      
-      // Draw image filling entire circle - crop overflow
-      ctx.save()
-      ctx.beginPath()
-      ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2)
-      ctx.closePath()
-      ctx.clip()  // Anything outside circle will be clipped (overflow hidden)
-      // Flip image vertically to correct orientation BEFORE sampling
-      ctx.translate(0, size)
-      ctx.scale(1, -1)
-      // Draw image to fill circle completely - edges will be cropped by clip
-      ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight)
-      ctx.restore()
+      ctx.save();
+      ctx.beginPath(); ctx.arc(size/2, size/2, size/2, 0, Math.PI*2); ctx.closePath(); ctx.clip();
+      ctx.translate(0, size); ctx.scale(1, -1);
+      ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+      ctx.restore();
 
-      const imageData = ctx.getImageData(0, 0, size, size)
-      const setup = setupParticles(imageData)
-      particles = setup.particles
-      material = setup.material
-      
-      // Create portal ring - disable on mobile for better performance
-      if (!isMobile) {
-        portalRing = createPortalRing()
-      }
-      
-      console.log('Particles created:', setup.geometry.attributes.position.count)
-    }
-    
-    // Add error handler
-    img.onerror = (error) => {
-      console.error('Failed to load image:', error)
-    }
-    
-    img.src = imageUrl
+      const imageData = ctx.getImageData(0, 0, size, size);
+      setupFaceParticles(imageData);
+      createRingSystem();
+      setIsLoading(false);
+      onLoad?.();
+    };
+    img.src = imageUrl;
 
-    // Mouse and touch position update for real-time responsiveness
-    const updatePosition = (clientX: number, clientY: number) => {
-      const rect = container.getBoundingClientRect()
-      mouseRef.current.targetX = ((clientX - rect.left) / rect.width) * 2 - 1
-      mouseRef.current.targetY = -((clientY - rect.top) / rect.height) * 2 + 1
-    }
-
-    const handleMouseMove = (event: MouseEvent) => {
-      updatePosition(event.clientX, event.clientY)
-    }
-
-    const handleTouchMove = (event: TouchEvent) => {
-      if (event.touches.length > 0) {
-        const touch = event.touches[0]
-        updatePosition(touch.clientX, touch.clientY)
-      }
-    }
-
-    const handleTouchStart = (event: TouchEvent) => {
-      if (event.touches.length > 0) {
-        const touch = event.touches[0]
-        updatePosition(touch.clientX, touch.clientY)
-      }
-    }
-
-    // Only add event listeners on desktop
-    if (!isMobile) {
-      container.addEventListener('mousemove', handleMouseMove, { passive: true })
-      container.addEventListener('touchmove', handleTouchMove, { passive: true })
-      container.addEventListener('touchstart', handleTouchStart, { passive: true })
-    }
-
-    // Animation loop - DRASTICALLY OPTIMIZED for mobile
-    const clock = new THREE.Clock()
-    let formationProgress = 0
-    let lastTime = 0
-    let frameCount = 0
-    let mobileStaticMode = false // On mobile, stop animating after formation
+    // Animation
+    const clock = new THREE.Clock();
+    let formationProgress = 0;
 
     const animate = () => {
-      rafRef.current = requestAnimationFrame(animate)
+      rafRef.current = requestAnimationFrame(animate);
+      if (stats) stats.begin();
 
-      // On mobile: completely stop updates after formation is done
-      if (isMobile && mobileStaticMode) {
-        renderer.render(scene, camera)
-        return
-      }
-
-      // Throttle updates on mobile - skip every other frame for 30fps
-      if (isMobile) {
-        frameCount++
-        if (frameCount % 2 === 0) {
-          return
-        }
-      }
-
-      // Performance monitoring
-      if (stats) stats.begin()
-
-      const elapsed = clock.getElapsedTime()
-      const delta = Math.min(elapsed - lastTime, 0.033)
-      lastTime = elapsed
-
-      // Update formation progress
-      if (formationProgress < 1) {
-        formationProgress = Math.min(1, formationProgress + formationSpeed)
-        
-        // Once formation is complete on mobile, enter static mode
-        if (isMobile && formationProgress >= 1) {
-          mobileStaticMode = true
-        }
-      }
-
-      // Desktop only: mouse smoothing and interactions
-      if (!isMobile) {
-        const dampingFactor = 0.3
-        mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * dampingFactor
-        mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * dampingFactor
-      }
-
-      if (material) {
-        // Always update time for minimal shader animations
-        material.uniforms.time.value = elapsed
-        material.uniforms.formationProgress.value = formationProgress
-        
-        // Desktop only: mouse position updates
-        if (!isMobile) {
-          const vector = new THREE.Vector3(mouseRef.current.x, mouseRef.current.y, 0.5)
-          vector.unproject(camera)
-          const dir = vector.sub(camera.position).normalize()
-          const distance = -camera.position.z / dir.z
-          const pos = camera.position.clone().add(dir.multiplyScalar(distance))
-          material.uniforms.mousePosition.value = pos
-        }
-      }
-
-      // Update GPGPU portal with ping-pong - Desktop only
-      if (!isMobile && portalRing && portalRing.computeScene && formationProgress > 0.5) {
-        // Convert mouse from normalized device coords
-        const vector = new THREE.Vector3(mouseRef.current.x, mouseRef.current.y, 0.5)
-        vector.unproject(camera)
-        const dir = vector.sub(camera.position).normalize()
-        const distance = -camera.position.z / dir.z
-        const mouseWorldPos = camera.position.clone().add(dir.multiplyScalar(distance))
-        
-        const normalizedMouse = new THREE.Vector2(
-          (mouseWorldPos.x + 375) / 750,
-          (mouseWorldPos.y + 375) / 750
-        )
-        
-        const currentPosRT = portalRing.currentPositionRT === 0 ? portalRing.positionRT1 : portalRing.positionRT2
-        const nextPosRT = portalRing.currentPositionRT === 0 ? portalRing.positionRT2 : portalRing.positionRT1
-        const currentVelRT = portalRing.currentPositionRT === 0 ? portalRing.velocityRT1 : portalRing.velocityRT2
-        const nextVelRT = portalRing.currentPositionRT === 0 ? portalRing.velocityRT2 : portalRing.velocityRT1
-        
-        // Update compute shader uniforms
-        portalRing.computePositionMaterial.uniforms.texturePosition.value = currentPosRT.texture
-        portalRing.computePositionMaterial.uniforms.textureVelocity.value = currentVelRT.texture
-        portalRing.computePositionMaterial.uniforms.time.value = elapsed
-        portalRing.computePositionMaterial.uniforms.delta.value = delta
-        portalRing.computePositionMaterial.uniforms.mousePosition.value = normalizedMouse
-        
-        // Render compute pass
-        portalRing.computeMesh.material = portalRing.computePositionMaterial
-        renderer.setRenderTarget(nextPosRT)
-        renderer.render(portalRing.computeScene, portalRing.computeCamera)
-        
-        // Update velocity
-        portalRing.computeVelocityMaterial.uniforms.texturePosition.value = nextPosRT.texture
-        portalRing.computeVelocityMaterial.uniforms.textureVelocity.value = currentVelRT.texture
-        portalRing.computeMesh.material = portalRing.computeVelocityMaterial
-        renderer.setRenderTarget(nextVelRT)
-        renderer.render(portalRing.computeScene, portalRing.computeCamera)
-        
-        renderer.setRenderTarget(null)
-        
-        // Update render material
-        portalRing.portalMaterial.uniforms.texturePosition.value = nextPosRT.texture
-        portalRing.portalMaterial.uniforms.textureVelocity.value = nextVelRT.texture
-        portalRing.portalMaterial.uniforms.time.value = elapsed
-        portalRing.portalMaterial.uniforms.isDark.value = isDark ? 1.0 : 0.0
-        
-        if (portalRing.portalPoints) {
-          portalRing.portalPoints.visible = true
-        }
-        
-        // Swap buffers
-        portalRing.currentPositionRT = 1 - portalRing.currentPositionRT
-      }
-
-      renderer.render(scene, camera)
+      const elapsed = clock.getElapsedTime();
+      const delta = Math.min(clock.getDelta(), 0.05);
       
-      if (stats) stats.end()
-    }
+      if (formationProgress < 1) formationProgress += formationSpeed;
 
-    animate()
+      // Mouse
+      const vector = new THREE.Vector3(mouseRef.current.x, mouseRef.current.y, 0.5);
+      vector.unproject(camera);
+      const dir = vector.sub(camera.position).normalize();
+      const distance = -camera.position.z / dir.z;
+      const mouseWorldPos = camera.position.clone().add(dir.multiplyScalar(distance));
 
-    // Handle resize
+      // Update Face
+      if (faceMaterial) {
+        faceMaterial.uniforms.time.value = elapsed;
+        faceMaterial.uniforms.formationProgress.value = formationProgress;
+        faceMaterial.uniforms.mousePosition.value = mouseWorldPos;
+      }
+
+      // Update Ring (GPGPU)
+      if (ringSystem) {
+         const curPos = ringSystem.current === 0 ? ringSystem.rtPos1 : ringSystem.rtPos2;
+         const nextPos = ringSystem.current === 0 ? ringSystem.rtPos2 : ringSystem.rtPos1;
+         const curVel = ringSystem.current === 0 ? ringSystem.rtVel1 : ringSystem.rtVel2;
+         const nextVel = ringSystem.current === 0 ? ringSystem.rtVel2 : ringSystem.rtVel1;
+         
+         // Pos
+         ringSystem.matSimPos.uniforms.texturePosition.value = curPos.texture;
+         ringSystem.matSimPos.uniforms.textureVelocity.value = curVel.texture;
+         ringSystem.matSimPos.uniforms.time.value = elapsed;
+         ringSystem.matSimPos.uniforms.delta.value = delta;
+         
+         const mouseNDC = new THREE.Vector2(
+            (mouseRef.current.targetX + 1) / 2,
+            (mouseRef.current.targetY + 1) / 2
+         );
+         ringSystem.matSimPos.uniforms.mousePosition.value = mouseNDC;
+
+         ringSystem.computeMesh.material = ringSystem.matSimPos;
+         renderer.setRenderTarget(nextPos);
+         renderer.render(ringSystem.computeScene, ringSystem.computeCamera);
+         
+         // Vel (Pass through)
+         ringSystem.matSimVel.uniforms.textureVelocity.value = curVel.texture;
+         ringSystem.computeMesh.material = ringSystem.matSimVel;
+         renderer.setRenderTarget(nextVel);
+         renderer.render(ringSystem.computeScene, ringSystem.computeCamera);
+         
+         renderer.setRenderTarget(null);
+         ringSystem.renderMat.uniforms.texturePosition.value = nextPos.texture;
+         ringSystem.renderMat.uniforms.textureVelocity.value = nextVel.texture;
+         ringSystem.renderMat.uniforms.time.value = elapsed;
+         
+         ringSystem.current = 1 - ringSystem.current;
+      }
+
+      renderer.render(scene, camera);
+      
+      if (!isMobile) {
+         mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.1;
+         mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.1;
+      }
+      
+      if (stats) stats.end();
+    };
+    animate();
+
     const handleResize = () => {
-      if (!container) return
-      // Keep square aspect ratio on resize
-      const size = Math.max(container.clientWidth || 600, container.clientHeight || 600)
-      camera.aspect = 1
-      camera.updateProjectionMatrix()
-      renderer.setSize(size, size)
-    }
+       if (!container) return;
+       const size = Math.max(container.clientWidth || 600, container.clientHeight || 600);
+       renderer.setSize(size, size);
+       if (faceMaterial) faceMaterial.uniforms.pixelRatio.value = renderer.getPixelRatio();
+       if (ringSystem) ringSystem.renderMat.uniforms.pixelRatio.value = renderer.getPixelRatio();
+    };
+    window.addEventListener("resize", handleResize);
+    
+    const onMouseMove = (e: MouseEvent) => {
+       const rect = container.getBoundingClientRect();
+       mouseRef.current.targetX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+       mouseRef.current.targetY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    };
+    if (!isMobile) container.addEventListener("mousemove", onMouseMove);
 
-    window.addEventListener('resize', handleResize)
-
-    // Cleanup
     return () => {
-      cancelAnimationFrame(rafRef.current)
-      if (!isMobile) {
-        container.removeEventListener('mousemove', handleMouseMove)
-        container.removeEventListener('touchmove', handleTouchMove)
-        container.removeEventListener('touchstart', handleTouchStart)
-      }
-      window.removeEventListener('resize', handleResize)
-      if (container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement)
-      }
-      if (stats && container.contains(stats.dom)) {
-        container.removeChild(stats.dom)
-      }
-      scene.clear()
-      renderer.dispose()
-      
-      // Dispose geometries and materials
-      if (particles) {
-        particles.geometry.dispose()
-        if (particles.material instanceof THREE.Material) {
-          particles.material.dispose()
-        }
-      }
-      if (portalRing) {
-        if (portalRing.portalPoints) {
-          portalRing.portalPoints.geometry.dispose()
-          portalRing.portalMaterial.dispose()
-        }
-        if (portalRing.computePositionMaterial) portalRing.computePositionMaterial.dispose()
-        if (portalRing.computeVelocityMaterial) portalRing.computeVelocityMaterial.dispose()
-        if (portalRing.positionRT1) portalRing.positionRT1.dispose()
-        if (portalRing.positionRT2) portalRing.positionRT2.dispose()
-        if (portalRing.velocityRT1) portalRing.velocityRT1.dispose()
-        if (portalRing.velocityRT2) portalRing.velocityRT2.dispose()
-      }
-    }
-  }, [mounted, imageUrl, particleCount, particleSize, formationSpeed, mouseInfluence, isMobile, theme, systemTheme])
+       cancelAnimationFrame(rafRef.current);
+       window.removeEventListener("resize", handleResize);
+       if (!isMobile) container.removeEventListener("mousemove", onMouseMove);
+       if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement);
+       scene.clear();
+       renderer.dispose();
+    };
+  }, [imageUrl, particleCount, particleSize, isMobile, theme, systemTheme]);
 
   return (
     <div className="relative w-full h-full min-h-[400px] lg:min-h-[600px]">
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center z-10">
-          <div className="relative">
-            {/* Outer ring */}
-            <div className="w-32 h-32 rounded-full border-4 border-purple-500/20 animate-spin-slow" />
-            {/* Middle ring */}
-            <div className="absolute inset-0 w-32 h-32 rounded-full border-4 border-transparent border-t-purple-500 border-r-violet-500 animate-spin" 
-                 style={{ animationDuration: '1.5s' }} />
-            {/* Inner pulsing circle */}
-            <div className="absolute inset-0 m-auto w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-violet-500 animate-pulse" />
-            {/* Center dot */}
-            <div className="absolute inset-0 m-auto w-4 h-4 rounded-full bg-white dark:bg-gray-900" />
-          </div>
-          {/* Loading text */}
-          <div className="absolute mt-48 text-indigo-500 dark:text-purple-400 font-semibold animate-pulse">
+           <div className="text-indigo-500 dark:text-purple-400 font-semibold animate-pulse">
             Loading particles...
           </div>
         </div>
       )}
-      <div
-        ref={containerRef}
-        className="w-full h-full cursor-pointer"
-        style={{ 
-          opacity: isLoading ? 0 : 1,
-          transition: 'opacity 1s ease-in-out',
-          minHeight: '400px'
-        }}
-      />
+      <div ref={containerRef} className="w-full h-full cursor-pointer" style={{ opacity: isLoading ? 0 : 1, transition: "opacity 1s" }} />
     </div>
-  )
-}
+  );
+};
 
-export default ParticleAvatar
+export default ParticleAvatar;
