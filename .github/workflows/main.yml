@@ -64,19 +64,33 @@ jobs:
             EOF
             chmod 600 ~/.ssh/config
 
-            echo '--- Environment file ---'
-            cat > /var/www/latest-portfolio/.env.production <<EOF
+            echo '--- Setup project directory ---'
+            if [ ! -d /var/www/latest-portfolio ]; then
+              echo 'Directory does not exist. Cloning repository...'
+              cd /var/www
+              git clone git@github.com:heinergiehl/latest-portfolio.git
+              cd latest-portfolio
+            elif [ ! -d /var/www/latest-portfolio/.git ]; then
+              echo 'Directory exists but is not a git repo. Re-initializing...'
+              cd /var/www/latest-portfolio
+              # Backup any existing files
+              mkdir -p ~/backup-$(date +%Y%m%d-%H%M%S)
+              cp -r /var/www/latest-portfolio/* ~/backup-$(date +%Y%m%d-%H%M%S)/ 2>/dev/null || true
+              # Initialize git repo
+              git init
+              git remote add origin git@github.com:heinergiehl/latest-portfolio.git
+              git fetch origin
+              git checkout -f main
+            else
+              echo 'Valid git repository found.'
+              cd /var/www/latest-portfolio
+            fi
+
+            echo '--- Create environment file ---'
+            cat > .env.production <<EOF
             APP_PORT=${{ env.APP_PORT }}
             PRODUCTION=true
             EOF
-
-            echo '--- Go to project dir ---'
-            cd /var/www/latest-portfolio
-
-            if [ ! -d .git ]; then
-              echo 'ERROR: /var/www/latest-portfolio is not a git repo. Did you clone it initially?'
-              exit 1
-            fi
 
             echo 'Remote URL:'
             git remote -v
