@@ -13,6 +13,7 @@ interface ParticleAvatarProps {
   particleSize?: number
   formationSpeed?: number
   mouseInfluence?: number
+  isMobile?: boolean
   onLoad?: () => void
 }
 
@@ -22,6 +23,7 @@ const ParticleAvatar = ({
   particleSize = 0.15,
   formationSpeed = 0.02,
   mouseInfluence = 200,
+  isMobile = false,
   onLoad,
 }: ParticleAvatarProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -54,13 +56,14 @@ const ParticleAvatar = ({
 
     const renderer = new THREE.WebGLRenderer({ 
       alpha: true, 
-      antialias: true,
-      powerPreference: 'high-performance'
+      antialias: !isMobile, // Disable antialiasing on mobile for better performance
+      powerPreference: isMobile ? 'default' : 'high-performance'
     })
     // Force square canvas - use container dimensions or default to 600px
     const size = Math.max(container.clientWidth || 600, container.clientHeight || 600)
     renderer.setSize(size, size)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
+    // Lower pixel ratio on mobile for better performance
+    renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 1.5))
     renderer.setClearColor(0x000000, 0)
     
     // Ensure canvas maintains square aspect ratio
@@ -70,14 +73,17 @@ const ParticleAvatar = ({
     
     container.appendChild(renderer.domElement)
 
-    // Setup Stats.js for performance monitoring
-    const stats = new Stats()
-    stats.showPanel(0) // 0: fps, 1: ms, 2: mb
-    stats.dom.style.position = 'absolute'
-    stats.dom.style.left = '0px'
-    stats.dom.style.top = '0px'
-    stats.dom.style.opacity = '0.9'
-    container.appendChild(stats.dom)
+    // Setup Stats.js for performance monitoring (only in development)
+    let stats: Stats | null = null
+    if (process.env.NODE_ENV === 'development' && !isMobile) {
+      stats = new Stats()
+      stats.showPanel(0) // 0: fps, 1: ms, 2: mb
+      stats.dom.style.position = 'absolute'
+      stats.dom.style.left = '0px'
+      stats.dom.style.top = '0px'
+      stats.dom.style.opacity = '0.9'
+      container.appendChild(stats.dom)
+    }
 
     // Load image and extract pixel data
     const img = new Image()
@@ -417,10 +423,10 @@ const ParticleAvatar = ({
       return { particles, material, geometry }
     }
 
-    // Create GPGPU-based portal - OPTIMIZED
+    // Create GPGPU-based portal - OPTIMIZED for mobile
     const createGPGPUPortal = () => {
-      // Much smaller particle count for subtle effect
-      const numParticles = 800000  // Restored to previous state
+      // Drastically reduce particles on mobile for performance
+      const numParticles = isMobile ? 50000 : 800000  // 50k vs 800k
       const textureSize = Math.ceil(Math.sqrt(numParticles))
       const actualParticles = textureSize * textureSize
       
@@ -429,8 +435,8 @@ const ParticleAvatar = ({
       const velocityData = new Float32Array(actualParticles * 4) // RGBA = vxyz + seed
       
       let idx = 0
-      // Fewer rings for subtler coverage
-      const numRings = 600  // Restored to previous state
+      // Fewer rings for better mobile performance
+      const numRings = isMobile ? 200 : 600  // 200 vs 600
       const particlesPerRing = Math.floor(actualParticles / numRings)
       
       for (let ring = 0; ring < numRings; ring++) {
@@ -1097,8 +1103,10 @@ const ParticleAvatar = ({
       particles = setup.particles
       material = setup.material
       
-      // Create portal ring
-      portalRing = createPortalRing()
+      // Create portal ring - disable on mobile for better performance
+      if (!isMobile) {
+        portalRing = createPortalRing()
+      }
       
       console.log('Particles created:', setup.geometry.attributes.position.count)
     }
@@ -1139,20 +1147,32 @@ const ParticleAvatar = ({
     container.addEventListener('touchmove', handleTouchMove, { passive: true })
     container.addEventListener('touchstart', handleTouchStart, { passive: true })
 
-    // Animation loop - OPTIMIZED
+    // Animation loop - OPTIMIZED with throttling for mobile
     const clock = new THREE.Clock()
     let formationProgress = 0
     let lastTime = 0
+    let frameCount = 0
 
     const animate = () => {
       rafRef.current = requestAnimationFrame(animate)
+
+      // Throttle updates on mobile - skip every other frame for 30fps
+      if (isMobile) {
+        frameCount++
+        if (frameCount % 2 === 0) {
+          return
+        }
+      }
+
+      // Performance monitoring
+      if (stats) stats.begin()
 
       const elapsed = clock.getElapsedTime()
       const delta = Math.min(elapsed - lastTime, 0.033) // Cap to 30fps minimum
       lastTime = elapsed
 
-      // Smooth and responsive mouse following
-      const dampingFactor = 0.3
+      // Smooth and responsive mouse following - less damping on desktop
+      const dampingFactor = isMobile ? 0.2 : 0.3
       mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * dampingFactor
       mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * dampingFactor
 
@@ -1229,6 +1249,8 @@ const ParticleAvatar = ({
       }
 
       renderer.render(scene, camera)
+      
+      if (stats) stats.end()
     }
 
     animate()
@@ -1255,6 +1277,9 @@ const ParticleAvatar = ({
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement)
       }
+      if (stats && container.contains(stats.dom)) {
+        container.removeChild(stats.dom)
+      }
       scene.clear()
       renderer.dispose()
       
@@ -1278,7 +1303,7 @@ const ParticleAvatar = ({
         if (portalRing.velocityRT2) portalRing.velocityRT2.dispose()
       }
     }
-  }, [mounted, imageUrl, particleCount, particleSize, formationSpeed, mouseInfluence, theme, systemTheme])
+  }, [mounted, imageUrl, particleCount, particleSize, formationSpeed, mouseInfluence, isMobile, theme, systemTheme])
 
   return (
     <div className="relative w-full h-full min-h-[400px] lg:min-h-[600px]">

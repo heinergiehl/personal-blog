@@ -60,9 +60,18 @@ const Avatar = () => {
   const [mounted, setMounted] = useState(false)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [isLoaded, setIsLoaded] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
     setMounted(true)
+    // Detect mobile devices
+    const checkMobile = () => {
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768
+      setIsMobile(isMobileDevice)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
   // Resolve the actual theme (handle 'system' theme)
@@ -70,6 +79,8 @@ const Avatar = () => {
   const isLightMode = mounted ? resolvedTheme === 'light' : false
 
   useEffect(() => {
+    if (isMobile) return // Disable mouse tracking on mobile
+    
     const handleMouseMove = (e: MouseEvent) => {
       const x = (e.clientX / window.innerWidth - 0.5) * 20
       const y = (e.clientY / window.innerHeight - 0.5) * 20
@@ -78,7 +89,7 @@ const Avatar = () => {
 
     window.addEventListener("mousemove", handleMouseMove)
     return () => window.removeEventListener("mousemove", handleMouseMove)
-  }, [])
+  }, [isMobile])
 
   return (
     <>
@@ -95,8 +106,8 @@ const Avatar = () => {
       {/* Animated Background Gradients */}
       <motion.div
         className="absolute inset-0 -z-10 overflow-hidden"
-        style={{ x: mousePosition.x, y: mousePosition.y }}
-        transition={{ type: "spring", stiffness: 50, damping: 20 }}
+        style={!isMobile ? { x: mousePosition.x, y: mousePosition.y } : {}}
+        transition={!isMobile ? { type: "spring", stiffness: 50, damping: 20 } : {}}
       >
         <motion.div
           className="absolute top-1/4 -left-1/4 w-96 h-96 rounded-full blur-3xl"
@@ -133,21 +144,22 @@ const Avatar = () => {
       </motion.div>
 
       {/* Main Content Container */}
-      <div className="max-w-7xl w-full flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16">
+      <div className="max-w-7xl w-full flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-16">
         
-        {/* Avata Sectin */}
+        {/* Avatar Section - Smaller on mobile for better performance */}
         <div
           className="relative z-10 flex-shrink-0 w-full lg:w-auto flex items-center justify-center"
 
         >
-          <div className="relative max-w-[500px] lg:max-w-[600px] w-full aspect-square">
+          <div className="relative max-w-[350px] sm:max-w-[450px] lg:max-w-[600px] w-full aspect-square">
             <ParticleAvatar
               key={`particle-avatar-${mounted && isLightMode ? 'light' : 'dark'}`}
               imageUrl="/heiner-profile.jpg"
-              particleCount={75000}
-              particleSize={4.0}
+              particleCount={isMobile ? 8000 : 35000}
+              particleSize={isMobile ? 3.5 : 4.0}
               formationSpeed={0.012}
-              mouseInfluence={100}
+              mouseInfluence={isMobile ? 80 : 100}
+              isMobile={isMobile}
               onLoad={() => setIsLoaded(true)}
             />
 
@@ -156,39 +168,39 @@ const Avatar = () => {
 
         {/* Hero Text Section */}
         <motion.div
-          initial={{ opacity: 0.8, x: 20 }}
+          initial={{ opacity: 0.8, x: isMobile ? 0 : 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: [0.6, 0.05, 0.01, 0.9], delay: 0.1 }}
-          className="flex flex-col space-y-4 lg:space-y-6 max-w-2xl text-center lg:text-left"
+          className="flex flex-col space-y-3 lg:space-y-6 max-w-2xl text-center lg:text-left"
         >
           {/* Greeting */}
           <div className="flex items-center space-x-3 lg:space-x-4 justify-center lg:justify-start">
             <motion.div
-              className="text-4xl lg:text-5xl"
-              animate={{
+              className="text-3xl lg:text-5xl"
+              animate={!isMobile ? {
                 rotate: [0, 25, -25, 20, -20, 15, -15, 10, -10, 0],
-              }}
-              transition={{
+              } : {}}
+              transition={!isMobile ? {
                 duration: 1.5,
                 repeat: 2,
                 ease: "easeInOut",
-              }}
+              } : {}}
             >
         
             </motion.div>
-            <h1 className="text-4xl lg:text-6xl font-bold bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 dark:from-purple-400 dark:via-violet-400 dark:to-indigo-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl lg:text-6xl font-bold bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 dark:from-purple-400 dark:via-violet-400 dark:to-indigo-400 bg-clip-text text-transparent">
               Hello!
             </h1>
           </div>
 
           {/* Main Heading with typing effect */}
           <div>
-            <h2 className="text-3xl lg:text-5xl font-bold text-gray-800 dark:text-gray-100 leading-tight">
+            <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-gray-800 dark:text-gray-100 leading-tight">
               I'm <motion.span 
                 className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 dark:from-purple-400 dark:via-violet-400 dark:to-indigo-400"
                 initial={{ backgroundPosition: "0% 50%" }}
-                animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                animate={!isMobile ? { backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] } : {}}
+                transition={!isMobile ? { duration: 5, repeat: Infinity, ease: "linear" } : {}}
                 style={{ backgroundSize: "200% auto" }}
               >
                 Heiner
@@ -198,15 +210,15 @@ const Avatar = () => {
 
           {/* Subheading with animated underline */}
           <div>
-            <p className="text-xl lg:text-3xl font-semibold text-gray-700 dark:text-gray-300">
+            <p className="text-lg sm:text-xl lg:text-3xl font-semibold text-gray-700 dark:text-gray-300">
               A passionate{" "}
               <span className="relative inline-block">
                 <motion.span 
                   className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 dark:from-indigo-400 dark:via-purple-400 dark:to-violet-400 font-bold"
-                  animate={{ 
+                  animate={!isMobile ? { 
                     backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-                  }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                  } : {}}
+                  transition={!isMobile ? { duration: 4, repeat: Infinity, ease: "linear" } : {}}
                   style={{ backgroundSize: "200% auto" }}
                 >
                   Full-Stack Developer
@@ -223,7 +235,7 @@ const Avatar = () => {
           </div>
 
           {/* Description with stagger effect */}
-          <p className="text-lg lg:text-2xl text-gray-600 dark:text-gray-400 leading-relaxed">
+          <p className="text-base sm:text-lg lg:text-2xl text-gray-600 dark:text-gray-400 leading-relaxed">
             <span>
               Building exceptional digital experiences
             </span>
