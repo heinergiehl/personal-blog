@@ -282,7 +282,7 @@ const ParticleAvatar = ({
     let ringSystem: any = null;
 
     const createRingSystem = () => {
-      const numParticles = isMobile ? 50000 : 150000; // Optimized count
+      const numParticles = isMobile ? 25000 : 150000; // Optimized count
       const textureSize = Math.ceil(Math.sqrt(numParticles));
       const actualParticles = textureSize * textureSize;
 
@@ -349,6 +349,114 @@ const ParticleAvatar = ({
       renderer.setRenderTarget(null);
 
       // Compute Shaders
+      const curlLogic = isMobile 
+        ? `vec3 combinedCurl = curlNoise(flowPos) * 6.0 * delta;`
+        : `vec3 curl1 = curlNoise(flowPos);
+          vec3 curl2 = curlNoise(flowPos * 2.0 + 100.0) * 0.5;
+          vec3 curl3 = curlNoise(flowPos * 0.5 + 200.0) * 0.3;
+          vec3 combinedCurl = (curl1 + curl2 + curl3) * 6.0 * delta;`;
+
+      const mouseLogic = isMobile
+        ? `
+          // Mobile: Simplified interaction
+          vec2 mouseWorld = (mousePosition - vec2(0.5)) * 750.0;
+          vec2 toMouse = pos.xy - mouseWorld;
+          float mouseDist = length(toMouse);
+          
+          if (mouseDist < 450.0) {
+            vec2 mouseDir = normalize(toMouse);
+            float voidSize = 50.0;
+            float voidZone = smoothstep(voidSize, 0.0, mouseDist);
+            
+            if (voidZone > 0.0) {
+              vec2 perpendicular = vec2(-mouseDir.y, mouseDir.x);
+              float voidPower = voidZone * voidZone;
+              newPos.xy -= mouseDir * voidPower * 560.0 * delta;
+              newPos.xy += perpendicular * voidPower * 290.0 * delta;
+              newPos.z += sin(time * 20.0 + seed * 6.28) * voidPower * 105.0 * delta;
+            } else {
+              float outerZone = smoothstep(450.0, 50.0, mouseDist);
+              vec2 perpendicular = vec2(-mouseDir.y, mouseDir.x);
+              float power = outerZone * outerZone;
+              newPos.xy += mouseDir * power * 100.0 * delta;
+              newPos.xy += perpendicular * power * 100.0 * delta;
+              newPos.z += sin(time * 10.0 - mouseDist * 0.1) * power * 40.0 * delta;
+            }
+          }
+        `
+        : `
+          // Desktop: Full organic interaction
+          vec2 mouseWorld = (mousePosition - vec2(0.5)) * 750.0;
+          vec2 toMouse = pos.xy - mouseWorld;
+          float mouseDist = length(toMouse);
+          
+          vec3 mouseNoisePos = vec3(pos.xy * 0.015, time * 0.5);
+          float mouseNoise = snoise(mouseNoisePos) * 0.5 + 0.5;
+          float organicFactor = 0.85 + mouseNoise * 0.03;
+          
+          if (mouseDist < 450.0 * organicFactor) {
+            vec2 mouseDir = normalize(toMouse);
+            
+            // ZONE 1: Organic void core
+            float voidSize = 50.0 * organicFactor;
+            float voidZone = smoothstep(voidSize, 0.0, mouseDist);
+            if (voidZone > 0.0) {
+              vec2 perpendicular = vec2(-mouseDir.y, mouseDir.x);
+              float voidPower = voidZone * voidZone * voidZone;
+              float forceNoise = snoise(vec3(pos.xy * 0.02, time * 0.3));
+              float forceMult = 0.7 + forceNoise * 0.6;
+              newPos.xy -= mouseDir * voidPower * 560.0 * forceMult * delta;
+              newPos.xy += perpendicular * voidPower * 290.0 * forceMult * delta;
+              newPos.z += sin(time * 20.0 + seed * 6.28) * voidPower * 105.0 * delta;
+            }
+            
+            // ZONE 2: Organic intense vortex
+            float innerSize1 = 50.0 * organicFactor;
+            float innerSize2 = 120.0 * organicFactor;
+            float innerZone = smoothstep(innerSize2, innerSize1, mouseDist) * (1.0 - voidZone);
+            if (innerZone > 0.0) {
+              vec2 perpendicular = vec2(-mouseDir.y, mouseDir.x);
+              float innerPower = innerZone * innerZone;
+              float vortexNoise = snoise(vec3(pos.xy * 0.018, time * 0.4));
+              float vortexMult = 0.75 + vortexNoise * 0.5;
+              newPos.xy -= mouseDir * innerPower * 320.0 * vortexMult * delta;
+              newPos.xy += perpendicular * innerPower * 225.0 * vortexMult * delta;
+              float turbulence = sin(time * 12.0 - mouseDist * 0.1 + seed * 6.28);
+              newPos.z += turbulence * innerPower * 72.0 * delta;
+            }
+            
+            // ZONE 3: Organic fluid zone
+            float midSize1 = 120.0 * organicFactor;
+            float midSize2 = 250.0 * organicFactor;
+            float midZone = smoothstep(midSize2, midSize1, mouseDist) * (1.0 - innerZone) * (1.0 - voidZone);
+            if (midZone > 0.0) {
+              vec2 perpendicular = vec2(-mouseDir.y, mouseDir.x);
+              float midPower = midZone * midZone;
+              float fluidNoise = snoise(vec3(pos.xy * 0.015, time * 0.35));
+              float fluidMult = 0.8 + fluidNoise * 0.4;
+              newPos.xy += mouseDir * midPower * 160.0 * fluidMult * delta;
+              newPos.xy += perpendicular * midPower * 120.0 * fluidMult * delta;
+              newPos.z += sin(time * 8.0 - mouseDist * 0.06 + fluidNoise * 3.0) * midPower * 52.0 * delta;
+            }
+            
+            // ZONE 4: Organic ripples
+            float rippleSize1 = 250.0 * organicFactor;
+            float rippleSize2 = 450.0 * organicFactor;
+            float rippleZone = smoothstep(rippleSize2, rippleSize1, mouseDist) * (1.0 - midZone) * (1.0 - innerZone) * (1.0 - voidZone);
+            if (rippleZone > 0.0) {
+              float rippleNoise = snoise(vec3(pos.xy * 0.012, time * 0.25));
+              float wave1 = sin((mouseDist * 0.08) - time * 5.0 + rippleNoise * 2.0) * rippleZone;
+              float wave2 = sin((mouseDist * 0.15) - time * 3.5 + rippleNoise * 1.5) * rippleZone * 0.5;
+              float combinedWave = (wave1 + wave2) * (0.8 + rippleNoise * 0.4);
+              
+              newPos.xy += mouseDir * combinedWave * 93.0 * delta;
+              newPos.z += combinedWave * 61.0 * delta;
+              vec2 tangent = vec2(-mouseDir.y, mouseDir.x);
+              newPos.xy += tangent * combinedWave * 61.0 * delta;
+            }
+          }
+        `;
+
       const computeShader = `
         uniform sampler2D texturePosition;
         uniform sampler2D textureVelocity;
@@ -449,7 +557,7 @@ const ParticleAvatar = ({
           
           // Rotation speed varies by ring (inner much faster for swirl effect)
           float rotSpeed = 0.4 * (1.0 + (1.0 - ring) * 1.2);
-          angle -= rotSpeed * delta;
+          angle += rotSpeed * delta;
           
           // CRITICAL FIX: Start with target radius, then apply small perturbations
           // This prevents collapse - particles stay on their rings
@@ -471,10 +579,7 @@ const ParticleAvatar = ({
           
           // ENHANCED ORGANIC MOTION - More curl noise for fluid flow
           vec3 flowPos = pos * 0.008 + time * 0.008;
-          vec3 curl1 = curlNoise(flowPos);
-          vec3 curl2 = curlNoise(flowPos * 2.0 + 100.0) * 0.5;
-          vec3 curl3 = curlNoise(flowPos * 0.5 + 200.0) * 0.3;
-          vec3 combinedCurl = (curl1 + curl2 + curl3) * 6.0 * delta; // Reduced for subtler flow
+          ${curlLogic}
           
           // Apply curl in all directions for organic motion
           vec2 tangent = vec2(-sin(angle), cos(angle));
@@ -495,79 +600,7 @@ const ParticleAvatar = ({
           newPos.z += zWave;
           newPos.z = clamp(newPos.z, -6.0, 6.0);
           
-          // ============= ORGANIC MOUSE INTERACTION =============
-          vec2 mouseWorld = (mousePosition - vec2(0.5)) * 1000.0;
-          vec2 toMouse = pos.xy - mouseWorld;
-          float mouseDist = length(toMouse);
-          
-          // Add noise to make zones organic instead of perfect circles
-          vec3 mouseNoisePos = vec3(pos.xy * 0.015, time * 0.5);
-          float mouseNoise = snoise(mouseNoisePos) * 0.5 + 0.5;
-          float organicFactor = 0.85 + mouseNoise * 0.03; // 0.85 to 1.15 variation
-          
-          if (mouseDist < 450.0 * organicFactor) { // Restored to previous range
-            vec2 mouseDir = normalize(toMouse);
-            
-            // Organic 4-zone system with noise-based boundaries (restored)
-            
-            // ZONE 1: Organic void core (0-50px) - HIGHLY NOTICEABLE
-            float voidSize = 50.0 * organicFactor;
-            float voidZone = smoothstep(voidSize, 0.0, mouseDist);
-            if (voidZone > 0.0) {
-              vec2 perpendicular = vec2(-mouseDir.y, mouseDir.x);
-              float voidPower = voidZone * voidZone * voidZone;
-              float forceNoise = snoise(vec3(pos.xy * 0.02, time * 0.3));
-              float forceMult = 0.7 + forceNoise * 0.6;
-              newPos.xy -= mouseDir * voidPower * 560.0 * forceMult * delta;
-              newPos.xy += perpendicular * voidPower * 290.0 * forceMult * delta;
-              newPos.z += sin(time * 20.0 + seed * 6.28) * voidPower * 105.0 * delta;
-            }
-            
-            // ZONE 2: Organic intense vortex (50-120px) - HIGHLY NOTICEABLE
-            float innerSize1 = 50.0 * organicFactor;
-            float innerSize2 = 120.0 * organicFactor;
-            float innerZone = smoothstep(innerSize2, innerSize1, mouseDist) * (1.0 - voidZone);
-            if (innerZone > 0.0) {
-              vec2 perpendicular = vec2(-mouseDir.y, mouseDir.x);
-              float innerPower = innerZone * innerZone;
-              float vortexNoise = snoise(vec3(pos.xy * 0.018, time * 0.4));
-              float vortexMult = 0.75 + vortexNoise * 0.5;
-              newPos.xy -= mouseDir * innerPower * 320.0 * vortexMult * delta;
-              newPos.xy += perpendicular * innerPower * 225.0 * vortexMult * delta;
-              float turbulence = sin(time * 12.0 - mouseDist * 0.1 + seed * 6.28);
-              newPos.z += turbulence * innerPower * 72.0 * delta;
-            }
-            
-            // ZONE 3: Organic fluid zone (120-250px) - HIGHLY NOTICEABLE
-            float midSize1 = 120.0 * organicFactor;
-            float midSize2 = 250.0 * organicFactor;
-            float midZone = smoothstep(midSize2, midSize1, mouseDist) * (1.0 - innerZone) * (1.0 - voidZone);
-            if (midZone > 0.0) {
-              vec2 perpendicular = vec2(-mouseDir.y, mouseDir.x);
-              float midPower = midZone * midZone;
-              float fluidNoise = snoise(vec3(pos.xy * 0.015, time * 0.35));
-              float fluidMult = 0.8 + fluidNoise * 0.4;
-              newPos.xy += mouseDir * midPower * 160.0 * fluidMult * delta;
-              newPos.xy += perpendicular * midPower * 120.0 * fluidMult * delta;
-              newPos.z += sin(time * 8.0 - mouseDist * 0.06 + fluidNoise * 3.0) * midPower * 52.0 * delta;
-            }
-            
-            // ZONE 4: Organic ripples (250-450px) - HIGHLY NOTICEABLE
-            float rippleSize1 = 250.0 * organicFactor;
-            float rippleSize2 = 450.0 * organicFactor;
-            float rippleZone = smoothstep(rippleSize2, rippleSize1, mouseDist) * (1.0 - midZone) * (1.0 - innerZone) * (1.0 - voidZone);
-            if (rippleZone > 0.0) {
-              float rippleNoise = snoise(vec3(pos.xy * 0.012, time * 0.25));
-              float wave1 = sin((mouseDist * 0.08) - time * 5.0 + rippleNoise * 2.0) * rippleZone;
-              float wave2 = sin((mouseDist * 0.15) - time * 3.5 + rippleNoise * 1.5) * rippleZone * 0.5;
-              float combinedWave = (wave1 + wave2) * (0.8 + rippleNoise * 0.4);
-              
-              newPos.xy += mouseDir * combinedWave * 93.0 * delta;
-              newPos.z += combinedWave * 61.0 * delta;
-              vec2 tangent = vec2(-mouseDir.y, mouseDir.x);
-              newPos.xy += tangent * combinedWave * 61.0 * delta;
-            }
-          }
+          ${mouseLogic}
           
           // Update velocity for momentum (crucial for smooth FBO ping-pong)
           vel = (newPos - pos) / max(delta, 0.001);
@@ -817,11 +850,22 @@ const ParticleAvatar = ({
          ringSystem.matSimPos.uniforms.time.value = elapsed;
          ringSystem.matSimPos.uniforms.delta.value = delta;
          
-         const mouseNDC = new THREE.Vector2(
-            (mouseRef.current.targetX + 1) / 2,
-            (mouseRef.current.targetY + 1) / 2
+         // Convert mouse from normalized device coords to world space (matching backup logic)
+         const vector = new THREE.Vector3(
+            mouseRef.current.x,
+            mouseRef.current.y,
+            0.5
          );
-         ringSystem.matSimPos.uniforms.mousePosition.value = mouseNDC;
+         vector.unproject(camera);
+         const dir = vector.sub(camera.position).normalize();
+         const distance = -camera.position.z / dir.z;
+         const mouseWorldPos = camera.position.clone().add(dir.multiplyScalar(distance));
+
+         const normalizedMouse = new THREE.Vector2(
+            (mouseWorldPos.x + 375) / 750,
+            (mouseWorldPos.y + 375) / 750
+         );
+         ringSystem.matSimPos.uniforms.mousePosition.value = normalizedMouse;
 
          ringSystem.computeMesh.material = ringSystem.matSimPos;
          renderer.setRenderTarget(nextPos);
