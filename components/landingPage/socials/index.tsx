@@ -26,9 +26,9 @@ function ReusableTooltip({
         alignOffset={-150} 
         align="start" 
         side="left"
-        className="bg-gradient-to-r from-purple-600 to-violet-600 dark:from-purple-500 dark:to-violet-500 
-                   border-purple-400 dark:border-purple-600 text-white font-medium px-4 py-2 
-                   shadow-lg shadow-purple-500/50"
+        className="bg-gradient-to-r from-indigo-600 to-cyan-600 dark:from-purple-500 dark:to-violet-500 
+                   border-indigo-400 dark:border-purple-600 text-white font-medium px-4 py-2 
+                   shadow-lg shadow-indigo-500/50"
       >
         <p>{content}</p>
       </TooltipContent>
@@ -140,13 +140,13 @@ export const Socials = () => {
           background: mounted && isLightMode
             ? "linear-gradient(135deg, rgba(255,255,255,0.95), rgba(249,247,253,0.95))"
             : "linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,27,75,0.95))",
-          borderColor: mounted && isLightMode ? "rgba(168,85,247,0.3)" : "rgba(168,85,247,0.4)",
+          borderColor: mounted && isLightMode ? "rgba(79,70,229,0.3)" : "rgba(168,85,247,0.4)",
           boxShadow: isExpanded
             ? (mounted && isLightMode
-              ? `0 0 40px rgba(168,85,247,0.4), 0 0 80px rgba(139,92,246,0.2)`
+              ? `0 0 40px rgba(79,70,229,0.4), 0 0 80px rgba(6,182,212,0.2)`
               : `0 0 40px rgba(168,85,247,0.5), 0 0 80px rgba(139,92,246,0.3)`)
             : (mounted && isLightMode
-              ? `0 4px 20px rgba(168,85,247,0.25)`
+              ? `0 4px 20px rgba(79,70,229,0.25)`
               : `0 4px 20px rgba(168,85,247,0.35)`),
         }}
         suppressHydrationWarning
@@ -182,7 +182,7 @@ export const Socials = () => {
         {/* "Socials" label */}
         <motion.div
           className="absolute inset-0 flex items-center justify-center font-bold text-sm
-                     bg-gradient-to-r from-purple-600 to-violet-600 dark:from-purple-400 dark:to-violet-400
+                     bg-gradient-to-r from-indigo-600 to-cyan-600 dark:from-purple-400 dark:to-violet-400
                      bg-clip-text text-transparent"
           animate={{
             opacity: isExpanded ? 0 : 1,
@@ -241,7 +241,7 @@ export const Socials = () => {
                     <motion.div
                       className="relative z-10"
                       style={{
-                        color: mounted && isLightMode ? "#1e293b" : "#f8fafc",
+                        color: mounted && isLightMode ? "#4338ca" : "#f8fafc",
                         filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))",
                       }}
                       suppressHydrationWarning

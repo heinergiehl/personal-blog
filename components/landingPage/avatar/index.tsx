@@ -4,6 +4,8 @@ import Image from "next/image"
 import { motion } from "framer-motion"
 import dynamic from "next/dynamic"
 import { useEffect, useState } from "react"
+import { useTheme } from "next-themes"
+import { COLOR_ONE, COLOR_TWO } from "@/config"
 
 // Beautiful loading spinner component
 const LoadingSpinner = () => (
@@ -11,19 +13,19 @@ const LoadingSpinner = () => (
     <div className="relative">
       {/* Outer ring */}
       <motion.div
-        className="w-32 h-32 rounded-full border-4 border-purple-500/20"
+        className="w-32 h-32 rounded-full border-4 border-indigo-500/20"
         animate={{ rotate: 360 }}
         transition={{ duration: 3, repeat: Infinity, ease: "linear", delay: 0 }}
       />
       {/* Middle ring */}
       <motion.div
-        className="absolute inset-0 w-32 h-32 rounded-full border-4 border-transparent border-t-purple-500 border-r-violet-500"
+        className="absolute inset-0 w-32 h-32 rounded-full border-4 border-transparent border-t-indigo-500 border-r-cyan-500"
         animate={{ rotate: -360 }}
         transition={{ duration: 1.5, repeat: Infinity, ease: "linear", delay: 0 }}
       />
       {/* Inner pulsing circle */}
       <motion.div
-        className="absolute inset-0 m-auto w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-violet-500"
+        className="absolute inset-0 m-auto w-16 h-16 rounded-full bg-gradient-to-r from-indigo-500 to-cyan-500"
         animate={{ 
           scale: [1, 1.2, 1],
           opacity: [0.5, 0.8, 0.5]
@@ -35,7 +37,7 @@ const LoadingSpinner = () => (
     </div>
     {/* Loading text */}
     <motion.div
-      className="absolute mt-48 text-purple-500 dark:text-purple-400 font-semibold"
+      className="absolute mt-48 text-indigo-500 dark:text-purple-400 font-semibold"
       animate={{ opacity: [0.5, 1, 0.5] }}
       transition={{ duration: 1.5, repeat: Infinity, delay: 0 }}
     >
@@ -54,8 +56,18 @@ const ParticleAvatar = dynamic(
 )
 
 const Avatar = () => {
+  const { theme, systemTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [isLoaded, setIsLoaded] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Resolve the actual theme (handle 'system' theme)
+  const resolvedTheme = theme === 'system' ? systemTheme : theme
+  const isLightMode = mounted ? resolvedTheme === 'light' : false
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -87,30 +99,36 @@ const Avatar = () => {
         transition={{ type: "spring", stiffness: 50, damping: 20 }}
       >
         <motion.div
-          className="absolute top-1/4 -left-1/4 w-96 h-96 bg-purple-500/20 dark:bg-purple-500/30 rounded-full blur-3xl"
+          className="absolute top-1/4 -left-1/4 w-96 h-96 rounded-full blur-3xl"
+          style={{ backgroundColor: mounted && isLightMode ? 'rgba(79, 70, 229, 0.2)' : 'rgba(168, 85, 247, 0.3)' }}
           animate={{
             scale: [1, 1.2, 1],
             x: [0, 50, 0],
             y: [0, 30, 0],
           }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          suppressHydrationWarning
         />
         <motion.div
-          className="absolute bottom-1/4 -right-1/4 w-96 h-96 bg-indigo-500/20 dark:bg-indigo-500/30 rounded-full blur-3xl"
+          className="absolute bottom-1/4 -right-1/4 w-96 h-96 rounded-full blur-3xl"
+          style={{ backgroundColor: mounted && isLightMode ? 'rgba(6, 182, 212, 0.2)' : 'rgba(99, 102, 241, 0.3)' }}
           animate={{
             scale: [1, 1.3, 1],
             x: [0, -30, 0],
             y: [0, 50, 0],
           }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          suppressHydrationWarning
         />
         <motion.div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-violet-500/10 dark:bg-violet-500/20 rounded-full blur-3xl"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full blur-3xl"
+          style={{ backgroundColor: mounted && isLightMode ? 'rgba(79, 70, 229, 0.1)' : 'rgba(139, 92, 246, 0.2)' }}
           animate={{
             scale: [1, 1.1, 1],
             rotate: [0, 180, 360],
           }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          suppressHydrationWarning
         />
       </motion.div>
 
@@ -124,6 +142,7 @@ const Avatar = () => {
         >
           <div className="relative max-w-[500px] lg:max-w-[600px] w-full aspect-square">
             <ParticleAvatar
+              key={`particle-avatar-${mounted && isLightMode ? 'light' : 'dark'}`}
               imageUrl="/heiner-profile.jpg"
               particleCount={75000}
               particleSize={4.0}
@@ -157,7 +176,7 @@ const Avatar = () => {
             >
         
             </motion.div>
-            <h1 className="text-4xl lg:text-6xl font-bold bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 dark:from-purple-400 dark:via-violet-400 dark:to-indigo-400 bg-clip-text text-transparent">
+            <h1 className="text-4xl lg:text-6xl font-bold bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 dark:from-purple-400 dark:via-violet-400 dark:to-indigo-400 bg-clip-text text-transparent">
               Hello!
             </h1>
           </div>
@@ -166,7 +185,7 @@ const Avatar = () => {
           <div>
             <h2 className="text-3xl lg:text-5xl font-bold text-gray-800 dark:text-gray-100 leading-tight">
               I'm <motion.span 
-                className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 dark:from-purple-400 dark:via-violet-400 dark:to-indigo-400"
+                className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 dark:from-purple-400 dark:via-violet-400 dark:to-indigo-400"
                 initial={{ backgroundPosition: "0% 50%" }}
                 animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
@@ -183,7 +202,7 @@ const Avatar = () => {
               A passionate{" "}
               <span className="relative inline-block">
                 <motion.span 
-                  className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 dark:from-indigo-400 dark:via-purple-400 dark:to-violet-400 font-bold"
+                  className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 dark:from-indigo-400 dark:via-purple-400 dark:to-violet-400 font-bold"
                   animate={{ 
                     backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
                   }}
@@ -193,7 +212,7 @@ const Avatar = () => {
                   Full-Stack Developer
                 </motion.span>
                 <motion.span 
-                  className="absolute bottom-0 left-0 w-full h-3 bg-gradient-to-r from-indigo-500/30 to-purple-500/30 -z-10 rounded-full"
+                  className="absolute bottom-0 left-0 w-full h-3 bg-gradient-to-r from-indigo-500/30 to-cyan-500/30 -z-10 rounded-full"
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
                   transition={{ duration: 0.8, delay: 1.2 }}
@@ -241,12 +260,12 @@ const Avatar = () => {
           <div className="flex flex-col sm:flex-row gap-4 pt-4 justify-center lg:justify-start">
             <motion.a
               href="#Contact"
-              className="relative px-8 py-4 bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 text-white font-semibold rounded-xl shadow-lg overflow-hidden group"
-              whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(139, 92, 246, 0.4)" }}
+              className="relative px-8 py-4 bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 text-white font-semibold rounded-xl shadow-lg overflow-hidden group"
+              whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(79, 70, 229, 0.4)" }}
               whileTap={{ scale: 0.95 }}
             >
               <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600"
+                className="absolute inset-0 bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600"
                 initial={{ x: "100%" }}
                 whileHover={{ x: 0 }}
                 transition={{ duration: 0.3 }}
@@ -255,12 +274,12 @@ const Avatar = () => {
             </motion.a>
             <motion.a
               href="#Projects"
-              className="relative px-8 py-4 bg-transparent border-2 border-purple-600 dark:border-purple-400 text-purple-600 dark:text-purple-400 font-semibold rounded-xl overflow-hidden group"
-              whileHover={{ scale: 1.05, borderColor: "rgb(147, 51, 234)" }}
+              className="relative px-8 py-4 bg-transparent border-2 border-indigo-600 dark:border-purple-400 text-indigo-600 dark:text-purple-400 font-semibold rounded-xl overflow-hidden group"
+              whileHover={{ scale: 1.05, borderColor: "rgb(79, 70, 229)" }}
               whileTap={{ scale: 0.95 }}
             >
               <motion.div
-                className="absolute inset-0 bg-purple-600/10 dark:bg-purple-400/10"
+                className="absolute inset-0 bg-indigo-600/10 dark:bg-purple-400/10"
                 initial={{ y: "100%" }}
                 whileHover={{ y: 0 }}
                 transition={{ duration: 0.3 }}

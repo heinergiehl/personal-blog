@@ -6,9 +6,9 @@ import Image from "next/image"
 import Link from "next/link"
 
 // --- Color Palette & Type ---
-const ACCENT = "from-indigo-500 to-purple-600"
-const BG_LIGHT = "bg-gradient-to-br from-indigo-50 to-white"
-const BG_DARK = "dark:bg-gradient-to-br dark:from-slate-900 dark:to-slate-800"
+const ACCENT = "from-indigo-600 via-blue-600 to-cyan-600"
+const BG_LIGHT = "bg-gradient-to-br from-slate-50 via-white to-blue-50"
+const BG_DARK = "dark:bg-gradient-to-br dark:from-gray-950 dark:via-purple-950/20 dark:to-gray-900"
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
   visible: (i = 1) => ({
@@ -40,7 +40,7 @@ export function ProjectDetail({
     >
       {/* Hero */}
       <motion.h1
-        className="text-5xl sm:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-4"
+        className="text-5xl sm:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-blue-700 to-cyan-700 dark:from-purple-400 dark:via-purple-300 dark:to-purple-500 mb-4"
         initial="hidden"
         animate="visible"
         variants={fadeInUp}

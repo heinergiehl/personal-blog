@@ -242,10 +242,10 @@ export const Card = ({
         ? "rgba(255, 255, 255, 0.7)" 
         : "rgba(88, 28, 135, 0.3)",
       borderColor: isLightMode 
-        ? "rgba(139, 92, 246, 0.25)" 
+        ? "rgba(79, 70, 229, 0.25)" 
         : "rgba(168, 85, 247, 0.3)",
       boxShadow: isLightMode
-        ? "0 4px 12px rgba(139, 92, 246, 0.1)"
+        ? "0 4px 12px rgba(79, 70, 229, 0.1)"
         : "0 4px 12px rgba(168, 85, 247, 0.15)",
     },
     textBlock: {
@@ -253,22 +253,24 @@ export const Card = ({
         ? "rgba(255, 255, 255, 0.6)" 
         : "rgba(30, 27, 75, 0.5)",
       borderColor: isLightMode 
-        ? "rgba(139, 92, 246, 0.2)" 
+        ? "rgba(79, 70, 229, 0.2)" 
         : "rgba(168, 85, 247, 0.2)",
       boxShadow: isLightMode
-        ? "0 2px 8px rgba(139, 92, 246, 0.08)"
+        ? "0 2px 8px rgba(79, 70, 229, 0.08)"
         : "0 2px 8px rgba(168, 85, 247, 0.1)",
     },
     techBadge: {
-      background: `linear-gradient(135deg, ${COLOR_ONE}, ${COLOR_TWO})`,
+      background: isLightMode
+        ? `linear-gradient(135deg, #4f46e5, #06b6d4)` // Indigo to cyan in light mode
+        : `linear-gradient(135deg, ${COLOR_ONE}, ${COLOR_TWO})`, // Purple in dark mode
       boxShadow: isLightMode
-        ? "0 4px 12px rgba(139, 92, 246, 0.3)"
+        ? "0 4px 12px rgba(79, 70, 229, 0.3)"
         : "0 4px 12px rgba(168, 85, 247, 0.4)",
     },
   }), [isLightMode])
 
-  const descriptionTextColor = isLightMode ? "text-gray-800" : "text-purple-100"
-  const headingTextColor = isLightMode ? "text-purple-900" : "text-purple-200"
+  const descriptionTextColor = isLightMode ? "text-slate-700" : "text-purple-100"
+  const headingTextColor = isLightMode ? "text-indigo-900" : "text-purple-200"
   const variants = prefersReducedMotion ? reducedMotionVariants : cardVariants
   const contentVars = prefersReducedMotion ? reducedMotionVariants : contentVariants
   const textVars = prefersReducedMotion ? reducedMotionVariants : textBlockVariants
@@ -300,9 +302,9 @@ export const Card = ({
             "flex flex-col justify-center items-center",
             "focus-within:ring-2 focus-within:ring-offset-2 transition-all duration-300",
             isLightMode
-              ? "bg-gradient-to-br from-purple-50/95 via-white/90 to-violet-50/95 text-gray-900 focus-within:ring-purple-400"
+              ? "bg-gradient-to-br from-slate-50/95 via-white/90 to-blue-50/95 text-gray-900 focus-within:ring-indigo-400"
               : "bg-gradient-to-br from-slate-900/95 via-purple-950/90 to-slate-900/95 text-white focus-within:ring-purple-500",
-            "border border-purple-200/20",
+            "border border-indigo-200/20",
             className
           )}
           style={{
@@ -342,7 +344,7 @@ export const Card = ({
               translateX: "-50%",
               translateY: "-50%",
               background: isLightMode 
-                ? `radial-gradient(circle, rgba(168, 85, 247, 0.25), rgba(139, 92, 246, 0.15), transparent 70%)`
+                ? `radial-gradient(circle, rgba(79, 70, 229, 0.25), rgba(6, 182, 212, 0.15), transparent 70%)`
                 : `radial-gradient(circle, rgba(168, 85, 247, 0.4), ${COLOR_ONE}60, transparent 70%)`,
             }}
             initial={{ opacity: 0 }}
@@ -363,7 +365,7 @@ export const Card = ({
             <motion.div
               className={cn(
                 "absolute inset-0 rounded-full blur-[80px]",
-                isLightMode ? "bg-purple-200" : "bg-purple-900"
+                isLightMode ? "bg-indigo-200" : "bg-purple-900"
               )}
               animate={{
                 opacity: isHovered ? 0.6 : 0.4
@@ -387,7 +389,7 @@ export const Card = ({
                 className={cn(
                   "py-2.5 z-20 px-4 sm:px-6 rounded-full mb-4 text-center border backdrop-blur-md",
                   "transition-all duration-300 max-w-full",
-                  isLightMode ? "text-purple-900 font-semibold" : "text-purple-100 font-semibold"
+                  isLightMode ? "text-indigo-900 font-semibold" : "text-purple-100 font-semibold"
                 )}
                 style={themeStyles.titleBadge}
                 variants={contentVars}

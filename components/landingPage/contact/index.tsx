@@ -2,8 +2,21 @@ import { motion } from "framer-motion"
 import { Mail, MessageSquare, Send, Sparkles } from "lucide-react"
 import CopyEmailButton from "@/components/copy-email-button"
 import { COLOR_ONE, COLOR_TWO } from "@/config"
+import { useTheme } from "next-themes"
+import { useState, useEffect } from "react"
 
 const Contact = () => {
+  const { theme, systemTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Resolve the actual theme (handle 'system' theme)
+  const resolvedTheme = theme === 'system' ? systemTheme : theme
+  const isLightMode = mounted ? resolvedTheme === 'light' : false
+
   return (
     <motion.section
       whileInView={{ opacity: 1, y: 0 }}
@@ -14,26 +27,28 @@ const Contact = () => {
     >
       {/* Animated gradient background */}
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-50/70 via-white to-indigo-50/60 dark:from-gray-950 dark:via-violet-950/30 dark:to-gray-900" />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-50/70 via-white to-blue-50/60 dark:from-gray-950 dark:via-violet-950/30 dark:to-gray-900" />
         <motion.div
           className="absolute top-0 left-0 w-[600px] h-[600px] rounded-full blur-3xl opacity-20"
-          style={{ background: COLOR_ONE }}
+          style={{ background: mounted && isLightMode ? '#4f46e5' : COLOR_ONE }}
           animate={{
             x: [0, 100, 0],
             y: [0, 80, 0],
             scale: [1, 1.4, 1],
           }}
           transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+          suppressHydrationWarning
         />
         <motion.div
           className="absolute bottom-0 right-0 w-[600px] h-[600px] rounded-full blur-3xl opacity-20"
-          style={{ background: COLOR_TWO }}
+          style={{ background: mounted && isLightMode ? '#06b6d4' : COLOR_TWO }}
           animate={{
             x: [0, -100, 0],
             y: [0, -80, 0],
             scale: [1, 1.3, 1],
           }}
           transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
+          suppressHydrationWarning
         />
       </div>
 
@@ -48,21 +63,22 @@ const Contact = () => {
           viewport={{ once: true }}
         >
           <div className="relative">
-            <Sparkles className="w-12 h-12 text-purple-600 dark:text-purple-400" />
+            <Sparkles className="w-12 h-12 text-indigo-600 dark:text-purple-400" />
             <motion.div
               className="absolute inset-0 blur-xl opacity-50"
-              style={{ background: COLOR_ONE }}
+              style={{ background: mounted && isLightMode ? '#4f46e5' : COLOR_ONE }}
               animate={{
                 scale: [1, 1.2, 1],
                 opacity: [0.5, 0.8, 0.5],
               }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              suppressHydrationWarning
             />
           </div>
         </motion.div>
 
         <motion.h2
-          className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-600 via-purple-700 to-purple-900 dark:from-purple-400 dark:via-purple-300 dark:to-purple-500 bg-clip-text text-transparent"
+          className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-indigo-600 via-blue-700 to-cyan-700 dark:from-purple-400 dark:via-purple-300 dark:to-purple-500 bg-clip-text text-transparent"
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
@@ -97,7 +113,7 @@ const Contact = () => {
           ].map((item, idx) => (
             <motion.div
               key={idx}
-              className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-purple-200/50 dark:border-purple-800/50 rounded-2xl p-6 hover:shadow-lg transition-all duration-300"
+              className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-indigo-200/50 dark:border-purple-800/50 rounded-2xl p-6 hover:shadow-lg transition-all duration-300"
               whileHover={{ y: -5, scale: 1.02 }}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -111,7 +127,7 @@ const Contact = () => {
                     background: `linear-gradient(135deg, ${COLOR_ONE}20, ${COLOR_TWO}20)`,
                   }}
                 >
-                  <item.icon className="w-6 h-6 text-purple-700 dark:text-purple-400" />
+                  <item.icon className="w-6 h-6 text-indigo-700 dark:text-purple-400" />
                 </div>
                 <h3 className="font-semibold text-gray-900 dark:text-gray-100">
                   {item.title}
@@ -143,11 +159,11 @@ const Contact = () => {
           transition={{ duration: 1, delay: 0.8 }}
           viewport={{ once: true }}
         >
-          <div className="h-px w-20 bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
+          <div className="h-px w-20 bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Open to opportunities
           </p>
-          <div className="h-px w-20 bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
+          <div className="h-px w-20 bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
         </motion.div>
       </div>
     </motion.section>

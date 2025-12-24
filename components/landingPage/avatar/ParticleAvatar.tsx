@@ -192,6 +192,10 @@ const ParticleAvatar = ({
       geometry.setAttribute('delay', new THREE.Float32BufferAttribute(delays, 1))
 
       // Particle shader material
+      // Theme-aware colors: indigo/cyan for light mode, purple for dark mode
+      const colorOne = isDark ? COLOR_ONE : '#4f46e5' // indigo-600 in light mode
+      const colorTwo = isDark ? COLOR_TWO : '#06b6d4' // cyan-500 in light mode
+
       const material = new THREE.ShaderMaterial({
         uniforms: {
           time: { value: 0 },
@@ -199,8 +203,8 @@ const ParticleAvatar = ({
           mouseInfluence: { value: mouseInfluence },
           formationProgress: { value: 0 },
           pixelRatio: { value: renderer.getPixelRatio() },
-          colorOne: { value: new THREE.Color(COLOR_ONE) },
-          colorTwo: { value: new THREE.Color(COLOR_TWO) },
+          colorOne: { value: new THREE.Color(colorOne) },
+          colorTwo: { value: new THREE.Color(colorTwo) },
           flowFieldStrength: { value: 0.15 },
           isDark: { value: isDark ? 1.0 : 0.0 },
         },
@@ -812,9 +816,9 @@ const ParticleAvatar = ({
           textureVelocity: { value: null },
           time: { value: 0 },
           pixelRatio: { value: renderer.getPixelRatio() },
-          // Dark purple theme colors
-          colorOne: { value: isDark ? new THREE.Color('#4f16eb') : new THREE.Color('#4f16eb') }, // Dark purple
-          colorTwo: { value: isDark ? new THREE.Color('#4b0358') : new THREE.Color('#4b0358') }, // Deep purple
+          // Theme colors - indigo/cyan for light mode, purple for dark mode
+          colorOne: { value: isDark ? new THREE.Color(COLOR_ONE) : new THREE.Color('#4f46e5') }, // Indigo-600 for light mode
+          colorTwo: { value: isDark ? new THREE.Color(COLOR_TWO) : new THREE.Color('#06b6d4') }, // Cyan-500 for light mode
           isDark: { value: isDark ? 1.0 : 0.0 }
         },
         vertexShader: `
@@ -922,22 +926,18 @@ const ParticleAvatar = ({
             // Energy increases brightness only slightly
             finalColor *= 1.0 + vEnergy * mix(0.15, 0.08, isDark);
             
-            // THEME-SPECIFIC COLOR ADJUSTMENTS - Dark purple theme
+            // THEME-SPECIFIC COLOR ADJUSTMENTS - Use theme colors
             if (isDark < 0.5) {
-              // LIGHT MODE: Dark purple theme - no white/bright colors
-              // Use app's dark purple palette
-              vec3 darkPurple = vec3(0.31, 0.09, 0.92) * 0.4; // #4f16eb darkened
-              vec3 deepPurple = vec3(0.29, 0.01, 0.35) * 0.85; // #4b0358
+              // LIGHT MODE: Use indigo/cyan theme colors
+              // Mix base color with theme colors (colorOne and colorTwo from uniforms)
+              finalColor = mix(finalColor * 0.6, mix(colorTwo, colorOne, vRing), 0.5);
               
-              // Mix base purple with theme colors
-              finalColor = mix(finalColor * 0.6, mix(deepPurple, darkPurple, vRing), 0.5);
-              
-              // Moderate saturation for rich purple without brightness
+              // Moderate saturation for rich color without excessive brightness
               vec3 gray = vec3(dot(finalColor, vec3(0.299, 0.587, 0.114)));
               finalColor = mix(gray, finalColor, 1.8);
             } else {
-              // DARK MODE: Vibrant visible purple
-              finalColor *= 0.50;  // Good visibility without being white
+              // DARK MODE: Vibrant visible purple using theme colors
+              finalColor = mix(finalColor * 0.5, mix(colorTwo, colorOne, vRing), 0.4);
               vec3 gray = vec3(dot(finalColor, vec3(0.299, 0.587, 0.114)));
               finalColor = mix(gray, finalColor, 1.6);  // Higher saturation for vibrant purple
             }
@@ -1296,7 +1296,7 @@ const ParticleAvatar = ({
             <div className="absolute inset-0 m-auto w-4 h-4 rounded-full bg-white dark:bg-gray-900" />
           </div>
           {/* Loading text */}
-          <div className="absolute mt-48 text-purple-500 dark:text-purple-400 font-semibold animate-pulse">
+          <div className="absolute mt-48 text-indigo-500 dark:text-purple-400 font-semibold animate-pulse">
             Loading particles...
           </div>
         </div>

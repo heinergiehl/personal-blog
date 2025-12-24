@@ -70,7 +70,7 @@ export function AnimatedFilterButton({
   `
 
   const activeClasses = isLightMode
-    ? "text-gray-900 shadow-lg shadow-purple-300/40" // Stronger shadow for active pill in light mode
+    ? "text-gray-900 shadow-lg shadow-indigo-300/40" // Stronger shadow for active pill in light mode
     : "text-white" // Active text white for dark mode
 
   const inactiveClasses = isLightMode
@@ -78,13 +78,13 @@ export function AnimatedFilterButton({
     : "bg-slate-800 text-slate-400 hover:text-slate-100" // Existing dark mode styles
 
   const focusRingClasses = isLightMode
-    ? "focus:ring-purple-500 focus:ring-offset-white" // Use a more brand-aligned purple for focus, white offset
+    ? "focus:ring-indigo-500 focus:ring-offset-white" // Use a more brand-aligned indigo for focus, white offset
     : "focus:ring-purple-500 focus:ring-offset-slate-900" // Existing dark mode focus
 
   // Hover glow for inactive buttons
   const inactiveHoverGlowStyle = isLightMode
     ? {
-        background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, #8b5cf61A, transparent 60%)`, // Light purple with low opacity (Tailwind's purple-400 with 10% opacity)
+        background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, #4f46e51A, transparent 60%)`, // Light indigo with low opacity
         boxShadow: `0px 2px 8px rgba(0,0,0,0.05)`, // Add a very subtle general shadow on hover
       }
     : {
@@ -93,7 +93,7 @@ export function AnimatedFilterButton({
 
   // Ripple color
   const rippleColorClass = isLightMode
-    ? "bg-purple-500 shadow-md shadow-purple-300/60" // A more vibrant purple ripple with a soft purple shadow
+    ? "bg-indigo-500 shadow-md shadow-indigo-300/60" // Indigo ripple with soft shadow
     : "bg-white shadow-lg shadow-purple-500/50" // Existing white ripple
 
   return (

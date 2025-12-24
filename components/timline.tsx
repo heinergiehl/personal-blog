@@ -134,30 +134,32 @@ export default function Timeline() {
     >
       {/* Enhanced background with animated gradients */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/60 dark:from-gray-950 dark:via-indigo-950/30 dark:to-gray-900" />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-50/80 via-white to-blue-50/60 dark:from-gray-950 dark:via-indigo-950/30 dark:to-gray-900" />
         <motion.div
           className="absolute -top-1/4 left-1/4 w-[500px] h-[500px] rounded-full blur-3xl opacity-20"
-          style={{ background: COLOR_ONE }}
+          style={{ background: mounted && isLightMode ? '#4f46e5' : COLOR_ONE }}
           animate={{
             x: [-50, 50, -50],
             y: [0, 100, 0],
             scale: [1, 1.3, 1],
           }}
           transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
+          suppressHydrationWarning
         />
         <motion.div
           className="absolute top-1/2 right-1/4 w-[500px] h-[500px] rounded-full blur-3xl opacity-20"
-          style={{ background: COLOR_TWO }}
+          style={{ background: mounted && isLightMode ? '#06b6d4' : COLOR_TWO }}
           animate={{
             x: [50, -50, 50],
             y: [0, -100, 0],
             scale: [1, 1.2, 1],
           }}
           transition={{ duration: 35, repeat: Infinity, ease: "easeInOut" }}
+          suppressHydrationWarning
         />
       </div>
 
-      <h2 className="relative z-10 text-3xl font-bold text-center text-slate-800 dark:text-slate-100 mb-12">
+      <h2 className="relative z-10 text-3xl md:text-4xl font-bold text-center mb-12 bg-gradient-to-r from-indigo-600 via-blue-700 to-cyan-700 dark:from-purple-400 dark:via-purple-300 dark:to-purple-500 bg-clip-text text-transparent">
         Career
       </h2>
 
@@ -171,9 +173,14 @@ export default function Timeline() {
           height: "120vh",
           scaleY: lineScale,
           transformOrigin: "top center",
-          background: `linear-gradient(to bottom, ${COLOR_ONE}, ${COLOR_TWO})`,
-          boxShadow: `0 0 8px 2px ${COLOR_ONE}30`,
+          background: mounted && isLightMode 
+            ? `linear-gradient(to bottom, #4f46e5, #06b6d4)` 
+            : `linear-gradient(to bottom, ${COLOR_ONE}, ${COLOR_TWO})`,
+          boxShadow: mounted && isLightMode
+            ? `0 0 8px 2px rgba(79, 70, 229, 0.3)`
+            : `0 0 8px 2px ${COLOR_ONE}30`,
         }}
+        suppressHydrationWarning
       />
 
       {/* Timeline Items */}
@@ -205,9 +212,12 @@ export default function Timeline() {
                 initial="hidden"
                 animate={showDot ? "show" : "hidden"}
                 style={{
-                  borderColor: COLOR_ONE,
-                  boxShadow: `0 0 20px 4px ${COLOR_ONE}70, 0 0 10px 2px ${COLOR_TWO}50`,
+                  borderColor: mounted && isLightMode ? '#4f46e5' : COLOR_ONE,
+                  boxShadow: mounted && isLightMode
+                    ? `0 0 20px 4px rgba(79, 70, 229, 0.7), 0 0 10px 2px rgba(6, 182, 212, 0.5)`
+                    : `0 0 20px 4px ${COLOR_ONE}70, 0 0 10px 2px ${COLOR_TWO}50`,
                 }}
+                suppressHydrationWarning
               />
 
               {/* Timeframe (desktop) */}
@@ -227,7 +237,7 @@ export default function Timeline() {
               >
                 <span className={cn(
                   "text-xl font-semibold uppercase tracking-wide",
-                  mounted && (isLightMode ? "text-purple-600" : "text-purple-400")
+                  mounted && (isLightMode ? "text-indigo-600" : "text-purple-400")
                 )}>
                   {item.timeframe}
                 </span>
@@ -247,7 +257,7 @@ export default function Timeline() {
                   className={cn(
                     `backdrop-blur-[2px] p-8 rounded-2xl border transition-all duration-300 overflow-hidden`,
                     mounted && isLightMode
-                      ? "bg-gradient-to-br from-purple-50/70 via-white/60 to-violet-50/70 border-purple-200/30 shadow-lg shadow-purple-200/20"
+                      ? "bg-gradient-to-br from-slate-50/70 via-white/60 to-blue-50/70 border-indigo-200/30 shadow-lg shadow-indigo-200/20"
                       : "bg-gradient-to-br from-slate-900/70 via-purple-950/60 to-slate-900/70 border-purple-500/20 shadow-lg shadow-purple-500/10",
                     !isEven ? "pl-12" : "pr-12"
                   )}
@@ -257,7 +267,7 @@ export default function Timeline() {
                   whileHover={{ 
                     scale: 1.02,
                     boxShadow: mounted && isLightMode 
-                      ? "0 20px 40px rgba(139, 92, 246, 0.2)" 
+                      ? "0 20px 40px rgba(79, 70, 229, 0.2)" 
                       : "0 20px 40px rgba(168, 85, 247, 0.3)",
                     y: -5,
                   }}
@@ -268,7 +278,7 @@ export default function Timeline() {
                   <motion.h3 
                     className={cn(
                       "text-2xl font-bold mb-2",
-                      mounted && (isLightMode ? "text-purple-900" : "text-purple-100")
+                      mounted && (isLightMode ? "text-indigo-900" : "text-purple-100")
                     )}
                     initial={{ opacity: 0, y: 10 }}
                     animate={showCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
@@ -280,7 +290,7 @@ export default function Timeline() {
                   <motion.h4 
                     className={cn(
                       "text-base font-semibold mb-4",
-                      mounted && (isLightMode ? "text-purple-700" : "text-purple-300")
+                      mounted && (isLightMode ? "text-indigo-700" : "text-purple-300")
                     )}
                     initial={{ opacity: 0, y: 10 }}
                     animate={showCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
@@ -292,7 +302,7 @@ export default function Timeline() {
                   <motion.span 
                     className={cn(
                       "text-sm mb-4 block uppercase tracking-wide font-medium md:hidden",
-                      mounted && (isLightMode ? "text-purple-600" : "text-purple-400")
+                      mounted && (isLightMode ? "text-indigo-600" : "text-purple-400")
                     )}
                     initial={{ opacity: 0 }}
                     animate={showCard ? { opacity: 1 } : { opacity: 0 }}
@@ -304,7 +314,7 @@ export default function Timeline() {
                   <motion.p 
                     className={cn(
                       "leading-relaxed text-sm",
-                      mounted && (isLightMode ? "text-gray-700" : "text-gray-300")
+                      mounted && (isLightMode ? "text-slate-700" : "text-gray-300")
                     )}
                     initial={{ opacity: 0, y: 10 }}
                     animate={showCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}

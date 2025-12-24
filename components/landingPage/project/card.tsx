@@ -125,7 +125,7 @@ function ProjectCard({
       <div className={`
         absolute inset-px z-10 rounded-xl backdrop-blur-sm border-2
         ${mounted && isLightMode 
-          ? 'bg-gradient-to-br from-white/95 via-purple-50/90 to-violet-50/95 border-purple-200/50' 
+          ? 'bg-gradient-to-br from-white/95 via-slate-50/90 to-blue-50/95 border-indigo-200/50' 
           : 'bg-gradient-to-br from-slate-900/95 via-purple-950/90 to-slate-900/95 border-purple-500/30'
         }
       `} suppressHydrationWarning />
@@ -210,7 +210,7 @@ function ProjectCard({
         <div className="p-4">
           <h3 className={`
             text-lg font-bold transition-colors duration-300
-            ${mounted && isLightMode ? 'text-slate-900' : 'text-white'}
+            ${mounted && isLightMode ? 'text-indigo-900' : 'text-white'}
           `} suppressHydrationWarning>
             {link ? (
               <Link 
@@ -221,7 +221,7 @@ function ProjectCard({
                   className={`
                     transition-all duration-300
                     ${mounted && isLightMode 
-                      ? 'group-hover/link:text-transparent group-hover/link:bg-clip-text group-hover/link:bg-gradient-to-r group-hover/link:from-purple-600 group-hover/link:to-violet-600' 
+                      ? 'group-hover/link:text-transparent group-hover/link:bg-clip-text group-hover/link:bg-gradient-to-r group-hover/link:from-indigo-600 group-hover/link:to-cyan-600' 
                       : 'group-hover/link:text-transparent group-hover/link:bg-clip-text group-hover/link:bg-gradient-to-r group-hover/link:from-purple-400 group-hover/link:to-violet-400'
                     }
                   `}
@@ -233,7 +233,7 @@ function ProjectCard({
                   className={`
                     inline-block transition-all duration-300
                     ${mounted && isLightMode 
-                      ? 'text-purple-600 group-hover/link:text-violet-600' 
+                      ? 'text-indigo-600 group-hover/link:text-cyan-600' 
                       : 'text-purple-400 group-hover/link:text-violet-400'
                     }
                   `}

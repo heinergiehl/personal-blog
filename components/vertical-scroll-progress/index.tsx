@@ -1,6 +1,7 @@
 import { COLOR_ONE, COLOR_TWO } from "@/config"
 import { motion, useScroll, useSpring, useTransform } from "framer-motion"
 import { useEffect, useState, FC } from "react"
+import { useTheme } from "next-themes"
 
 // --- Helpers ---
 /** turn "my-section_id" → "My Section Id" */
@@ -16,6 +17,8 @@ interface SectionMarkerProps {
   isCurrent: boolean
   onClick: () => void
   label: string
+  primaryColor: string
+  secondaryColor: string
 }
 
 // --- Redesigned Marker with Polished Label ---
@@ -23,6 +26,8 @@ const SectionMarker: FC<SectionMarkerProps> = ({
   isCurrent,
   onClick,
   label,
+  primaryColor,
+  secondaryColor,
 }) => {
   const [isHovered, setIsHovered] = useState(false)
   const showLabel = isCurrent || isHovered
@@ -39,25 +44,27 @@ const SectionMarker: FC<SectionMarkerProps> = ({
         className="z-10 h-3.5 w-3.5 rounded-full border-2 backdrop-blur-sm"
         animate={{
           scale: showLabel ? 1.4 : 1,
-          borderColor: isCurrent ? COLOR_ONE : "rgba(255,255,255,0.6)",
+          borderColor: isCurrent ? primaryColor : "rgba(100,116,139,0.4)",
           backgroundColor: isCurrent 
-            ? COLOR_ONE 
+            ? primaryColor 
             : isHovered 
-            ? "rgba(255,255,255,0.3)" 
-            : "rgba(255,255,255,0.1)",
+            ? "rgba(100,116,139,0.3)" 
+            : "rgba(100,116,139,0.1)",
         }}
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
+        suppressHydrationWarning
       >
         <motion.div
           className="h-full w-full rounded-full"
           animate={{
             boxShadow: isCurrent
-              ? `0 0 20px 4px ${COLOR_ONE}, 0 0 10px 2px ${COLOR_TWO}`
+              ? `0 0 20px 4px ${primaryColor}, 0 0 10px 2px ${secondaryColor}`
               : isHovered
-              ? `0 0 12px 3px rgba(255,255,255,0.5)`
+              ? `0 0 12px 3px rgba(100,116,139,0.5)`
               : "0 0 0 0px rgba(0,0,0,0)",
           }}
           transition={{ type: "tween", duration: 0.3, ease: "easeOut" }}
+          suppressHydrationWarning
         />
       </motion.div>
 
@@ -65,9 +72,9 @@ const SectionMarker: FC<SectionMarkerProps> = ({
       <motion.div
         className="absolute left-[75%] whitespace-nowrap text-xs font-bold text-white px-4 py-1.5 rounded-full backdrop-blur-md border pointer-events-none"
         style={{
-          background: `linear-gradient(135deg, ${COLOR_ONE}, ${COLOR_TWO})`,
+          background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
           borderColor: "rgba(255,255,255,0.2)",
-          boxShadow: `0 4px 12px ${COLOR_ONE}40`,
+          boxShadow: `0 4px 12px ${primaryColor}40`,
         }}
         initial={{ opacity: 0, x: -10, scale: 0.9 }}
         animate={{
@@ -76,6 +83,7 @@ const SectionMarker: FC<SectionMarkerProps> = ({
           scale: showLabel ? 1 : 0.9,
         }}
         transition={{ type: "spring", stiffness: 350, damping: 22 }}
+        suppressHydrationWarning
       >
         {label}
       </motion.div>
@@ -90,6 +98,15 @@ const LivingAuraScrollIndicator: FC = () => {
   const [mounted, setMounted] = useState(false)
   const [hasScrolled, setHasScrolled] = useState(false)
   const { scrollYProgress } = useScroll()
+  const { theme, systemTheme } = useTheme()
+  
+  // Resolve theme
+  const resolvedTheme = theme === 'system' ? systemTheme : theme
+  const isLightMode = mounted ? resolvedTheme === 'light' : false
+  
+  // Theme-aware colors
+  const primaryColor = isLightMode ? '#4f46e5' : COLOR_ONE // indigo-600
+  const secondaryColor = isLightMode ? '#06b6d4' : COLOR_TWO // cyan-500
 
   // smooth raw 0→1 scroll progress
   const smoothProg = useSpring(scrollYProgress, {
@@ -185,19 +202,20 @@ const LivingAuraScrollIndicator: FC = () => {
         <motion.div
           className="absolute inset-0 left-1/2 -translate-x-1/2 w-12 blur-3xl pointer-events-none"
           style={{
-            background: `linear-gradient(to bottom, ${COLOR_ONE}20, ${COLOR_TWO}20)`,
+            background: `linear-gradient(to bottom, ${primaryColor}20, ${secondaryColor}20)`,
           }}
           animate={{ opacity: [0.4, 0.6, 0.4] }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          suppressHydrationWarning
         />
 
         {/* Base Gradient Track */}
         <div
           className="absolute left-1/2 top-0 h-full w-1 -translate-x-1/2 rounded-full"
           style={{
-            background: `linear-gradient(to bottom, ${COLOR_ONE}, ${COLOR_TWO})`,
+            background: `linear-gradient(to bottom, ${primaryColor}, ${secondaryColor})`,
             opacity: 0.3,
-            boxShadow: `0 0 6px 1px ${COLOR_ONE}40`,
+            boxShadow: `0 0 6px 1px ${primaryColor}40`,
           }}
         />
 
@@ -206,8 +224,8 @@ const LivingAuraScrollIndicator: FC = () => {
           className="absolute left-1/2 top-0 w-1 -translate-x-1/2 rounded-full"
           style={{
             height: percent,
-            background: `linear-gradient(to bottom, ${COLOR_ONE}, ${COLOR_TWO})`,
-            boxShadow: `0 0 10px 2px ${COLOR_ONE}50`,
+            background: `linear-gradient(to bottom, ${primaryColor}, ${secondaryColor})`,
+            boxShadow: `0 0 10px 2px ${primaryColor}50`,
           }}
         />
 
@@ -219,20 +237,21 @@ const LivingAuraScrollIndicator: FC = () => {
             width: "6px",
             height: "80px",
           }}
+          suppressHydrationWarning
         >
           {/* Core bright spot */}
           <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full"
             style={{
               background: "rgba(255,255,255,0.95)",
-              boxShadow: `0 0 15px 3px ${COLOR_ONE}, 0 0 8px 2px ${COLOR_TWO}`,
+              boxShadow: `0 0 15px 3px ${primaryColor}, 0 0 8px 2px ${secondaryColor}`,
             }}
           />
           {/* Glow trail */}
           <div
             className="absolute inset-0 rounded-full"
             style={{
-              background: `linear-gradient(to bottom, ${COLOR_ONE}90, ${COLOR_TWO}40, transparent)`,
+              background: `linear-gradient(to bottom, ${primaryColor}90, ${secondaryColor}40, transparent)`,
               filter: "blur(10px)",
             }}
           />
@@ -250,6 +269,8 @@ const LivingAuraScrollIndicator: FC = () => {
                 isCurrent={currentSection === id}
                 onClick={() => goTo(id)}
                 label={formatLabel(id)}
+                primaryColor={primaryColor}
+                secondaryColor={secondaryColor}
               />
             </div>
           ))}
