@@ -1,175 +1,92 @@
 name: CI/CD – MyPortfolio
+
 on:
   push:
     branches: [main]
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      # Change this if your app listens on a different port
       APP_PORT: 3002
       DEPLOY_DIR: /var/www/latest-portfolio
+      GH_REPO: heinergiehl/personal-blog
+      GH_BRANCH: main
+
     steps:
-      # 1) Checkout your repo
-      - name: Checkout
-        uses: actions/checkout@v3
-      # 2) Install Bun
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: "latest"
-      # 3) (Optional) Create .env.production on the runner
-      #    Only include the vars your app actually needs.
-      - name: Create .env.production
-        run: |
-          cat > .env.production <<EOF
-          APP_PORT=${{ env.APP_PORT }}
-          PRODUCTION=true
-          # Add any other secrets here:
-          # NEXT_PUBLIC_FOO=${{ secrets.NEXT_PUBLIC_FOO }}
-          EOF
-      # 4) Install & build
-      - name: Install & Build
-        run: |
-          bun install
-          bun run build
-      # 5) Prepare SSH key
-      - name: Copy SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-      # 6) SSH into VPS and deploy
-      - name: Deploy to VPS
+      - name: Deploy to VPS (pull, build, restart)
         uses: appleboy/ssh-action@v0.1.7
+        env:
+          GH_TOKEN: ${{ secrets.GH_DEPLOY_TOKEN }}
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          command_timeout: 30m
+          envs: APP_PORT,DEPLOY_DIR,GH_REPO,GH_BRANCH,GH_TOKEN
           script: |
-            set -e
-            
-            echo '--- Setup SSH keys for GitHub authentication ---'
-            mkdir -p ~/.ssh
-            
-            # Write the private key to VPS
-            cat > ~/.ssh/id_ed25519_canva <<'KEY'
-            ${{ secrets.SSH_PRIVATE_KEY }}
-            KEY
-            chmod 600 ~/.ssh/id_ed25519_canva
-            
-            # Generate public key from private key
-            ssh-keygen -y -f ~/.ssh/id_ed25519_canva > ~/.ssh/id_ed25519_canva.pub 2>/dev/null || true
-            chmod 644 ~/.ssh/id_ed25519_canva.pub
-            
-            echo '--- Public key (add this to GitHub Deploy Keys if not already added) ---'
-            cat ~/.ssh/id_ed25519_canva.pub
-            echo '--- Add at: https://github.com/heinergiehl/personal-blog/settings/keys ---'
-            
-            # Ensure GitHub host key is known
-            if ! grep -q github.com ~/.ssh/known_hosts 2>/dev/null; then
-              ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
-              chmod 644 ~/.ssh/known_hosts
-            fi
+            set -euo pipefail
 
-            # Configure SSH to use the custom key
-            cat > ~/.ssh/config <<EOF
-            Host github.com
-                HostName github.com
-                User git
-                IdentityFile ~/.ssh/id_ed25519_canva
-                IdentitiesOnly yes
-            EOF
-            chmod 600 ~/.ssh/config
+            echo "--- Server info ---"
+            whoami
+            pwd
+            date
 
-            DEPLOY_DIR="${{ env.DEPLOY_DIR }}"
-            REPO_NAME=$(basename "$DEPLOY_DIR")
+            echo "--- Ensure deploy dir exists ---"
+            mkdir -p "$(dirname "$DEPLOY_DIR")"
 
-            echo '--- Setup project directory ---'
-            if [ ! -d "$DEPLOY_DIR" ]; then
-              echo 'Directory does not exist. Cloning repository...'
-              cd /var/www
-              git clone git@github.com:heinergiehl/personal-blog.git "$REPO_NAME"
-              cd "$REPO_NAME"
-            elif [ ! -d "$DEPLOY_DIR/.git" ]; then
-              echo 'Directory exists but is not a git repo. Re-initializing...'
-              cd "$DEPLOY_DIR"
-              # Backup any existing files
-              mkdir -p ~/backup-$(date +%Y%m%d-%H%M%S)
-              cp -r "$DEPLOY_DIR"/* ~/backup-$(date +%Y%m%d-%H%M%S)/ 2>/dev/null || true
-              # Initialize git repo
-              git init
-              git remote add origin git@github.com:heinergiehl/personal-blog.git
-              git fetch origin
-              git checkout -f main
+            if [ ! -d "$DEPLOY_DIR/.git" ]; then
+              echo "--- Fresh clone ---"
+              rm -rf "$DEPLOY_DIR"
+              git clone --branch "$GH_BRANCH" "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPO}.git" "$DEPLOY_DIR"
             else
-              echo 'Valid git repository found.'
+              echo "--- Update existing repo ---"
               cd "$DEPLOY_DIR"
+              git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPO}.git"
+              git fetch origin "$GH_BRANCH"
+              git reset --hard "origin/$GH_BRANCH"
             fi
 
-            echo '--- Create environment file ---'
+            cd "$DEPLOY_DIR"
+
+            echo "--- Write .env.production ---"
             cat > .env.production <<EOF
-            APP_PORT=${{ env.APP_PORT }}
+            APP_PORT=${APP_PORT}
             PRODUCTION=true
             EOF
 
-            echo 'Remote URL:'
-            git remote -v
+            echo "--- Show current commit ---"
+            git log --oneline -1
 
-            echo '--- Debug: Show public key content ---'
-            echo 'Public key that should be in GitHub Deploy Keys:'
-            cat ~/.ssh/id_ed25519_canva.pub
-
-            echo ''
-            echo '--- Test SSH auth to GitHub ---'
-            echo 'Testing SSH connection with verbose output:'
-            ssh -T -v git@github.com 2>&1 | head -20
-
-            if ssh -T -o BatchMode=yes git@github.com 2>&1 | grep -qi 'permission denied'; then
-              echo 'ERROR: GitHub SSH auth failed. Ensure deploy key public part is added to repo Deploy Keys.'
-              echo 'The public key above must be added to: https://github.com/heinergiehl/personal-blog/settings/keys'
+            echo "--- Ensure Bun is available ---"
+            if ! command -v bun >/dev/null 2>&1; then
+              echo "Bun not found. Install bun on the VPS first."
               exit 1
             fi
 
-            echo '--- Pull & build ---'
-            git fetch origin
-            git checkout main
-            git pull --ff-only origin main
+            echo "--- Install deps ---"
+            bun install --frozen-lockfile || bun install
 
-            echo '--- Verify latest code ---'
-            echo 'Latest commit:'
-            git log --oneline -1
-            echo 'Current branch:'
-            git branch --show-current
-
-            bun install
-
-            echo '--- Clear Next.js cache ---'
+            echo "--- Clear Next cache ---"
             rm -rf .next/cache || true
 
+            echo "--- Build ---"
             bun run build
 
-            echo '--- Reload PM2 ---'
-            pm2 reload ecosystem.config.js --only blog --env production
+            echo "--- Restart PM2 process ---"
+            if ! command -v pm2 >/dev/null 2>&1; then
+              echo "PM2 not found. Install PM2 on the VPS first."
+              exit 1
+            fi
 
-            echo '--- Verify PM2 status ---'
+            # safest for ecosystem-based apps:
+            pm2 startOrReload ecosystem.config.js --only blog --env production
+
+            echo "--- PM2 status ---"
             pm2 status
-            echo '--- Recent logs ---'
-            pm2 logs blog --lines 5 --nostream
 
-            echo '--- Final verification ---'
-            echo 'Current commit on server:'
-            git log --oneline -1
-            echo 'Server time:'
-            date
-            echo 'Build timestamp:'
-            ls -la .next/BUILD_ID 2>/dev/null || echo 'No BUILD_ID found'
+            echo "--- Health check (localhost) ---"
+            curl -s -I "http://localhost:${APP_PORT}" | head -20 || true
 
-            echo '--- Test live server response ---'
-            echo 'Testing server response on port 3002:'
-            curl -s -I http://localhost:3002 | head -10 || echo 'Curl failed'
-
-            echo '--- Check if HTML contains latest timestamp ---'
-            curl -s http://localhost:3002 | grep -i "BUILD TIME" || echo 'No timestamp found in HTML'
-
-            echo '--- Deployment complete! ---'
+            echo "--- Done ---"
