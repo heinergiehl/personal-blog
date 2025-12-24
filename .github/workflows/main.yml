@@ -48,14 +48,31 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-            echo '--- Preflight: ensure GitHub host key ---'
+            
+            echo '--- Setup SSH keys for GitHub authentication ---'
             mkdir -p ~/.ssh
+            
+            # Write the private key to VPS
+            cat > ~/.ssh/id_ed25519_canva <<'KEY'
+            ${{ secrets.SSH_PRIVATE_KEY }}
+            KEY
+            chmod 600 ~/.ssh/id_ed25519_canva
+            
+            # Generate public key from private key
+            ssh-keygen -y -f ~/.ssh/id_ed25519_canva > ~/.ssh/id_ed25519_canva.pub 2>/dev/null || true
+            chmod 644 ~/.ssh/id_ed25519_canva.pub
+            
+            echo '--- Public key (add this to GitHub Deploy Keys if not already added) ---'
+            cat ~/.ssh/id_ed25519_canva.pub
+            echo '--- Add at: https://github.com/heinergiehl/personal-blog/settings/keys ---'
+            
+            # Ensure GitHub host key is known
             if ! grep -q github.com ~/.ssh/known_hosts 2>/dev/null; then
               ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
               chmod 644 ~/.ssh/known_hosts
             fi
 
-            echo '--- Configure SSH for GitHub (use custom key) ---'
+            # Configure SSH to use the custom key
             cat > ~/.ssh/config <<EOF
             Host github.com
                 HostName github.com
