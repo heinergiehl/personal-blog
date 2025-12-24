@@ -1,5 +1,5 @@
 "use client"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion"
 import { FaGithub, FaYoutube } from "react-icons/fa"
 import Image from "next/image"
@@ -46,15 +46,20 @@ interface SocialLink {
 export const Socials = () => {
   const { theme, systemTheme } = useTheme()
   const [isExpanded, setIsExpanded] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const resolvedTheme = theme === 'system' ? systemTheme : theme
-  const isLightMode = resolvedTheme === 'light'
+  const isLightMode = mounted ? resolvedTheme === 'light' : false
 
   // Mouse position for gradient effect
   const mouseX = useMotionValue(0)
   const mouseY = useMotionValue(0)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleMouseEnter = () => {
     if (closeTimerRef.current) {
@@ -132,18 +137,19 @@ export const Socials = () => {
                    rounded-full overflow-hidden cursor-pointer
                    backdrop-blur-xl border-2"
         style={{
-          background: isLightMode
+          background: mounted && isLightMode
             ? "linear-gradient(135deg, rgba(255,255,255,0.95), rgba(249,247,253,0.95))"
             : "linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,27,75,0.95))",
-          borderColor: isLightMode ? "rgba(168,85,247,0.3)" : "rgba(168,85,247,0.4)",
+          borderColor: mounted && isLightMode ? "rgba(168,85,247,0.3)" : "rgba(168,85,247,0.4)",
           boxShadow: isExpanded
-            ? isLightMode
+            ? (mounted && isLightMode
               ? `0 0 40px rgba(168,85,247,0.4), 0 0 80px rgba(139,92,246,0.2)`
-              : `0 0 40px rgba(168,85,247,0.5), 0 0 80px rgba(139,92,246,0.3)`
-            : isLightMode
+              : `0 0 40px rgba(168,85,247,0.5), 0 0 80px rgba(139,92,246,0.3)`)
+            : (mounted && isLightMode
               ? `0 4px 20px rgba(168,85,247,0.25)`
-              : `0 4px 20px rgba(168,85,247,0.35)`,
+              : `0 4px 20px rgba(168,85,247,0.35)`),
         }}
+        suppressHydrationWarning
       >
         {/* Animated gradient border effect */}
         <motion.div
@@ -235,9 +241,10 @@ export const Socials = () => {
                     <motion.div
                       className="relative z-10"
                       style={{
-                        color: isLightMode ? "#1e293b" : "#f8fafc",
+                        color: mounted && isLightMode ? "#1e293b" : "#f8fafc",
                         filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))",
                       }}
+                      suppressHydrationWarning
                       whileHover={{
                         color: link.color,
                         filter: `drop-shadow(0 4px 8px ${link.color}60)`,

@@ -13,19 +13,21 @@ interface ParticleAvatarProps {
   particleSize?: number
   formationSpeed?: number
   mouseInfluence?: number
+  onLoad?: () => void
 }
 
 const ParticleAvatar = ({
   imageUrl,
-  particleCount = 25000, // Increased for better visual quality
-  particleSize = 0.15, // Larger particles for better visibility
+  particleCount = 25000,
+  particleSize = 0.15,
   formationSpeed = 0.02,
   mouseInfluence = 200,
+  onLoad,
 }: ParticleAvatarProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const { theme, systemTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
-  const [showFallback, setShowFallback] = useState(true)
+  const [isLoading, setIsLoading] = useState(true)
   const mouseRef = useRef({ x: 999, y: 999, targetX: 999, targetY: 999 })
   const rafRef = useRef<number>(0)
 
@@ -34,7 +36,7 @@ const ParticleAvatar = ({
   }, [])
 
   useEffect(() => {
-    if (!mounted || !containerRef.current) return
+    if (!containerRef.current) return
 
     const container = containerRef.current
     const resolvedTheme = theme === 'system' ? systemTheme : theme
@@ -55,17 +57,16 @@ const ParticleAvatar = ({
       antialias: true,
       powerPreference: 'high-performance'
     })
-    // Force square canvas - use smaller dimension to ensure it fits
-    const size = Math.min(container.clientWidth, container.clientHeight)
+    // Force square canvas - use container dimensions or default to 600px
+    const size = Math.max(container.clientWidth || 600, container.clientHeight || 600)
     renderer.setSize(size, size)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)) // Reduced pixel ratio
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
     renderer.setClearColor(0x000000, 0)
     
-    // Ensure canvas maintains square aspect ratio and doesn't stretch
+    // Ensure canvas maintains square aspect ratio
     renderer.domElement.style.width = '100%'
     renderer.domElement.style.height = '100%'
     renderer.domElement.style.objectFit = 'contain'
-    renderer.domElement.style.aspectRatio = '1 / 1'
     
     container.appendChild(renderer.domElement)
 
@@ -369,15 +370,17 @@ const ParticleAvatar = ({
             // Theme-aware color processing
             vec3 finalColor = vColor;
             
-            // LIGHT MODE: Darker and highly saturated
+            // LIGHT MODE: Vibrant and clear
             if (isDark < 0.5) {
-              // Darken for strong contrast
-              finalColor *= 0.68;
-              // Very high saturation
+              // Less darkening for better visibility
+              finalColor *= 0.85;
+              // High saturation for vibrant appearance
               vec3 gray = vec3(dot(finalColor, vec3(0.299, 0.587, 0.114)));
-              finalColor = mix(gray, finalColor, 1.4);
-              // Much higher opacity for solid appearance
-              alpha *= 2.0;
+              finalColor = mix(gray, finalColor, 1.6);
+              // Boost contrast for clearer image
+              finalColor = pow(finalColor, vec3(0.9));
+              // Higher opacity for solid appearance
+              alpha *= 1.8;
             } else {
               // DARK MODE: Keep natural colors
               vec3 themeColor = mix(colorOne, colorTwo, 0.5);
@@ -404,7 +407,8 @@ const ParticleAvatar = ({
       scene.add(particles)
       
       console.log('Particles added to scene, count:', positions.length / 3)
-      setShowFallback(false)
+      setIsLoading(false)
+      onLoad?.()
 
       return { particles, material, geometry }
     }
@@ -808,9 +812,9 @@ const ParticleAvatar = ({
           textureVelocity: { value: null },
           time: { value: 0 },
           pixelRatio: { value: renderer.getPixelRatio() },
-          // Theme-adaptive colors - more vibrant and visible
-          colorOne: { value: isDark ? new THREE.Color('#9333ea') : new THREE.Color('#7c3aed') }, // Vibrant purple
-          colorTwo: { value: isDark ? new THREE.Color('#c084fc') : new THREE.Color('#a855f7') }, // Bright violet
+          // Dark purple theme colors
+          colorOne: { value: isDark ? new THREE.Color('#4f16eb') : new THREE.Color('#4f16eb') }, // Dark purple
+          colorTwo: { value: isDark ? new THREE.Color('#4b0358') : new THREE.Color('#4b0358') }, // Deep purple
           isDark: { value: isDark ? 1.0 : 0.0 }
         },
         vertexShader: `
@@ -852,10 +856,10 @@ const ParticleAvatar = ({
             
             gl_PointSize = size * pixelRatio * pulse * sizeMult * (750.0 / -mvPosition.z);
             
-            // Deep purple color system - rich purple, not pink
-            vec3 innerColor = vec3(0.18, 0.05, 0.28);   // Deep inner purple
-            vec3 midColor = vec3(0.28, 0.10, 0.42);     // Rich medium purple
-            vec3 outerColor = vec3(0.35, 0.14, 0.50);   // Strong outer purple
+            // Dark purple color system - deep rich purple tones
+            vec3 innerColor = vec3(0.31, 0.09, 0.92) * 0.25;   // Deep inner purple (#4f16eb darkened)
+            vec3 midColor = vec3(0.29, 0.01, 0.35) * 0.7;       // Rich medium purple (#4b0358)
+            vec3 outerColor = vec3(0.31, 0.09, 0.92) * 0.4;    // Dark outer purple
             
             // Smooth gradient across rings - dark purple tones
             vec3 color1 = mix(innerColor, midColor, smoothstep(0.0, 0.5, ring));
@@ -918,15 +922,19 @@ const ParticleAvatar = ({
             // Energy increases brightness only slightly
             finalColor *= 1.0 + vEnergy * mix(0.15, 0.08, isDark);
             
-            // THEME-SPECIFIC COLOR ADJUSTMENTS - Rich purple, no white
+            // THEME-SPECIFIC COLOR ADJUSTMENTS - Dark purple theme
             if (isDark < 0.5) {
-              // LIGHT MODE: Rich visible purple
-              finalColor *= 0.68;  // Good visibility
-              // Strong purple shift (reduce red/pink, boost blue)
-              finalColor.r *= 0.75;  // Less red for more purple
-              finalColor.b *= 1.15;  // More blue for vibrant purple
+              // LIGHT MODE: Dark purple theme - no white/bright colors
+              // Use app's dark purple palette
+              vec3 darkPurple = vec3(0.31, 0.09, 0.92) * 0.4; // #4f16eb darkened
+              vec3 deepPurple = vec3(0.29, 0.01, 0.35) * 0.85; // #4b0358
+              
+              // Mix base purple with theme colors
+              finalColor = mix(finalColor * 0.6, mix(deepPurple, darkPurple, vRing), 0.5);
+              
+              // Moderate saturation for rich purple without brightness
               vec3 gray = vec3(dot(finalColor, vec3(0.299, 0.587, 0.114)));
-              finalColor = mix(gray, finalColor, 2.2);  // High saturation for rich purple
+              finalColor = mix(gray, finalColor, 1.8);
             } else {
               // DARK MODE: Vibrant visible purple
               finalColor *= 0.50;  // Good visibility without being white
@@ -1102,14 +1110,34 @@ const ParticleAvatar = ({
     
     img.src = imageUrl
 
-    // Instant mouse position update for real-time responsiveness
-    const handleMouseMove = (event: MouseEvent) => {
+    // Mouse and touch position update for real-time responsiveness
+    const updatePosition = (clientX: number, clientY: number) => {
       const rect = container.getBoundingClientRect()
-      mouseRef.current.targetX = ((event.clientX - rect.left) / rect.width) * 2 - 1
-      mouseRef.current.targetY = -((event.clientY - rect.top) / rect.height) * 2 + 1
+      mouseRef.current.targetX = ((clientX - rect.left) / rect.width) * 2 - 1
+      mouseRef.current.targetY = -((clientY - rect.top) / rect.height) * 2 + 1
+    }
+
+    const handleMouseMove = (event: MouseEvent) => {
+      updatePosition(event.clientX, event.clientY)
+    }
+
+    const handleTouchMove = (event: TouchEvent) => {
+      if (event.touches.length > 0) {
+        const touch = event.touches[0]
+        updatePosition(touch.clientX, touch.clientY)
+      }
+    }
+
+    const handleTouchStart = (event: TouchEvent) => {
+      if (event.touches.length > 0) {
+        const touch = event.touches[0]
+        updatePosition(touch.clientX, touch.clientY)
+      }
     }
 
     container.addEventListener('mousemove', handleMouseMove, { passive: true })
+    container.addEventListener('touchmove', handleTouchMove, { passive: true })
+    container.addEventListener('touchstart', handleTouchStart, { passive: true })
 
     // Animation loop - OPTIMIZED
     const clock = new THREE.Clock()
@@ -1117,7 +1145,6 @@ const ParticleAvatar = ({
     let lastTime = 0
 
     const animate = () => {
-      stats.begin()
       rafRef.current = requestAnimationFrame(animate)
 
       const elapsed = clock.getElapsedTime()
@@ -1202,7 +1229,6 @@ const ParticleAvatar = ({
       }
 
       renderer.render(scene, camera)
-      stats.end()
     }
 
     animate()
@@ -1211,7 +1237,7 @@ const ParticleAvatar = ({
     const handleResize = () => {
       if (!container) return
       // Keep square aspect ratio on resize
-      const size = Math.min(container.clientWidth, container.clientHeight)
+      const size = Math.max(container.clientWidth || 600, container.clientHeight || 600)
       camera.aspect = 1
       camera.updateProjectionMatrix()
       renderer.setSize(size, size)
@@ -1223,6 +1249,8 @@ const ParticleAvatar = ({
     return () => {
       cancelAnimationFrame(rafRef.current)
       container.removeEventListener('mousemove', handleMouseMove)
+      container.removeEventListener('touchmove', handleTouchMove)
+      container.removeEventListener('touchstart', handleTouchStart)
       window.removeEventListener('resize', handleResize)
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement)
@@ -1252,26 +1280,35 @@ const ParticleAvatar = ({
     }
   }, [mounted, imageUrl, particleCount, particleSize, formationSpeed, mouseInfluence, theme, systemTheme])
 
-  if (!mounted) {
-    return (
-      <div className="w-[750px] h-[750px] rounded-full bg-gradient-to-br from-purple-500/20 to-violet-500/20 animate-pulse" />
-    )
-  }
-
   return (
-    <div className="relative w-[750px] h-[750px] overflow-visible">
-      {showFallback && (
-        <NextImage
-          width={750}
-          height={750}
-          src={imageUrl}
-          alt="Avatar"
-          className="absolute inset-0 w-full h-full rounded-full object-cover opacity-30"
-        />
+    <div className="relative w-full h-full min-h-[400px] lg:min-h-[600px]">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center z-10">
+          <div className="relative">
+            {/* Outer ring */}
+            <div className="w-32 h-32 rounded-full border-4 border-purple-500/20 animate-spin-slow" />
+            {/* Middle ring */}
+            <div className="absolute inset-0 w-32 h-32 rounded-full border-4 border-transparent border-t-purple-500 border-r-violet-500 animate-spin" 
+                 style={{ animationDuration: '1.5s' }} />
+            {/* Inner pulsing circle */}
+            <div className="absolute inset-0 m-auto w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-violet-500 animate-pulse" />
+            {/* Center dot */}
+            <div className="absolute inset-0 m-auto w-4 h-4 rounded-full bg-white dark:bg-gray-900" />
+          </div>
+          {/* Loading text */}
+          <div className="absolute mt-48 text-purple-500 dark:text-purple-400 font-semibold animate-pulse">
+            Loading particles...
+          </div>
+        </div>
       )}
       <div
         ref={containerRef}
-        className="absolute inset-0 w-full h-full cursor-pointer"
+        className="w-full h-full cursor-pointer"
+        style={{ 
+          opacity: isLoading ? 0 : 1,
+          transition: 'opacity 1s ease-in-out',
+          minHeight: '400px'
+        }}
       />
     </div>
   )

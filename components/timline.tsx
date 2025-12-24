@@ -74,7 +74,7 @@ export default function Timeline() {
 
   // Resolve the actual theme (handle 'system' theme)
   const resolvedTheme = theme === 'system' ? systemTheme : theme;
-  const isLightMode = resolvedTheme === 'light';
+  const isLightMode = mounted ? resolvedTheme === 'light' : false;
 
   useEffect(() => {
     function handleScroll() {
@@ -130,11 +130,34 @@ export default function Timeline() {
     <section
       id="Timeline"
       ref={containerRef}
-      className="h-[calc(100vh+1100px)] relative flex flex-col md:px-20 py-16 mt-24
-                   bg-gradient-to-r from-white via-gray-100 to-gray-50
-                   dark:from-gray-800 dark:via-gray-900 dark:to-black"
+      className="h-[calc(100vh+1100px)] relative flex flex-col md:px-20 py-16 mt-24"
     >
-      <h2 className="text-3xl font-bold text-center text-slate-800 dark:text-slate-100 mb-12">
+      {/* Enhanced background with animated gradients */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/60 dark:from-gray-950 dark:via-indigo-950/30 dark:to-gray-900" />
+        <motion.div
+          className="absolute -top-1/4 left-1/4 w-[500px] h-[500px] rounded-full blur-3xl opacity-20"
+          style={{ background: COLOR_ONE }}
+          animate={{
+            x: [-50, 50, -50],
+            y: [0, 100, 0],
+            scale: [1, 1.3, 1],
+          }}
+          transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-1/2 right-1/4 w-[500px] h-[500px] rounded-full blur-3xl opacity-20"
+          style={{ background: COLOR_TWO }}
+          animate={{
+            x: [50, -50, 50],
+            y: [0, -100, 0],
+            scale: [1, 1.2, 1],
+          }}
+          transition={{ duration: 35, repeat: Infinity, ease: "easeInOut" }}
+        />
+      </div>
+
+      <h2 className="relative z-10 text-3xl font-bold text-center text-slate-800 dark:text-slate-100 mb-12">
         Career
       </h2>
 
@@ -200,10 +223,11 @@ export default function Timeline() {
                   ease: "easeOut",
                   delay: idx * 0.1,
                 }}
+                suppressHydrationWarning
               >
                 <span className={cn(
                   "text-xl font-semibold uppercase tracking-wide",
-                  isLightMode ? "text-purple-600" : "text-purple-400"
+                  mounted && (isLightMode ? "text-purple-600" : "text-purple-400")
                 )}>
                   {item.timeframe}
                 </span>
@@ -217,11 +241,12 @@ export default function Timeline() {
                 style={{
                   scale: showDot ? 1 : showCard ? 0.9 : 0.9,
                 }}
+                suppressHydrationWarning
               >
                 <motion.div
                   className={cn(
                     `backdrop-blur-[2px] p-8 rounded-2xl border transition-all duration-300 overflow-hidden`,
-                    isLightMode
+                    mounted && isLightMode
                       ? "bg-gradient-to-br from-purple-50/70 via-white/60 to-violet-50/70 border-purple-200/30 shadow-lg shadow-purple-200/20"
                       : "bg-gradient-to-br from-slate-900/70 via-purple-950/60 to-slate-900/70 border-purple-500/20 shadow-lg shadow-purple-500/10",
                     !isEven ? "pl-12" : "pr-12"
@@ -231,55 +256,60 @@ export default function Timeline() {
                   }}
                   whileHover={{ 
                     scale: 1.02,
-                    boxShadow: isLightMode 
+                    boxShadow: mounted && isLightMode 
                       ? "0 20px 40px rgba(139, 92, 246, 0.2)" 
                       : "0 20px 40px rgba(168, 85, 247, 0.3)",
                     y: -5,
                   }}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                  suppressHydrationWarning
                 >
                   <motion.h3 
                     className={cn(
                       "text-2xl font-bold mb-2",
-                      isLightMode ? "text-purple-900" : "text-purple-100"
+                      mounted && (isLightMode ? "text-purple-900" : "text-purple-100")
                     )}
                     initial={{ opacity: 0, y: 10 }}
                     animate={showCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
                     transition={{ delay: 0.1, duration: 0.4 }}
+                    suppressHydrationWarning
                   >
                     {item.title}
                   </motion.h3>
                   <motion.h4 
                     className={cn(
                       "text-base font-semibold mb-4",
-                      isLightMode ? "text-purple-700" : "text-purple-300"
+                      mounted && (isLightMode ? "text-purple-700" : "text-purple-300")
                     )}
                     initial={{ opacity: 0, y: 10 }}
                     animate={showCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
                     transition={{ delay: 0.2, duration: 0.4 }}
+                    suppressHydrationWarning
                   >
                     {item.company}
                   </motion.h4>
                   <motion.span 
                     className={cn(
                       "text-sm mb-4 block uppercase tracking-wide font-medium md:hidden",
-                      isLightMode ? "text-purple-600" : "text-purple-400"
+                      mounted && (isLightMode ? "text-purple-600" : "text-purple-400")
                     )}
                     initial={{ opacity: 0 }}
                     animate={showCard ? { opacity: 1 } : { opacity: 0 }}
                     transition={{ delay: 0.3, duration: 0.4 }}
+                    suppressHydrationWarning
                   >
                     {item.timeframe}
                   </motion.span>
                   <motion.p 
                     className={cn(
                       "leading-relaxed text-sm",
-                      isLightMode ? "text-gray-700" : "text-gray-300"
+                      mounted && (isLightMode ? "text-gray-700" : "text-gray-300")
                     )}
                     initial={{ opacity: 0, y: 10 }}
                     animate={showCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
                     transition={{ delay: 0.3, duration: 0.4 }}
+                    suppressHydrationWarning
                   >
                     {item.description}
                   </motion.p>

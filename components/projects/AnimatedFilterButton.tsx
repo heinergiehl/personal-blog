@@ -29,13 +29,16 @@ export function AnimatedFilterButton({
   const [ripples, setRipples] = useState<Ripple[]>([])
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const { resolvedTheme } = useTheme()
-  const isLightMode = resolvedTheme === "light"
   const [mounted, setMounted] = useState(false)
+  
   // Ensure the component is mounted before checking the theme
   useEffect(() => {
     setMounted(true)
   }, [])
+  
   if (!mounted) return null // Prevent rendering until mounted
+  
+  const isLightMode = resolvedTheme === "light"
 
   const handleCreateRipple = (event: MouseEvent<HTMLButtonElement>) => {
     const button = event.currentTarget

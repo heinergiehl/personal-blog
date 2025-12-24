@@ -1,54 +1,151 @@
+"use client"
+
 import Image from "next/image"
 import { motion } from "framer-motion"
 import dynamic from "next/dynamic"
+import { useEffect, useState } from "react"
 
-// Dynamic import to avoid SSR issues with Three.js
+// Beautiful loading spinner component
+const LoadingSpinner = () => (
+  <div className="w-full h-full flex items-center justify-center min-h-[400px] lg:min-h-[600px]">
+    <div className="relative">
+      {/* Outer ring */}
+      <motion.div
+        className="w-32 h-32 rounded-full border-4 border-purple-500/20"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 3, repeat: Infinity, ease: "linear", delay: 0 }}
+      />
+      {/* Middle ring */}
+      <motion.div
+        className="absolute inset-0 w-32 h-32 rounded-full border-4 border-transparent border-t-purple-500 border-r-violet-500"
+        animate={{ rotate: -360 }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: "linear", delay: 0 }}
+      />
+      {/* Inner pulsing circle */}
+      <motion.div
+        className="absolute inset-0 m-auto w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-violet-500"
+        animate={{ 
+          scale: [1, 1.2, 1],
+          opacity: [0.5, 0.8, 0.5]
+        }}
+        transition={{ duration: 2, repeat: Infinity, delay: 0 }}
+      />
+      {/* Center dot */}
+      <div className="absolute inset-0 m-auto w-4 h-4 rounded-full bg-white dark:bg-gray-900" />
+    </div>
+    {/* Loading text */}
+    <motion.div
+      className="absolute mt-48 text-purple-500 dark:text-purple-400 font-semibold"
+      animate={{ opacity: [0.5, 1, 0.5] }}
+      transition={{ duration: 1.5, repeat: Infinity, delay: 0 }}
+    >
+      Loading experience...
+    </motion.div>
+  </div>
+)
+
+// Dynamic import to avoid SSR issues with Three.js - with immediate loading state
 const ParticleAvatar = dynamic(
   () => import("./ParticleAvatar"),
-  { ssr: false, loading: () => (
-    <div className="w-[750px] h-[750px] rounded-full bg-gradient-to-br from-purple-500/20 to-violet-500/20 animate-pulse" />
-  )}
+  { 
+    ssr: false, 
+    loading: () => <LoadingSpinner />
+  }
 )
 
 const Avatar = () => {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [isLoaded, setIsLoaded] = useState(false)
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 20
+      const y = (e.clientY / window.innerHeight - 0.5) * 20
+      setMousePosition({ x, y })
+    }
+
+    window.addEventListener("mousemove", handleMouseMove)
+    return () => window.removeEventListener("mousemove", handleMouseMove)
+  }, [])
+
   return (
-    <section
-      id="Header"
-      className="min-h-screen relative flex flex-col items-center justify-center py-12 px-4 overflow-visible"
-    >
-      {/* Main Content Container */}
-      <div className="max-w-7xl w-full flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-20">
-        
-        {/* Avatar Section */}
+    <>
+      {!isLoaded && (
+        <section className="min-h-screen relative flex items-center justify-center py-12 px-4">
+          <LoadingSpinner />
+        </section>
+      )}
+      <section
+        id="Header"
+        className="min-h-screen relative flex flex-col items-center justify-center py-12 px-4 overflow-visible"
+        style={{ display: isLoaded ? 'flex' : 'none' }}
+      >
+      {/* Animated Background Gradients */}
+      <motion.div
+        className="absolute inset-0 -z-10 overflow-hidden"
+        style={{ x: mousePosition.x, y: mousePosition.y }}
+        transition={{ type: "spring", stiffness: 50, damping: 20 }}
+      >
         <motion.div
-          className="relative z-10 flex-shrink-0"
-          initial={{ scale: 0.8, opacity: 0, x: -50 }}
-          animate={{ scale: 1, opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="absolute top-1/4 -left-1/4 w-96 h-96 bg-purple-500/20 dark:bg-purple-500/30 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            x: [0, 50, 0],
+            y: [0, 30, 0],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute bottom-1/4 -right-1/4 w-96 h-96 bg-indigo-500/20 dark:bg-indigo-500/30 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.3, 1],
+            x: [0, -30, 0],
+            y: [0, 50, 0],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-violet-500/10 dark:bg-violet-500/20 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.1, 1],
+            rotate: [0, 180, 360],
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        />
+      </motion.div>
+
+      {/* Main Content Container */}
+      <div className="max-w-7xl w-full flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16">
+        
+        {/* Avata Sectin */}
+        <div
+          className="relative z-10 flex-shrink-0 w-full lg:w-auto flex items-center justify-center"
+
         >
-          <ParticleAvatar
-            imageUrl="/heiner-profile.jpg"
-            particleCount={75000}
-            particleSize={4.0}
-            formationSpeed={0.012}
-            mouseInfluence={100}
-          />
-          <div className="absolute bottom-8 right-8 w-7 h-7 bg-green-500 rounded-full border-4 border-white dark:border-gray-900 shadow-lg z-20">
-            <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-75" />
+          <div className="relative max-w-[500px] lg:max-w-[600px] w-full aspect-square">
+            <ParticleAvatar
+              imageUrl="/heiner-profile.jpg"
+              particleCount={75000}
+              particleSize={4.0}
+              formationSpeed={0.012}
+              mouseInfluence={100}
+              onLoad={() => setIsLoaded(true)}
+            />
+
           </div>
-        </motion.div>
+        </div>
 
         {/* Hero Text Section */}
         <motion.div
-          initial={{ opacity: 0, x: 50 }}
+          initial={{ opacity: 0.8, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-          className="flex flex-col space-y-6 max-w-2xl text-center lg:text-left"
+          transition={{ duration: 0.8, ease: [0.6, 0.05, 0.01, 0.9], delay: 0.1 }}
+          className="flex flex-col space-y-4 lg:space-y-6 max-w-2xl text-center lg:text-left"
         >
           {/* Greeting */}
-          <div className="flex items-center space-x-4 justify-center lg:justify-start">
+          <div className="flex items-center space-x-3 lg:space-x-4 justify-center lg:justify-start">
             <motion.div
-              className="text-5xl"
+              className="text-4xl lg:text-5xl"
               animate={{
                 rotate: [0, 25, -25, 20, -20, 15, -15, 10, -10, 0],
               }}
@@ -58,110 +155,146 @@ const Avatar = () => {
                 ease: "easeInOut",
               }}
             >
-              👋
+        
             </motion.div>
-            <motion.h1
-              className="text-5xl lg:text-6xl font-bold bg-gradient-to-r from-gray-900 via-purple-900 to-gray-900 dark:from-white dark:via-purple-300 dark:to-white bg-clip-text text-transparent"
-              initial={{ y: -20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-            >
+            <h1 className="text-4xl lg:text-6xl font-bold bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 dark:from-purple-400 dark:via-violet-400 dark:to-indigo-400 bg-clip-text text-transparent">
               Hello!
-            </motion.h1>
+            </h1>
           </div>
 
-          {/* Main Heading */}
-          <motion.h2
-            className="text-3xl lg:text-5xl font-bold text-gray-800 dark:text-gray-100 leading-tight"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-          >
-            I'm <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400">Heiner</span>
-          </motion.h2>
+          {/* Main Heading with typing effect */}
+          <div>
+            <h2 className="text-3xl lg:text-5xl font-bold text-gray-800 dark:text-gray-100 leading-tight">
+              I'm <motion.span 
+                className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 dark:from-purple-400 dark:via-violet-400 dark:to-indigo-400"
+                initial={{ backgroundPosition: "0% 50%" }}
+                animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                style={{ backgroundSize: "200% auto" }}
+              >
+                Heiner
+              </motion.span>
+            </h2>
+          </div>
 
-          {/* Subheading */}
-          <motion.p
-            className="text-2xl lg:text-3xl font-semibold text-gray-700 dark:text-gray-300"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-          >
-            A passionate{" "}
-            <span className="relative inline-block">
-              <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 dark:from-indigo-400 dark:via-purple-400 dark:to-indigo-400 font-bold">
-                Full-Stack Developer
+          {/* Subheading with animated underline */}
+          <div>
+            <p className="text-xl lg:text-3xl font-semibold text-gray-700 dark:text-gray-300">
+              A passionate{" "}
+              <span className="relative inline-block">
+                <motion.span 
+                  className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 dark:from-indigo-400 dark:via-purple-400 dark:to-violet-400 font-bold"
+                  animate={{ 
+                    backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                  }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                  style={{ backgroundSize: "200% auto" }}
+                >
+                  Full-Stack Developer
+                </motion.span>
+                <motion.span 
+                  className="absolute bottom-0 left-0 w-full h-3 bg-gradient-to-r from-indigo-500/30 to-purple-500/30 -z-10 rounded-full"
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ duration: 0.8, delay: 1.2 }}
+                  style={{ originX: 0 }}
+                />
               </span>
-              <span className="absolute bottom-0 left-0 w-full h-3 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 -z-10" />
+            </p>
+          </div>
+
+          {/* Description with stagger effect */}
+          <p className="text-lg lg:text-2xl text-gray-600 dark:text-gray-400 leading-relaxed">
+            <span>
+              Building exceptional digital experiences
             </span>
-          </motion.p>
+            <br />
+            <span>
+              with modern web technologies
+            </span>
+          </p>
 
-          {/* Description */}
-          <motion.p
-            className="text-xl lg:text-2xl text-gray-600 dark:text-gray-400 leading-relaxed"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-          >
-            Building exceptional digital experiences with modern web technologies
-          </motion.p>
-
-          {/* Availability Badge */}
-          <motion.div
-            className="inline-flex items-center justify-center lg:justify-start"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.7 }}
-          >
-            <div className="flex items-center space-x-3 px-6 py-3 rounded-full bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-2 border-green-500/20 dark:border-green-400/30 backdrop-blur-sm">
+          {/* Availability Badge with pulse */}
+          <div className="inline-flex items-center justify-center lg:justify-start">
+            <motion.div 
+              className="flex items-center space-x-3 px-6 py-3 rounded-full bg-gradient-to-r from-green-500/10 via-emerald-500/10 to-green-500/10 border-2 border-green-500/30 dark:border-green-400/40 backdrop-blur-sm shadow-lg"
+              whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(34, 197, 94, 0.2)" }}
+              animate={{ 
+                borderColor: ["rgba(34, 197, 94, 0.3)", "rgba(34, 197, 94, 0.6)", "rgba(34, 197, 94, 0.3)"],
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
               <div className="relative">
-                <div className="w-3 h-3 bg-green-500 rounded-full" />
-                <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-75" />
+                <motion.div 
+                  className="w-3 h-3 bg-green-500 rounded-full"
+                  animate={{ boxShadow: ["0 0 0 0 rgba(34, 197, 94, 0.4)", "0 0 0 8px rgba(34, 197, 94, 0)"] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                />
               </div>
-              <span className="text-lg font-semibold text-green-700 dark:text-green-400">
+              <span className="text-base lg:text-lg font-semibold text-green-700 dark:text-green-400">
                 Available for work
               </span>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
 
-          {/* CTA Buttons */}
-          <motion.div
-            className="flex flex-col sm:flex-row gap-4 pt-4 justify-center lg:justify-start"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-          >
-            <a
-              href="#contact"
-              className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+          {/* CTA Buttons with hover effects */}
+          <div className="flex flex-col sm:flex-row gap-4 pt-4 justify-center lg:justify-start">
+            <motion.a
+              href="#Contact"
+              className="relative px-8 py-4 bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 text-white font-semibold rounded-xl shadow-lg overflow-hidden group"
+              whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(139, 92, 246, 0.4)" }}
+              whileTap={{ scale: 0.95 }}
             >
-              Get in Touch
-            </a>
-            <a
-              href="#projects"
-              className="px-8 py-4 bg-transparent border-2 border-purple-600 dark:border-purple-400 text-purple-600 dark:text-purple-400 font-semibold rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transform hover:scale-105 transition-all duration-300"
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600"
+                initial={{ x: "100%" }}
+                whileHover={{ x: 0 }}
+                transition={{ duration: 0.3 }}
+              />
+              <span className="relative z-10">Get in Touch</span>
+            </motion.a>
+            <motion.a
+              href="#Projects"
+              className="relative px-8 py-4 bg-transparent border-2 border-purple-600 dark:border-purple-400 text-purple-600 dark:text-purple-400 font-semibold rounded-xl overflow-hidden group"
+              whileHover={{ scale: 1.05, borderColor: "rgb(147, 51, 234)" }}
+              whileTap={{ scale: 0.95 }}
             >
-              View Projects
-            </a>
-          </motion.div>
+              <motion.div
+                className="absolute inset-0 bg-purple-600/10 dark:bg-purple-400/10"
+                initial={{ y: "100%" }}
+                whileHover={{ y: 0 }}
+                transition={{ duration: 0.3 }}
+              />
+              <span className="relative z-10">View Projects</span>
+            </motion.a>
+          </div>
         </motion.div>
       </div>
 
-      {/* Scroll Indicator */}
-      <motion.div
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 1, repeat: Infinity, repeatType: "reverse" }}
-      >
-        <div className="flex flex-col items-center space-y-2 text-gray-400 dark:text-gray-600">
+      {/* Scroll Indicator with bounce */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 hidden lg:flex">
+        <motion.div 
+          className="flex flex-col items-center space-y-2 text-gray-500 dark:text-gray-500 cursor-pointer"
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          whileHover={{ scale: 1.1 }}
+          onClick={() => window.scrollBy({ top: window.innerHeight, behavior: "smooth" })}
+        >
           <span className="text-sm font-medium">Scroll to explore</span>
-          <svg className="w-6 h-6 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <motion.svg 
+            className="w-6 h-6" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+            animate={{ y: [0, 5, 0] }}
+            transition={{ duration: 1, repeat: Infinity }}
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-          </svg>
-        </div>
-      </motion.div>
+          </motion.svg>
+        </motion.div>
+      </div>
     </section>
+    </>
   )
 }
 

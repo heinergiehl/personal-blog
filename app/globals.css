@@ -93,5 +93,5 @@ code[data-line-numbers-max-digits="3"] > [data-line]::before {
 }
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 4rem; 
+  scroll-padding-top: 4rem;
 }

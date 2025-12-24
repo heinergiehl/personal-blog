@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 import { ProjectsList } from "./index"
 import { ProjectFilters } from "./ProjectsFilters"
 import { projects as allProjects } from "@/app/data/projects"
+import { COLOR_ONE, COLOR_TWO } from "@/config"
 
 // Define only the main categories statically
 const mainCategories = ["All", "Fullstack", "Frontend"]
@@ -49,48 +50,76 @@ export function ProjectsWrapper() {
 
   return (
     <section
-      className="min-h-screen bg-gradient-to-r from-white via-gray-100 to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-black rounded-lg shadow-lg py-16 mt-24 "
+      className="relative min-h-screen py-16 mt-24 overflow-hidden"
       id="Projects"
     >
-      <motion.h2
-        className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-8 text-center"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-      >
-        Projects
-      </motion.h2>
-
-      <div className="flex flex-col items-center gap-6 mb-12 max-w-screen-lg justify-center mx-auto">
-        {/* Main Category Filters */}
-        <div className="flex flex-col items-center gap-2">
-          <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">
-            Categories
-          </h3>
-
-          <ProjectFilters
-            categories={mainCategories}
-            activeFilter={activeCategory}
-            onFilterChange={handleCategoryChange} // Use the new handler
-          />
-        </div>
-
-        {/* Dynamic Technology Filters - will only appear if there are techs to show */}
-
-        <div className="flex flex-col items-center gap-2">
-          <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">
-            Technologies
-          </h3>
-
-          <ProjectFilters
-            categories={availableTechs}
-            activeFilter={activeTech}
-            onFilterChange={setActiveTech}
-          />
-        </div>
+      {/* Animated gradient background */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-violet-50/60 via-white to-pink-50/70 dark:from-gray-950 dark:via-purple-950/30 dark:to-gray-900" />
+        <motion.div
+          className="absolute -top-1/4 left-0 w-[700px] h-[700px] rounded-full blur-3xl opacity-20"
+          style={{ background: COLOR_ONE }}
+          animate={{
+            x: [0, 150, 0],
+            y: [0, 100, 0],
+            scale: [1, 1.5, 1],
+          }}
+          transition={{ duration: 40, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute bottom-0 right-0 w-[700px] h-[700px] rounded-full blur-3xl opacity-20"
+          style={{ background: COLOR_TWO }}
+          animate={{
+            x: [0, -150, 0],
+            y: [0, -100, 0],
+            scale: [1, 1.4, 1],
+          }}
+          transition={{ duration: 45, repeat: Infinity, ease: "easeInOut" }}
+        />
       </div>
 
-      <ProjectsList projects={filteredProjects} />
+      {/* Content */}
+      <div className="relative z-10">
+        <motion.h2
+          className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-8 text-center"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          Projects
+        </motion.h2>
+
+        <div className="flex flex-col items-center gap-6 mb-12 max-w-screen-lg justify-center mx-auto">
+          {/* Main Category Filters */}
+          <div className="flex flex-col items-center gap-2">
+            <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">
+              Categories
+            </h3>
+
+            <ProjectFilters
+              categories={mainCategories}
+              activeFilter={activeCategory}
+              onFilterChange={handleCategoryChange} // Use the new handler
+            />
+          </div>
+
+          {/* Dynamic Technology Filters - will only appear if there are techs to show */}
+
+          <div className="flex flex-col items-center gap-2">
+            <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">
+              Technologies
+            </h3>
+
+            <ProjectFilters
+              categories={availableTechs}
+              activeFilter={activeTech}
+              onFilterChange={setActiveTech}
+            />
+          </div>
+        </div>
+
+        <ProjectsList projects={filteredProjects} />
+      </div>
     </section>
   )
 }

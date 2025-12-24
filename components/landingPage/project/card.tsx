@@ -34,6 +34,7 @@ function ProjectCard({
 }: CardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   const [isHovered, setIsHovered] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const { theme, systemTheme } = useTheme()
   
   // Mouse position for gradient effect
@@ -83,6 +84,10 @@ function ProjectCard({
   }, [])
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
     const card = cardRef.current
     if (!card) return
 
@@ -98,7 +103,7 @@ function ProjectCard({
   }, [handleMouseMove, handleMouseLeave, handleMouseEnter])
 
   const resolvedTheme = theme === 'system' ? systemTheme : theme
-  const isLightMode = resolvedTheme === 'light'
+  const isLightMode = mounted ? resolvedTheme === 'light' : false
   
   const gradientColor = isLightMode ? "#ffffff80" : "#50505080"
   return (
@@ -119,11 +124,11 @@ function ProjectCard({
       {/* Base background with border */}
       <div className={`
         absolute inset-px z-10 rounded-xl backdrop-blur-sm border-2
-        ${isLightMode 
+        ${mounted && isLightMode 
           ? 'bg-gradient-to-br from-white/95 via-purple-50/90 to-violet-50/95 border-purple-200/50' 
           : 'bg-gradient-to-br from-slate-900/95 via-purple-950/90 to-slate-900/95 border-purple-500/30'
         }
-      `} />
+      `} suppressHydrationWarning />
       
       {/* Subtle inner gradient on hover */}
       <motion.div
@@ -154,10 +159,11 @@ function ProjectCard({
       <motion.div
         className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         style={{
-          boxShadow: isLightMode
+          boxShadow: mounted && isLightMode
             ? `0 0 30px ${COLOR_ONE}40, 0 0 60px ${COLOR_TWO}20`
             : `0 0 30px ${COLOR_ONE}60, 0 0 60px ${COLOR_TWO}40`,
         }}
+        suppressHydrationWarning
         animate={{
           boxShadow: isHovered ? [
             `0 0 20px ${COLOR_ONE}40`,
@@ -204,8 +210,8 @@ function ProjectCard({
         <div className="p-4">
           <h3 className={`
             text-lg font-bold transition-colors duration-300
-            ${isLightMode ? 'text-slate-900' : 'text-white'}
-          `}>
+            ${mounted && isLightMode ? 'text-slate-900' : 'text-white'}
+          `} suppressHydrationWarning>
             {link ? (
               <Link 
                 href={link} 
@@ -214,22 +220,24 @@ function ProjectCard({
                 <motion.span
                   className={`
                     transition-all duration-300
-                    ${isLightMode 
+                    ${mounted && isLightMode 
                       ? 'group-hover/link:text-transparent group-hover/link:bg-clip-text group-hover/link:bg-gradient-to-r group-hover/link:from-purple-600 group-hover/link:to-violet-600' 
                       : 'group-hover/link:text-transparent group-hover/link:bg-clip-text group-hover/link:bg-gradient-to-r group-hover/link:from-purple-400 group-hover/link:to-violet-400'
                     }
                   `}
+                  suppressHydrationWarning
                 >
                   {title}
                 </motion.span>
                 <motion.span
                   className={`
                     inline-block transition-all duration-300
-                    ${isLightMode 
+                    ${mounted && isLightMode 
                       ? 'text-purple-600 group-hover/link:text-violet-600' 
                       : 'text-purple-400 group-hover/link:text-violet-400'
                     }
                   `}
+                  suppressHydrationWarning
                   animate={{
                     x: [0, 3, 0],
                   }}
