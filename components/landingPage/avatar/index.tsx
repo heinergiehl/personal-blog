@@ -105,7 +105,7 @@ const Avatar = () => {
       )}
       <section
         id="Header"
-        className="min-h-screen relative flex flex-col items-center justify-center py-12 px-4 overflow-visible"
+        className="min-h-screen relative flex flex-col items-end justify-center py-12 px-4 overflow-visible"
         style={{ display: isLoaded ? "flex" : "none" }}
       >
         {/* Animated Background Gradients */}
@@ -165,22 +165,33 @@ const Avatar = () => {
           />
         </motion.div>
 
-        {/* Main Content Container */}
-        <div className="max-w-7xl w-full flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-16">
-          {/* Avatar Section - Smaller on mobile for better performance */}
-          <div className="relative z-10 flex-shrink-0 w-full lg:w-auto flex items-center justify-center">
-            <div className="relative max-w-[350px] sm:max-w-[450px] lg:max-w-[600px] w-full aspect-square">
+        {/* Full Screen Particle Background */}
+        <div className="absolute inset-0 z-0 w-full h-full pointer-events-none">
+           <div className="w-full h-full pointer-events-auto">
               <ParticleAvatar
                 key={`particle-avatar-${mounted && isLightMode ? "light" : "dark"}`}
                 imageUrl="/heiner-profile.jpg"
-                particleCount={isMobile ? 2500 : 35000}
+                particleCount={isMobile ? 12500 : 35000} 
                 particleSize={isMobile ? 4.5 : 4.0}
                 formationSpeed={isMobile ? 0.02 : 0.012}
-                mouseInfluence={isMobile ? 0 : 100}
+                mouseInfluence={isMobile ? 0 : 1}
                 isMobile={isMobile}
                 onLoad={() => setIsLoaded(true)}
+                faceOffset={isMobile ? [0, 1.0, 0] : [-6.5, 0, 0]}
+                faceScale={isMobile ? 0.7 : 0.45}
               />
-            </div>
+           </div>
+        </div>
+
+        {/* Main Content Container */}
+        {/* pointer-events-none allows clicks to pass through to the canvas behind */}
+        <div className="relative z-10 max-w-7xl  w-full flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-16 pointer-events-none">
+          {/* Avatar Section - Placeholder to keep layout structure */}
+          <div className="flex-shrink-0 w-full lg:w-auto flex items-center justify-center">
+             {/* Transparent box to maintain alignment */}
+             <div className="relative max-w-[350px] sm:max-w-[450px] lg:max-w-[600px] w-full aspect-square opacity-0">
+               {/* Spacer */}
+             </div>
           </div>
 
           {/* Hero Text Section */}
@@ -192,7 +203,7 @@ const Avatar = () => {
               ease: [0.6, 0.05, 0.01, 0.9],
               delay: 0.1,
             }}
-            className="flex flex-col space-y-3 lg:space-y-6 max-w-2xl text-center lg:text-left"
+            className="flex flex-col space-y-3 lg:space-y-6 max-w-2xl text-center lg:text-left pointer-events-auto"
           >
             {/* Greeting */}
             <div className="flex items-center space-x-3 lg:space-x-4 justify-center lg:justify-start">

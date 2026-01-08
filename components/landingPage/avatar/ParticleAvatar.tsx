@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useMemo, useRef, Suspense, useEffect } from "react";
 import * as THREE from "three";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useTexture } from "@react-three/drei";
+import { FluidSimulation, useFluid } from "r3f-fluid-sim";
 import { useTheme } from "next-themes";
-import Stats from "stats.js";
 
 interface ParticleAvatarProps {
   imageUrl: string;
@@ -12,325 +14,420 @@ interface ParticleAvatarProps {
   formationSpeed?: number;
   mouseInfluence?: number;
   isMobile?: boolean;
+  className?: string; // Add className support
   onLoad?: () => void;
+  faceOffset?: [number, number, number]; // New prop for positioning the face
+  faceScale?: number; // New prop for scaling the face
+}
+
+const BackgroundParticles = ({ count = 4000 }) => {
+  const { velocityFBO } = useFluid();
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const { theme } = useTheme();
+
+  // Memoize color to prevent uniform churn
+  const color = useMemo(() => 
+    theme === 'light' ? new THREE.Vector3(0.05, 0.15, 0.3) : new THREE.Vector3(0.0, 0.8, 1.0),
+  [theme]);
+
+  const particles = useMemo(() => {
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(count * 3);
+    const randoms = new Float32Array(count * 3);
+    
+    for (let i = 0; i < count; i++) {
+        // Spread massive for full screen background
+        positions[i * 3] = (Math.random() - 0.5) * 80;     // Width: 80
+        positions[i * 3 + 1] = (Math.random() - 0.5) * 60; // Height: 60
+        positions[i * 3 + 2] = (Math.random() - 0.5) * 20 - 10; // Z: -20 to 0 (Deeper)
+        
+        randoms[i * 3] = Math.random();
+        randoms[i * 3 + 1] = Math.random();
+        randoms[i * 3 + 2] = Math.random();
+    }
+    
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('aRandom', new THREE.BufferAttribute(randoms, 3));
+    return geometry;
+  }, [count]);
+
+  const uniforms = useMemo(() => ({
+      uTime: { value: 0 },
+      uVelocity: { value: null },
+      uColor: { value: color }
+  }), []); // Init once, update in useFrame
+
+  useFrame((state) => {
+    if (materialRef.current) {
+        materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
+        materialRef.current.uniforms.uColor.value.copy(color); // Copy value, don't replace object
+        if (velocityFBO && velocityFBO.read) {
+             materialRef.current.uniforms.uVelocity.value = velocityFBO.read.texture;
+        }
+    }
+  });
+
+  const vertexShader = /* glsl */ `
+    uniform float uTime;
+    uniform sampler2D uVelocity;
+    attribute vec3 aRandom;
+    varying float vAlpha;
+    
+    void main() {
+      vec3 pos = position;
+      
+      // Calculate correct Screen UV for fluid sampling
+      vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+      vec4 clipPosition = projectionMatrix * mvPosition;
+      vec2 screenUv = (clipPosition.xy / clipPosition.w) * 0.5 + 0.5;
+      
+      // Sample Fluid Velocity
+      vec4 velocity = texture2D(uVelocity, screenUv);
+      float velocityStrength = length(velocity.xy)*10.;
+      
+      float time = uTime * 0.2; // Faster gentle movement
+      
+      // Natural floating movement
+      pos.x += sin(time + aRandom.y * 6.28) * 1.0;
+      pos.y += cos(time + aRandom.z * 6.28) * 1.0;
+      
+      // Fluid Push
+      pos.xy += velocity.xy * 20.0 * velocityStrength; 
+      
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+      
+      // Size: Much bigger
+      // Base calculation: (BaseSize / Depth) * Random
+      gl_PointSize = (150.0 + velocityStrength * 100.0) * (1.0 / -mvPosition.z) * (0.5 + aRandom.x * 0.5);
+      
+      // Opacity: Stronger base
+      vAlpha = 0.6 + (velocityStrength * 0.4);
+    }
+  `;
+
+  const fragmentShader = /* glsl */ `
+    uniform vec3 uColor;
+    varying float vAlpha;
+    
+    void main() {
+        float dist = length(gl_PointCoord - vec2(0.5));
+        if (dist > 0.5) discard;
+        // Sharper center, soft edge
+        float alpha = (1.0 - smoothstep(0.1, 0.5, dist)) * vAlpha;
+        gl_FragColor = vec4(uColor, alpha * 0.8); 
+    }
+  `;
+
+  return (
+    <points geometry={particles}>
+       <shaderMaterial
+          ref={materialRef}
+          uniforms={uniforms}
+          vertexShader={vertexShader}
+          fragmentShader={fragmentShader}
+          transparent={true}
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+       />
+    </points>
+  )
+}
+
+
+const FaceFluidSimulation = ({ children, faceOffset = [0,0,0], faceScale = 1, imageUrl, ...props }: any) => {
+  const texture = useTexture(imageUrl);
+  const pointer = useMemo(() => new THREE.Vector2(-100, -100), []); // Start off-screen
+  
+  useFrame((state) => {
+     // Plane Z = faceOffset[2]
+     const zPlane = (faceOffset && faceOffset[2]) || 0;
+     const xOffset = (faceOffset && faceOffset[0]) || 0;
+     const yOffset = (faceOffset && faceOffset[1]) || 0;
+     
+     // Update raycaster with global pointer
+     state.raycaster.setFromCamera(state.pointer, state.camera);
+     const ray = state.raycaster.ray;
+     
+     // Intersect plane Z
+     const denom = ray.direction.z;
+     if (Math.abs(denom) > 1e-6) {
+        const t = (zPlane - ray.origin.z) / denom;
+        if (t >= 0) {
+            const hitX = ray.origin.x + t * ray.direction.x;
+            const hitY = ray.origin.y + t * ray.direction.y;
+            
+            // Transform to local space
+            const localX = hitX - xOffset;
+            const localY = hitY - yOffset;
+            
+            // Normalize
+            // Face size is 10 units * scale
+            // Image Aspect affects width: 10 * aspect * scale
+            // We want pointer -1..1 over the content
+            const aspect = texture.image ? (texture.image.width / texture.image.height) : 1;
+            
+            // Map [-5*scale*aspect, 5*scale*aspect] to [-1, 1] for X
+            // Map [-5*scale, 5*scale] to [-1, 1] for Y
+            
+            pointer.x = localX / (5 * faceScale * aspect);
+            pointer.y = localY / (5 * faceScale);
+        } else {
+            pointer.set(-100, -100);
+        }
+     } else {
+        pointer.set(-100, -100);
+     }
+  });
+
+  return (
+    // <FluidSimulation pointer={pointer} {...props}>
+        <group position={faceOffset} scale={faceScale}>
+           {children}
+        </group>
+    // </FluidSimulation>
+  );
+};
+
+const ParticleSystem = ({ 
+  imageUrl, 
+  onLoad,
+  size,
+  pointSize
+}: { 
+  imageUrl: string, 
+  onLoad?: () => void,
+  size: number,
+  pointSize: number
+}) => {
+  const { velocityFBO } = useFluid(); 
+  const texture = useTexture(imageUrl);
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
+  
+  // Notify parent that texture is loaded (simple approximation)
+  useEffect(() => {
+    if (onLoad) onLoad();
+  }, [onLoad]);
+
+  const particles = useMemo(() => {
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(size * size * 3);
+    const uvs = new Float32Array(size * size * 2);
+    const randoms = new Float32Array(size * size * 3);
+    
+    // Calculate aspect ratio only if image is loaded
+    const imageAspect = texture.image ? (texture.image.width / texture.image.height) : 1;
+    
+    for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
+            const index = (i * size + j);
+            
+            // Grid formation centered at 0,0
+            // Map 0..size to -5..5
+            // Apply aspect ratio to X
+            const x = (i / size - 0.5) * 10 * imageAspect;
+            const y = (j / size - 0.5) * 10;
+            
+            positions[index * 3] = x;
+            positions[index * 3 + 1] = y;
+            positions[index * 3 + 2] = 0;
+            
+            // UVs for texture sampling - flip Y for correct orientation if needed
+            uvs[index * 2] = i / size;
+            uvs[index * 2 + 1] = j / size;
+            
+            // Random attributes for lifetime variation
+            randoms[index * 3] = Math.random(); 
+            randoms[index * 3 + 1] = Math.random();
+            randoms[index * 3 + 2] = Math.random();
+        }
+    }
+    
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+    geometry.setAttribute('aRandom', new THREE.BufferAttribute(randoms, 3));
+    return geometry;
+  }, [size, texture]);
+
+  const uniforms = useMemo(() => ({
+      uTime: { value: 0 },
+      uTexture: { value: texture },
+      uVelocity: { value: null }, 
+      uPointSize: { value: pointSize }
+  }), [texture, pointSize]);
+
+  useFrame((state) => {
+    if (materialRef.current) {
+        materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
+        // Inject fluid velocity texture
+        if (velocityFBO && velocityFBO.read) {
+             materialRef.current.uniforms.uVelocity.value = velocityFBO.read.texture;
+        }
+    }
+  });
+
+  const vertexShader = /* glsl */ `
+    uniform float uTime;
+    uniform sampler2D uVelocity;
+    uniform sampler2D uTexture;
+    uniform float uPointSize;
+    attribute vec3 aRandom;
+    varying vec2 vUv;
+    varying float vAlpha;
+    varying vec3 vColor;
+    
+    void main() {
+      vUv = uv; // Keep texture UV for sample color
+      
+      // Sample color
+      vec4 texColor = texture2D(uTexture, uv);
+      float brightness = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
+      
+      // Position
+      vec3 pos = position;
+
+      // Calculate correct Screen UV for fluid sampling based on world position
+      vec4 worldPos = modelMatrix * vec4(pos, 1.0);
+      vec4 viewPos = viewMatrix * worldPos;
+      vec4 clipPos = projectionMatrix * viewPos;
+      vec2 screenUv = (clipPos.xy / clipPos.w) * 0.5 + 0.5;
+      
+      // Fluid Velocity (Sampled from Screen Space to match background sim)
+      vec4 velocity = texture2D(uVelocity, screenUv);
+      float velocityStrength = length(velocity.xy);
+      
+      // Lifetime Logic
+      float lifetime = 5.0 + aRandom.x * 2.0;
+      float offset = aRandom.y * 1000.0;
+      float age = mod(uTime + offset, lifetime);
+      float progress = age / lifetime;
+      
+      // Dynamic Opacity: Stable (1.0) when static, Cycling (fades) when moving
+      float fadeCycle = smoothstep(0.0, 0.1, progress) * (1.0 - smoothstep(0.9, 1.0, progress));
+      float movementThreshold = smoothstep(0.0, 0.05, velocityStrength);
+      vAlpha = mix(1.0, fadeCycle, movementThreshold);
+      
+      // 1. Z-displacement based on brightness (Depth map effect)
+      // Reduced to 0.05 to keep the face mostly flat but add slight volume
+      pos.z += brightness * 1.05;
+      
+      // 2. Fluid Interaction
+      // Move along velocity vector
+      float drift = 5.0;
+      pos.xy += velocity.xy * drift * progress;
+      
+      // 3. Fluid "Lift" or "Twist" on Z axis for organic feel
+      pos.z += velocityStrength * 2.0 * sin(progress * 10.0);
+
+      vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+      gl_Position = projectionMatrix * mvPosition;
+      
+      // Size Dynamic
+      float baseSize = uPointSize * 10.0; // Reduced from 200.0 for cleaner look
+      // Scale up by brightness (fake glow) and velocity (limited)
+      float scale = 0.8 + (brightness * 0.4) + (smoothstep(0.0, 0.2, velocityStrength) * 1.5);
+      
+      gl_PointSize = (baseSize / -mvPosition.z) * scale;
+    }
+  `;
+
+  const fragmentShader = /* glsl */ `
+    uniform sampler2D uTexture;
+    varying vec2 vUv;
+    varying float vAlpha;
+    
+    void main() {
+        // Circle shape
+        vec2 coord = gl_PointCoord - vec2(0.5);
+        float dist = length(coord);
+        
+        // Soft edge
+        float circleAlpha = 1.0 - smoothstep(0.4, 0.9, dist);
+        
+        if(circleAlpha < 0.01) discard;
+        
+        // Color
+        vec4 texColor = texture2D(uTexture, vUv);
+        
+        // Enhance saturation slightly for better look
+        vec3 color = texColor.rgb;
+        
+        // Output
+        gl_FragColor = vec4(color, texColor.a * vAlpha * circleAlpha);
+    }
+  `;
+
+  return (
+    <points geometry={particles}>
+       <shaderMaterial
+          ref={materialRef}
+          uniforms={uniforms}
+          vertexShader={vertexShader}
+          fragmentShader={fragmentShader}
+          transparent={true}
+          depthWrite={false}
+          blending={THREE.NormalBlending}
+       />
+    </points>
+  );
 }
 
 const ParticleAvatar = ({
   imageUrl,
-  particleCount = 32,
-  particleSize = 0.2,
-  formationSpeed = 0.02,
-  mouseInfluence = 200,
+  className,
   isMobile = false,
   onLoad,
+  particleCount = 131072, // Increased resolution (roughly 362x362)
+  particleSize = 1.0,     // Smaller particles for higher density
+  mouseInfluence = 100,
+  faceOffset = [0, 0, 0],
+  faceScale = 1.0
 }: ParticleAvatarProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { theme, systemTheme } = useTheme();
-  const [isLoading, setIsLoading] = useState(true);
-  const mouseRef = useRef({ x: 9999, y: 9999 });
-  const rafRef = useRef<number>(0);
 
+  const { theme } = useTheme();
+  // Double size in light mode for visibility
+  const dynamicSize = theme === 'light' ? particleSize * 2.0 : particleSize;
+
+  const gridSize = useMemo(() => Math.ceil(Math.sqrt(particleCount)), [particleCount]);
+
+  // Failsafe: if texture loading fails or takes too long, 
+  // ensure the loading screen is removed after a timeout.
   useEffect(() => {
-    if (!containerRef.current) return;
-
-    const container = containerRef.current;
-    let mounted = true;
-
-    // Scene
-    const scene = new THREE.Scene();
-    
-    // Camera
-    const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
-    camera.position.set(0, 0, 18);
-    
-    // Renderer
-    const renderer = new THREE.WebGLRenderer({
-      alpha: true,
-      antialias: !isMobile,
-    });
-    
-    const size = Math.max(container.clientWidth || 600, container.clientHeight || 600);
-    const pixelRatio = isMobile ? 1 : Math.min(window.devicePixelRatio, 2);
-    
-    renderer.setSize(size, size);
-    renderer.setPixelRatio(pixelRatio);
-    renderer.setClearColor(0x000000, 0);
-    renderer.domElement.style.width = "100%";
-    renderer.domElement.style.height = "100%";
-    renderer.domElement.style.objectFit = "contain";
-    container.appendChild(renderer.domElement);
-
-    // Stats
-    let stats: Stats | null = null;
-    if (process.env.NODE_ENV === "development" && !isMobile) {
-      stats = new Stats();
-      stats.showPanel(0);
-      stats.dom.style.position = "absolute";
-      stats.dom.style.left = "0px";
-      stats.dom.style.top = "0px";
-      container.appendChild(stats.dom);
-    }
-
-    /**
-     * Displacement
-     */
-    const displacement: any = {};
-    
-    // 2D canvas
-    displacement.canvas = document.createElement('canvas');
-    displacement.canvas.width = 128;
-    displacement.canvas.height = 128;
-    
-    // Context
-    displacement.context = displacement.canvas.getContext('2d')!;
-    displacement.context.fillStyle = '#000000';
-    displacement.context.fillRect(0, 0, 128, 128);
-    
-    // Glow image (create radial gradient)
-    const glowCanvas = document.createElement('canvas');
-    glowCanvas.width = 64;
-    glowCanvas.height = 64;
-    const glowCtx = glowCanvas.getContext('2d')!;
-    const gradient = glowCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
-    gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-    gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.5)');
-    gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    glowCtx.fillStyle = gradient;
-    glowCtx.fillRect(0, 0, 64, 64);
-    displacement.glowImage = glowCanvas;
-    
-    // Interactive plane
-    displacement.interactivePlane = new THREE.Mesh(
-      new THREE.PlaneGeometry(10, 10),
-      new THREE.MeshBasicMaterial({ visible: false })
-    );
-    scene.add(displacement.interactivePlane);
-    
-    // Raycaster
-    displacement.raycaster = new THREE.Raycaster();
-    
-    // Coordinates
-    displacement.screenCursor = new THREE.Vector2(9999, 9999);
-    displacement.canvasCursor = new THREE.Vector2(9999, 9999);
-    displacement.canvasCursorPrevious = new THREE.Vector2(9999, 9999);
-    
-    // Texture
-    displacement.texture = new THREE.CanvasTexture(displacement.canvas);
-
-    // Detect current theme
-    const currentTheme = theme === 'system' ? systemTheme : theme;
-    const isDark = currentTheme === 'dark';
-
-    /**
-     * Load image and create particles
-     */
-    const textureLoader = new THREE.TextureLoader();
-    textureLoader.load(imageUrl, (pictureTexture) => {
-      if (!mounted) return;
-
-      // Shaders
-      const vertexShader =/* glsl */ `
-        uniform vec2 uResolution;
-        uniform sampler2D uPictureTexture;
-        uniform sampler2D uDisplacementTexture;
-        
-        attribute float aIntensity;
-        attribute float aAngle;
-        
-        varying vec3 vColor;
-        
-        void main()
-        {
-          // Displacement
-          vec3 newPosition = position;
-          float displacementIntensity = texture2D(uDisplacementTexture, uv).r;
-          displacementIntensity = smoothstep(0.1, 0.3, displacementIntensity);
-      
-          vec3 displacementVec = vec3(
-            cos(aAngle) * 0.2,
-            sin(aAngle) * 0.2,
-            1.0
-          );
-          displacementVec = normalize(displacementVec);
-          displacementVec *= displacementIntensity;
-          displacementVec *= 3.0;
-          displacementVec *= aIntensity;
-          
-          newPosition += displacementVec;
-      
-          // Final position
-          vec4 modelPosition = modelMatrix * vec4(newPosition, 1.0);
-          vec4 viewPosition = viewMatrix * modelPosition;
-          vec4 projectedPosition = projectionMatrix * viewPosition;
-          gl_Position = projectedPosition;
-      
-          // Picture
-          float pictureIntensity = texture2D(uPictureTexture, uv).r;
-      
-          // Point size
-          gl_PointSize = 0.15 * pictureIntensity * uResolution.y;
-          gl_PointSize *= (1.0 / - viewPosition.z);
-      
-          // Varyings
-          vColor = vec3(pow(pictureIntensity, 2.0));
-        }
-      `;
-
-      const fragmentShader = /* glsl */ `
-        varying vec3 vColor;
-        
-        void main()
-        {
-          vec2 uv = gl_PointCoord;
-          float distanceToCenter = length(uv - vec2(0.5));
-      
-          if(distanceToCenter > 0.5)
-            discard;
-      
-          gl_FragColor = vec4(vColor, 1.0);
-          #include <tonemapping_fragment>
-          #include <colorspace_fragment>
-        }
-      `;
-
-      // Geometry - using fixed 128x128 like the example
-      const particlesGeometry = new THREE.PlaneGeometry(10, 10, 128, 128);
-      particlesGeometry.setIndex(null);
-      particlesGeometry.deleteAttribute('normal');
-      
-      const intensitiesArray = new Float32Array(particlesGeometry.attributes.position.count);
-      const anglesArray = new Float32Array(particlesGeometry.attributes.position.count);
-      
-      for(let i = 0; i < particlesGeometry.attributes.position.count; i++)
-      {
-        intensitiesArray[i] = Math.random();
-        anglesArray[i] = Math.random() * Math.PI * 2;
-      }
-      
-      particlesGeometry.setAttribute('aIntensity', new THREE.BufferAttribute(intensitiesArray, 1));
-      particlesGeometry.setAttribute('aAngle', new THREE.BufferAttribute(anglesArray, 1));
-      
-      // Material
-      const particlesMaterial = new THREE.ShaderMaterial({
-        vertexShader,
-        fragmentShader,
-        uniforms: {
-          uResolution: new THREE.Uniform(new THREE.Vector2(size * pixelRatio, size * pixelRatio)),
-          uPictureTexture: new THREE.Uniform(pictureTexture),
-          uDisplacementTexture: new THREE.Uniform(displacement.texture)
-        },
-        blending: THREE.AdditiveBlending
-      });
-      
-      const particles = new THREE.Points(particlesGeometry, particlesMaterial);
-      scene.add(particles);
-
-      setIsLoading(false);
-      onLoad?.();
-    });
-
-    /**
-     * Mouse move handler
-     */
-    const handleMouseMove = (event: MouseEvent) => {
-      const rect = container.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
-      
-      mouseRef.current.x = (x / rect.width) * 2 - 1;
-      mouseRef.current.y = -(y / rect.height) * 2 + 1;
-    };
-
-    window.addEventListener('pointermove', handleMouseMove);
-
-    /**
-     * Animate
-     */
-    const animate = () => {
-      if (!mounted) return;
-      rafRef.current = requestAnimationFrame(animate);
-      if (stats) stats.begin();
-
-      /**
-       * Raycaster
-       */
-      displacement.raycaster.setFromCamera(
-        new THREE.Vector2(mouseRef.current.x, mouseRef.current.y),
-        camera
-      );
-      const intersections = displacement.raycaster.intersectObject(displacement.interactivePlane);
-
-      if (intersections.length) {
-        const uv = intersections[0].uv!;
-        displacement.canvasCursor.x = uv.x * displacement.canvas.width;
-        displacement.canvasCursor.y = (1 - uv.y) * displacement.canvas.height;
-      }
-
-      /**
-       * Displacement
-       */
-      // Fade out
-      displacement.context.globalCompositeOperation = 'source-over';
-      displacement.context.globalAlpha = 0.02;
-      displacement.context.fillRect(0, 0, displacement.canvas.width, displacement.canvas.height);
-
-      // Speed alpha
-      const cursorDistance = displacement.canvasCursorPrevious.distanceTo(displacement.canvasCursor);
-      displacement.canvasCursorPrevious.copy(displacement.canvasCursor);
-      const alpha = Math.min(cursorDistance * 0.05, 1);
-      
-      // Draw glow
-      const glowSize = displacement.canvas.width * 0.25;
-      displacement.context.globalCompositeOperation = 'lighten';
-      displacement.context.globalAlpha = alpha;
-      displacement.context.drawImage(
-        displacement.glowImage,
-        displacement.canvasCursor.x - glowSize * 0.5,
-        displacement.canvasCursor.y - glowSize * 0.5,
-        glowSize,
-        glowSize
-      );
-
-      // Texture
-      displacement.texture.needsUpdate = true;
-
-      // Render
-      renderer.render(scene, camera);
-
-      if (stats) stats.end();
-    };
-
-    animate();
-
-    /**
-     * Cleanup
-     */
-    return () => {
-      mounted = false;
-      window.removeEventListener('pointermove', handleMouseMove);
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
-      if (stats) {
-        container.removeChild(stats.dom);
-      }
-      container.removeChild(renderer.domElement);
-      renderer.dispose();
-    };
-  }, [imageUrl, particleCount, particleSize, isMobile, theme, systemTheme]);
+     const timer = setTimeout(() => {
+         if (onLoad) onLoad();
+     }, 3000); 
+     return () => clearTimeout(timer);
+  }, [onLoad]);
 
   return (
-    <div
-      ref={containerRef}
-      className="relative w-full h-full min-h-[400px] flex items-center justify-center"
-    >
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-sm opacity-50">Loading...</div>
-        </div>
-      )}
+    <div className={`w-full h-full min-h-[500px] relative ${className || ""}`}>
+      <Canvas 
+        camera={{ position: [0, 0, 18], fov: 35 }} 
+        dpr={isMobile ? 1 : [1, 2]}
+        gl={{ alpha: true, antialias: true }}
+      >
+         <Suspense fallback={null}>
+            {/* r3f-fluid-sim provider */}
+             <FluidSimulation 
+                size={256}          
+                forceStrength={(mouseInfluence / 100) * 10}   
+                viscosity={0.01}
+                advectionDecay={0.97}
+             >
+           
+            <group position={faceOffset as any} scale={faceScale}>
+                   <BackgroundParticles count={4000} />
+                  <ParticleSystem 
+                      imageUrl={imageUrl} 
+                      onLoad={onLoad}
+                      size={gridSize}
+                      pointSize={dynamicSize} 
+                  />
+                </group>
+             </FluidSimulation>
+         </Suspense>
+      </Canvas>
     </div>
-  );
-};
+  )
+}
 
 export default ParticleAvatar;
