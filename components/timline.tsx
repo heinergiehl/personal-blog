@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { dot } from "node:test/reporters";
@@ -76,37 +76,36 @@ export default function Timeline() {
   const resolvedTheme = theme === 'system' ? systemTheme : theme;
   const isLightMode = mounted ? resolvedTheme === 'light' : false;
 
+  const handleScroll = useCallback(() => {
+    if (!timelineLineRef.current) return;
+    const lineBottom = timelineLineRef.current.getBoundingClientRect().bottom;
+
+    const newCardActivated: Record<number, boolean> = {};
+    const newDotActivated: Record<number, boolean> = {};
+
+    itemRefs.current.forEach((ref, idx) => {
+      if (!ref) return;
+      const { top, height } = ref.getBoundingClientRect();
+      const cardTop = top;
+      const dotCenterY = top + height / 2;
+
+      newCardActivated[idx] = lineBottom >= cardTop;
+      newDotActivated[idx] = lineBottom >= dotCenterY;
+    });
+
+    setCardActivated(newCardActivated);
+    setDotActivated(newDotActivated);
+  }, []);
+
   useEffect(() => {
-    function handleScroll() {
-      if (!timelineLineRef.current) return;
-      const lineBottom = timelineLineRef.current.getBoundingClientRect().bottom;
-
-      const newCardActivated: Record<number, boolean> = {};
-      const newDotActivated: Record<number, boolean> = {};
-
-      itemRefs.current.forEach((ref, idx) => {
-        if (!ref) return;
-        const { top, height } = ref.getBoundingClientRect();
-        const cardTop = top;
-        const dotCenterY = top + height / 2;
-
-        newCardActivated[idx] = lineBottom >= cardTop;
-        newDotActivated[idx] = lineBottom >= dotCenterY;
-      });
-
-      setCardActivated(newCardActivated);
-      setDotActivated(newDotActivated);
-    }
-
+    const unsubscribe = lineScale.on("change", handleScroll);
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [
-    timelineLineRef.current,
-    itemRefs.current,
-    scrollYProgress,
-    containerRef.current,
-  ]);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      unsubscribe();
+    };
+  }, [handleScroll, lineScale]);
 
   const dotVariants = {
     hidden: {

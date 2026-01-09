@@ -99,308 +99,146 @@ const Avatar = () => {
   return (
     <>
       {!isLoaded && (
-        <section className="min-h-screen relative flex items-center justify-center py-12 px-4">
+        <section className="min-h-screen relative flex items-center justify-center py-12 px-4 bg-gray-50 dark:bg-gray-950">
           <LoadingSpinner />
         </section>
       )}
       <section
         id="Header"
-        className="min-h-screen relative flex flex-col items-end justify-center py-12 px-4 overflow-visible"
+        className="min-h-screen relative flex items-center justify-center overflow-hidden"
         style={{ display: isLoaded ? "flex" : "none" }}
       >
         {/* Animated Background Gradients */}
-        <motion.div
-          className="absolute inset-0 -z-10 overflow-hidden"
-          style={!isMobile ? { x: mousePosition.x, y: mousePosition.y } : {}}
-          transition={
-            !isMobile ? { type: "spring", stiffness: 50, damping: 20 } : {}
-          }
-        >
+        <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
           <motion.div
-            className="absolute top-1/4 -left-1/4 w-96 h-96 rounded-full blur-3xl"
+            className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30 dark:opacity-20"
             style={{
-              backgroundColor:
-                mounted && isLightMode
-                  ? "rgba(79, 70, 229, 0.2)"
-                  : "rgba(168, 85, 247, 0.3)",
+              backgroundColor: isLightMode ? "#4F46E5" : "#7C3AED", // Indigo / Violet
             }}
             animate={{
               scale: [1, 1.2, 1],
               x: [0, 50, 0],
               y: [0, 30, 0],
             }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-            suppressHydrationWarning
+            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
           />
           <motion.div
-            className="absolute bottom-1/4 -right-1/4 w-96 h-96 rounded-full blur-3xl"
+            className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full blur-[120px] opacity-30 dark:opacity-20"
             style={{
-              backgroundColor:
-                mounted && isLightMode
-                  ? "rgba(6, 182, 212, 0.2)"
-                  : "rgba(99, 102, 241, 0.3)",
-            }}
-            animate={{
-              scale: [1, 1.3, 1],
-              x: [0, -30, 0],
-              y: [0, 50, 0],
-            }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-            suppressHydrationWarning
-          />
-          <motion.div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full blur-3xl"
-            style={{
-              backgroundColor:
-                mounted && isLightMode
-                  ? "rgba(79, 70, 229, 0.1)"
-                  : "rgba(139, 92, 246, 0.2)",
+              backgroundColor: isLightMode ? "#06B6D4" : "#2563EB", // Cyan / Blue
             }}
             animate={{
               scale: [1, 1.1, 1],
-              rotate: [0, 180, 360],
+              x: [0, -30, 0],
+              y: [0, -50, 0],
             }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            suppressHydrationWarning
+            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
           />
-        </motion.div>
+        </div>
 
         {/* Full Screen Particle Background */}
-        <div className="absolute inset-0 z-0 w-full h-full pointer-events-none">
-           <div className="w-full h-full pointer-events-auto">
-              <ParticleAvatar
-                key={`particle-avatar-${mounted && isLightMode ? "light" : "dark"}`}
-                imageUrl="/heiner-profile.jpg"
-                particleCount={isMobile ? 12500 : 35000} 
-                particleSize={isMobile ? 4.5 : 4.0}
-                formationSpeed={isMobile ? 0.02 : 0.012}
-                mouseInfluence={isMobile ? 0 : 1}
-                isMobile={isMobile}
-                onLoad={() => setIsLoaded(true)}
-                faceOffset={isMobile ? [0, 1.0, 0] : [-6.5, 0, 0]}
-                faceScale={isMobile ? 0.7 : 0.45}
-              />
-           </div>
+        <div className="absolute inset-0 z-0 w-full h-full">
+          <ParticleAvatar
+            key={`particle-avatar-${mounted && isLightMode ? "light" : "dark"}`}
+            imageUrl="/heiner-profile.png"
+            particleCount={isMobile ? 12500 : 100000}
+            particleSize={isMobile ? 4.5 : 3.}
+            formationSpeed={isMobile ? 0.02 : 0.012}
+            mouseInfluence={isMobile ? 0 : 1}
+            isMobile={isMobile}
+            onLoad={() => setIsLoaded(true)}
+            faceOffset={isMobile ? [0, 1.5, 0] : [-6.5, 0, 0]} 
+            faceScale={isMobile ? 0.6 : 0.45}
+          />
         </div>
 
-        {/* Main Content Container */}
-        {/* pointer-events-none allows clicks to pass through to the canvas behind */}
-        <div className="relative z-10 max-w-7xl  w-full flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-16 pointer-events-none">
-          {/* Avatar Section - Placeholder to keep layout structure */}
-          <div className="flex-shrink-0 w-full lg:w-auto flex items-center justify-center">
-             {/* Transparent box to maintain alignment */}
-             <div className="relative max-w-[350px] sm:max-w-[450px] lg:max-w-[600px] w-full aspect-square opacity-0">
-               {/* Spacer */}
-             </div>
-          </div>
+        {/* Content Container - Glass Card Layout */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full min-h-screen flex flex-col justify-end pb-20 lg:pb-0 lg:justify-center lg:flex-row lg:items-center pointer-events-none">
+          
+          {/* Left Spacer (Desktop) to balance the face */}
+          <div className="hidden lg:block lg:flex-1" />
 
-          {/* Hero Text Section */}
+          {/* Right Content (Card) */}
           <motion.div
-            initial={{ opacity: 0.8, x: isMobile ? 0 : 20 }}
+            className="w-full lg:flex-1 max-w-xl ml-auto pointer-events-auto"
+            initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{
-              duration: 0.8,
-              ease: [0.6, 0.05, 0.01, 0.9],
-              delay: 0.1,
-            }}
-            className="flex flex-col space-y-3 lg:space-y-6 max-w-2xl text-center lg:text-left pointer-events-auto"
+            transition={{ duration: 0.8, delay: 0.2 }}
           >
-            {/* Greeting */}
-            <div className="flex items-center space-x-3 lg:space-x-4 justify-center lg:justify-start">
-              <motion.div
-                className="text-3xl lg:text-5xl"
-                animate={
-                  !isMobile
-                    ? {
-                        rotate: [0, 25, -25, 20, -20, 15, -15, 10, -10, 0],
-                      }
-                    : {}
-                }
-                transition={
-                  !isMobile
-                    ? {
-                        duration: 1.5,
-                        repeat: 2,
-                        ease: "easeInOut",
-                      }
-                    : {}
-                }
-              ></motion.div>
-              <h1 className="text-3xl lg:text-6xl font-bold bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 dark:from-purple-400 dark:via-violet-400 dark:to-indigo-400 bg-clip-text text-transparent">
-                Hello!
-              </h1>
-            </div>
+            <div className="relative overflow-hidden rounded-3xl border border-white/20 dark:border-gray-800 bg-white/10 dark:bg-black/40 backdrop-blur-xl shadow-2xl p-8 md:p-10 lg:p-12">
+              
+              {/* Decorative gradient blob inside card */}
+              <div className="absolute -top-24 -right-24 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
 
-            {/* Main Heading with typing effect */}
-            <div>
-              <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-gray-800 dark:text-gray-100 leading-tight">
-                I'm{" "}
-                <motion.span
-                  className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 dark:from-purple-400 dark:via-violet-400 dark:to-indigo-400"
-                  initial={{ backgroundPosition: "0% 50%" }}
-                  animate={
-                    !isMobile
-                      ? { backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }
-                      : {}
-                  }
-                  transition={
-                    !isMobile
-                      ? { duration: 5, repeat: Infinity, ease: "linear" }
-                      : {}
-                  }
-                  style={{ backgroundSize: "200% auto" }}
+              <div className="relative z-10 flex flex-col space-y-6">
+                
+                {/* Intro Tag */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="flex items-center space-x-2"
                 >
-                  Heiner
-                </motion.span>
-              </h2>
-            </div>
+                   <span className="flex h-2 w-2 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                   </span>
+                   <span className="text-sm font-medium tracking-wider uppercase text-gray-600 dark:text-gray-400">Available for work</span>
+                </motion.div>
 
-            {/* Subheading with animated underline */}
-            <div>
-              <p className="text-lg sm:text-xl lg:text-3xl font-semibold text-gray-700 dark:text-gray-300">
-                A passionate{" "}
-                <span className="relative inline-block">
-                  <motion.span
-                    className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 dark:from-indigo-400 dark:via-purple-400 dark:to-violet-400 font-bold"
-                    animate={
-                      !isMobile
-                        ? {
-                            backgroundPosition: [
-                              "0% 50%",
-                              "100% 50%",
-                              "0% 50%",
-                            ],
-                          }
-                        : {}
-                    }
-                    transition={
-                      !isMobile
-                        ? { duration: 4, repeat: Infinity, ease: "linear" }
-                        : {}
-                    }
-                    style={{ backgroundSize: "200% auto" }}
-                  >
-                    Full-Stack Developer
-                  </motion.span>
-                  <motion.span
-                    className="absolute bottom-0 left-0 w-full h-3 bg-gradient-to-r from-indigo-500/30 to-cyan-500/30 -z-10 rounded-full"
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ duration: 0.8, delay: 1.2 }}
-                    style={{ originX: 0 }}
-                  />
-                </span>
-              </p>
-            </div>
-
-            {/* Description with stagger effect */}
-            <p className="text-base sm:text-lg lg:text-2xl text-gray-600 dark:text-gray-400 leading-relaxed">
-              <span>Building exceptional digital experiences</span>
-              <br />
-              <span>with modern web technologies</span>
-            </p>
-
-            {/* Availability Badge with pulse */}
-            <div className="inline-flex items-center justify-center lg:justify-start">
-              <motion.div
-                className="flex items-center space-x-3 px-6 py-3 rounded-full bg-gradient-to-r from-green-500/10 via-emerald-500/10 to-green-500/10 border-2 border-green-500/30 dark:border-green-400/40 backdrop-blur-sm shadow-lg"
-                whileHover={{
-                  scale: 1.05,
-                  boxShadow: "0 20px 40px rgba(34, 197, 94, 0.2)",
-                }}
-                animate={{
-                  borderColor: [
-                    "rgba(34, 197, 94, 0.3)",
-                    "rgba(34, 197, 94, 0.6)",
-                    "rgba(34, 197, 94, 0.3)",
-                  ],
-                }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <div className="relative">
-                  <motion.div
-                    className="w-3 h-3 bg-green-500 rounded-full"
-                    animate={{
-                      boxShadow: [
-                        "0 0 0 0 rgba(34, 197, 94, 0.4)",
-                        "0 0 0 8px rgba(34, 197, 94, 0)",
-                      ],
-                    }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  />
+                {/* Main Heading */}
+                <div className="space-y-2">
+                  <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-gray-900 dark:text-white">
+                    Hello! <span className="inline-block origin-bottom-right animate-wave ml-1 text-4xl lg:text-6xl">👋</span>
+                  </h1>
+                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-800 dark:text-gray-100">
+                    I'm <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-blue-500 to-cyan-500">Heiner</span>
+                  </h2>
                 </div>
-                <span className="text-base lg:text-lg font-semibold text-green-700 dark:text-green-400">
-                  Available for work
-                </span>
-              </motion.div>
-            </div>
 
-            {/* CTA Buttons with hover effects */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-4 justify-center lg:justify-start">
-              <motion.a
-                href="#Contact"
-                className="relative px-8 py-4 bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 text-white font-semibold rounded-xl shadow-lg overflow-hidden group"
-                whileHover={{
-                  scale: 1.05,
-                  boxShadow: "0 20px 40px rgba(79, 70, 229, 0.4)",
-                }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600"
-                  initial={{ x: "100%" }}
-                  whileHover={{ x: 0 }}
-                  transition={{ duration: 0.3 }}
-                />
-                <span className="relative z-10">Get in Touch</span>
-              </motion.a>
-              <motion.a
-                href="#Projects"
-                className="relative px-8 py-4 bg-transparent border-2 border-indigo-600 dark:border-purple-400 text-indigo-600 dark:text-purple-400 font-semibold rounded-xl overflow-hidden group"
-                whileHover={{ scale: 1.05, borderColor: "rgb(79, 70, 229)" }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <motion.div
-                  className="absolute inset-0 bg-indigo-600/10 dark:bg-purple-400/10"
-                  initial={{ y: "100%" }}
-                  whileHover={{ y: 0 }}
-                  transition={{ duration: 0.3 }}
-                />
-                <span className="relative z-10">View Projects</span>
-              </motion.a>
+                {/* Description */}
+                <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 leading-relaxed font-light">
+                  A passionate <span className="font-semibold text-gray-900 dark:text-white">Full-Stack Developer</span> building exceptional digital experiences with modern web technologies.
+                </p>
+
+                {/* Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                  <motion.a
+                    href="#Contact"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="flex justify-center items-center px-8 py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-shadow"
+                  >
+                    Get in Touch
+                  </motion.a>
+                  
+                  <motion.a
+                    href="#Projects"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="flex justify-center items-center px-8 py-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-black/50 hover:bg-white dark:hover:bg-gray-900 text-gray-900 dark:text-white font-medium backdrop-blur-sm transition-colors"
+                  >
+                    View Projects
+                  </motion.a>
+                </div>
+
+              </div>
             </div>
           </motion.div>
+
         </div>
 
-        {/* Scroll Indicator with bounce */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 hidden lg:flex">
-          <motion.div
-            className="flex flex-col items-center space-y-2 text-gray-500 dark:text-gray-500 cursor-pointer"
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-            whileHover={{ scale: 1.1 }}
-            onClick={() =>
-              window.scrollBy({ top: window.innerHeight, behavior: "smooth" })
-            }
-          >
-            <span className="text-sm font-medium">Scroll to explore</span>
-            <motion.svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              animate={{ y: [0, 5, 0] }}
-              transition={{ duration: 1, repeat: Infinity }}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 14l-7 7m0 0l-7-7m7 7V3"
-              />
-            </motion.svg>
-          </motion.div>
-        </div>
+        {/* Scroll Indicator */}
+        <motion.div 
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 text-gray-400 dark:text-gray-500 flex flex-col items-center gap-2 cursor-pointer hidden md:flex"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, y: [0, 10, 0] }}
+          transition={{ delay: 1.5, duration: 2, repeat: Infinity }}
+          onClick={() => window.scrollBy({ top: window.innerHeight, behavior: "smooth" })}
+        >
+          <span className="text-xs uppercase tracking-widest">Scroll</span>
+          <div className="w-px h-12 bg-gradient-to-b from-transparent via-gray-400 to-transparent dark:via-gray-600" />
+        </motion.div>
       </section>
     </>
   );
