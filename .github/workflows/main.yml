@@ -91,7 +91,10 @@ jobs:
 
             echo "--- PM2 restart ---"
             command -v pm2 >/dev/null 2>&1 || (echo "PM2 missing on VPS" && exit 1)
-            pm2 startOrReload ecosystem.config.js --only blog --env production
+            pm2 delete app_main || true
+            pm2 delete blog || true
+            APP_PORT="${APP_PORT}" pm2 start ecosystem.config.js --only blog --env production
+            pm2 save
             pm2 status
 
             echo "--- Health ---"
