@@ -7,6 +7,8 @@ import { FaGithub } from "react-icons/fa";
 import "react-github-calendar/tooltips.css";
 import { cn } from "@/lib/utils";
 
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 // Dynamic import to avoid SSR issues
 import dynamic from "next/dynamic";
 
@@ -149,21 +151,33 @@ export default function GitHub() {
 
         <div className="overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700">
           {mounted && (
-            <GitHubCalendar
-              key={selectedYear ?? "recent"}
-              username={GITHUB_USERNAME}
-              year={selectedYear}
-              theme={customTheme}
-              colorScheme={isDark ? "dark" : "light"}
-              fontSize={12}
-              blockSize={12}
-              blockMargin={3}
-              blockRadius={2}
-              showWeekdayLabels={["mon", "wed", "fri"] as any}
-              labels={{
-                totalCount: "{{count}} contributions in {{year}}",
-              }}
-            />
+            <TooltipProvider delayDuration={100}>
+              <GitHubCalendar
+                key={selectedYear ?? "recent"}
+                username={GITHUB_USERNAME}
+                year={selectedYear}
+                theme={customTheme}
+                colorScheme={isDark ? "dark" : "light"}
+                fontSize={12}
+                blockSize={12}
+                blockMargin={3}
+                blockRadius={2}
+                showWeekdayLabels={["mon", "wed", "fri"] as any}
+                labels={{
+                  totalCount: "{{count}} contributions in {{year}}",
+                }}
+                renderBlock={(block, activity) => (
+                  <Tooltip key={activity.date}>
+                    <TooltipTrigger asChild>
+                      {block}
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-gray-900 border border-gray-800 text-white rounded px-3 py-1.5 text-xs font-medium shadow-md dark:bg-gray-900 drop-shadow-xl z-50">
+                      {activity.count === 0 ? "No contributions" : `${activity.count} contributions`} on {new Date(activity.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              />
+            </TooltipProvider>
           )}
         </div>
 

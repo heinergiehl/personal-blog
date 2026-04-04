@@ -26,12 +26,12 @@ const HPAD = 8 // horizontal pill padding
 const VPAD = 4 // vertical pill padding
 
 const linkVariants = {
-  rest: { scale: 1, rotate: 0 },
-  hover: { scale: 1.12 },
+  rest: { y: 0, scale: 1 },
+  hover: { y: -1.5, scale: 1 },
   pulse: {
     // one-off celebration
-    scale: [1, 1.15, 1, 1.15, 1],
-    rotate: [0, -10, 0, 10, 0],
+    y: [0, -4, 0, -4, 0],
+    scale: 1,
     transition: {
       duration: 0.5,
       ease: "easeInOut",
