@@ -485,7 +485,7 @@ const ParticleSystemMobile = ({
     }
   });
 
-  // Stripped-down vertex shader: no fluid, no glitch, no lifetime cycling
+  // Mobile vertex shader: gentle living motion without distortion
   const vertexShader = /* glsl */ `
     uniform float uTime;
     uniform sampler2D uTexture;
@@ -498,13 +498,25 @@ const ParticleSystemMobile = ({
       vec3 pos = position;
       vec4 texColor = texture2D(uTexture, uv);
       float brightness = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
-      // Subtle depth from brightness
+
+      // Depth from brightness
       pos.z += brightness * 1.0;
-      // Very gentle breathing
-      pos.z += sin(uTime * 0.4 + pos.x * 0.3) * 0.1;
+
+      // Slow breathing – whole face gently rises and falls
+      pos.z += sin(uTime * 0.35) * 0.15;
+
+      // Travelling wave across the face (sells "these are particles")
+      float wave = sin(uTime * 0.6 + pos.x * 0.8 + pos.y * 0.5) * 0.08;
+      pos.z += wave;
+
+      // Very subtle lateral micro-drift per particle
+      pos.x += sin(uTime * 0.25 + pos.y * 1.2) * 0.03;
+      pos.y += cos(uTime * 0.3  + pos.x * 1.0) * 0.03;
+
       vAlpha = 1.0;
       vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
       gl_Position = projectionMatrix * mvPosition;
+
       float baseSize = uPointSize * 25.0;
       float scale;
       if (uIsDarkMode > 0.5) {
@@ -512,6 +524,8 @@ const ParticleSystemMobile = ({
       } else {
         scale = 1.8 - brightness * 1.0;
       }
+      // Gentle size pulse so particles feel alive
+      scale *= 1.0 + sin(uTime * 0.5 + pos.x * 0.4 + pos.y * 0.4) * 0.04;
       gl_PointSize = (baseSize / -mvPosition.z) * scale;
     }
   `;
@@ -544,7 +558,9 @@ const ParticleSystemMobile = ({
         vec3 holoColor = mix(darkTone, midTone, smoothstep(0.0, 0.5, luminance));
         holoColor = mix(holoColor, lightTone, smoothstep(0.5, 1.0, luminance));
         color = mix(color, holoColor, 0.90);
-        color *= 1.2;
+        // Gentle shimmer sweep
+        float shimmer = sin(vUv.y * 12.0 - uTime * 0.8) * 0.5 + 0.5;
+        color *= 1.15 + shimmer * 0.1;
         gl_FragColor = vec4(color, texColor.a * vAlpha * circleAlpha);
       } else {
         float lum = dot(color, vec3(0.299, 0.587, 0.114));
