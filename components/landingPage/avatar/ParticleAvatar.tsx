@@ -175,13 +175,25 @@ const BackgroundParticlesMobile = ({ count = 400 }) => {
     varying float vAlpha;
     void main() {
       vec3 pos = position;
-      float time = uTime * 0.08;
-      pos.x += sin(time + aRandom.y * 6.28) * 0.2;
-      pos.y += cos(time + aRandom.z * 6.28) * 0.2;
+
+      // Each particle gets its own orbit speed & radius
+      float speed = 0.15 + aRandom.x * 0.15;
+      float t = uTime * speed;
+      float angle = t + aRandom.y * 6.28;
+      float radius = 0.6 + aRandom.z * 0.8;
+      pos.x += sin(angle) * radius;
+      pos.y += cos(angle * 0.7 + aRandom.z * 3.14) * radius;
+      pos.z += sin(t * 0.5 + aRandom.x * 6.28) * 0.4;
+
       vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
       gl_Position = projectionMatrix * mvPosition;
-      gl_PointSize = 300.0 * (1.0 / -mvPosition.z) * (0.4 + aRandom.x * 0.6);
-      vAlpha = 0.4 + aRandom.x * 0.3;
+
+      // Size pulse
+      float sizePulse = 1.0 + sin(uTime * 0.6 + aRandom.y * 6.28) * 0.25;
+      gl_PointSize = 300.0 * (1.0 / -mvPosition.z) * (0.4 + aRandom.x * 0.6) * sizePulse;
+
+      // Twinkle alpha
+      vAlpha = 0.35 + aRandom.x * 0.35 + sin(uTime * 0.8 + aRandom.z * 6.28) * 0.15;
     }
   `;
 
@@ -192,7 +204,7 @@ const BackgroundParticlesMobile = ({ count = 400 }) => {
       float dist = length(gl_PointCoord - vec2(0.5));
       if (dist > 0.5) discard;
       float alpha = (1.0 - smoothstep(0.1, 0.5, dist)) * vAlpha;
-      gl_FragColor = vec4(uColor, alpha * 0.6);
+      gl_FragColor = vec4(uColor, alpha * 0.7);
     }
   `;
 
@@ -503,15 +515,15 @@ const ParticleSystemMobile = ({
       pos.z += brightness * 1.0;
 
       // Slow breathing – whole face gently rises and falls
-      pos.z += sin(uTime * 0.35) * 0.15;
+      pos.z += sin(uTime * 0.4) * 0.25;
 
       // Travelling wave across the face (sells "these are particles")
-      float wave = sin(uTime * 0.6 + pos.x * 0.8 + pos.y * 0.5) * 0.08;
+      float wave = sin(uTime * 0.7 + pos.x * 1.0 + pos.y * 0.6) * 0.15;
       pos.z += wave;
 
-      // Very subtle lateral micro-drift per particle
-      pos.x += sin(uTime * 0.25 + pos.y * 1.2) * 0.03;
-      pos.y += cos(uTime * 0.3  + pos.x * 1.0) * 0.03;
+      // Lateral micro-drift per particle — enough to see movement
+      pos.x += sin(uTime * 0.3 + pos.y * 1.5) * 0.07;
+      pos.y += cos(uTime * 0.35 + pos.x * 1.2) * 0.07;
 
       vAlpha = 1.0;
       vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
@@ -524,8 +536,8 @@ const ParticleSystemMobile = ({
       } else {
         scale = 1.8 - brightness * 1.0;
       }
-      // Gentle size pulse so particles feel alive
-      scale *= 1.0 + sin(uTime * 0.5 + pos.x * 0.4 + pos.y * 0.4) * 0.04;
+      // Size pulse so particles feel alive
+      scale *= 1.0 + sin(uTime * 0.6 + pos.x * 0.5 + pos.y * 0.5) * 0.08;
       gl_PointSize = (baseSize / -mvPosition.z) * scale;
     }
   `;
