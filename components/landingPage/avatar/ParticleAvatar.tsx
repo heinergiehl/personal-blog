@@ -473,9 +473,9 @@ const ParticleSystemMobile = ({
       uTime: { value: 0 },
       uTexture: { value: texture },
       uPointSize: { value: pointSize },
-      uIsDarkMode: { value: isDarkMode ? 1.0 : 0.0 },
+      uIsDarkMode: { value: 0.0 },
     }),
-    [texture, pointSize, isDarkMode]
+    [texture, pointSize]
   );
 
   useFrame((state) => {
@@ -683,6 +683,7 @@ const ParticleAvatar = ({
       <Canvas
         camera={{ position: [0, 0, 18], fov: 35 }}
         dpr={isMobile ? [1, 1] : 1}
+        frameloop={isMobile ? "demand" : "always"}
         gl={{
           alpha: true,
           antialias: false,
@@ -722,21 +723,28 @@ const ParticleAvatar = ({
 
 // Throttle mobile rendering to ~30fps to save battery
 function MobileFrameThrottle() {
-  const { invalidate } = useThree();
+  const { invalidate, gl } = useThree();
   useEffect(() => {
-    let running = true;
-    let lastTime = 0;
-    const tick = (time: number) => {
-      if (!running) return;
-      if (time - lastTime > 33) {
-        invalidate();
-        lastTime = time;
-      }
-      requestAnimationFrame(tick);
+    const canvas = gl.domElement;
+    let visible = true;
+
+    // Stop rendering entirely when canvas is scrolled offscreen
+    const observer = new IntersectionObserver(
+      ([entry]) => { visible = entry.isIntersecting; },
+      { threshold: 0 }
+    );
+    observer.observe(canvas);
+
+    // Throttle to ~30fps via simple interval (lighter than rAF loop)
+    const id = setInterval(() => {
+      if (visible) invalidate();
+    }, 33);
+
+    return () => {
+      clearInterval(id);
+      observer.disconnect();
     };
-    requestAnimationFrame(tick);
-    return () => { running = false; };
-  }, [invalidate]);
+  }, [invalidate, gl]);
   return null;
 }
 

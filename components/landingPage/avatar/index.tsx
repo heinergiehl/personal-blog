@@ -116,13 +116,13 @@ const Avatar = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4, duration: 0.6 }}
-                className="flex items-center gap-3 w-fit"
+                className="flex items-center gap-3 w-fit px-3 py-1.5 rounded-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 shadow-sm"
               >
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                 </span>
-                <span className="text-[11px] font-medium tracking-[0.25em] uppercase text-gray-500 dark:text-gray-400">
+                <span className="text-[11px] font-semibold tracking-[0.2em] uppercase text-gray-700 dark:text-gray-200">
                   Open to opportunities
                 </span>
               </motion.div>

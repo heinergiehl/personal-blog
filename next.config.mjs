@@ -1,3 +1,16 @@
+// Suppress punycode deprecation warning from transitive deps (uri-js → ajv)
+const _origEmit = process.emit;
+process.emit = function (event, error) {
+  if (
+    event === 'warning' &&
+    error?.name === 'DeprecationWarning' &&
+    error?.message?.includes('punycode')
+  ) {
+    return false;
+  }
+  return _origEmit.apply(process, arguments);
+};
+
 /** @type {import('next').NextConfig} */
 import createMDX from '@next/mdx'
 const nextConfig = {

@@ -1,4 +1,4 @@
-import { motion, useMotionValue, useSpring } from "framer-motion"
+import { motion, useMotionValue, useSpring, useInView, useTransform, animate } from "framer-motion"
 import CopyEmailButton from "../copy-email-button"
 import { useTheme } from "next-themes"
 import { useState, useEffect, useRef, useCallback } from "react"
@@ -9,6 +9,31 @@ const TECH_STACK = [
   "Laravel", "Express.js", "NestJS", "Node.js",
   "TypeScript", "PHP", "PostgreSQL", "MongoDB",
 ]
+
+// Animated counter – counts from 0 to target when scrolled into view
+const AnimatedCounter = ({ target, suffix = "" }: { target: number; suffix?: string }) => {
+  const ref = useRef<HTMLSpanElement>(null)
+  const isInView = useInView(ref, { once: true, amount: 0.5 })
+  const count = useMotionValue(0)
+  const rounded = useTransform(count, (v) => Math.round(v))
+  const [display, setDisplay] = useState(0)
+
+  useEffect(() => {
+    if (!isInView) return
+    const controls = animate(count, target, {
+      duration: 2,
+      ease: "easeOut",
+    })
+    return controls.stop
+  }, [isInView, count, target])
+
+  useEffect(() => {
+    const unsubscribe = rounded.on("change", (v) => setDisplay(v as number))
+    return unsubscribe
+  }, [rounded])
+
+  return <span ref={ref}>{display}{suffix}</span>
+}
 
 const AboutMe = () => {
   const { theme, systemTheme } = useTheme()
@@ -309,9 +334,9 @@ const AboutMe = () => {
             >
               <div className="grid grid-cols-3 gap-6">
                 {[
-                  { value: "5+", label: "Years" },
-                  { value: "20+", label: "Projects" },
-                  { value: "∞", label: "Curiosity" },
+                  { target: 5, suffix: "+", display: null, label: "Years" },
+                  { target: 20, suffix: "+", display: null, label: "Projects" },
+                  { target: null, suffix: "", display: "∞", label: "Curiosity" },
                 ].map((stat, i) => (
                   <motion.div
                     key={stat.label}
@@ -327,7 +352,11 @@ const AboutMe = () => {
                       )}
                       suppressHydrationWarning
                     >
-                      {stat.value}
+                      {stat.target !== null ? (
+                        <AnimatedCounter target={stat.target} suffix={stat.suffix} />
+                      ) : (
+                        stat.display
+                      )}
                     </div>
                     <div
                       className={cn(
