@@ -156,14 +156,14 @@ const Avatar = () => {
                 <AnimatePresence mode="wait">
                   <motion.p
                     key={roleIndex}
-                    className="absolute text-base sm:text-lg font-mono text-gray-500 dark:text-gray-400 tracking-wide"
+                    className="absolute text-base sm:text-lg font-mono text-gray-300 dark:text-gray-300 tracking-wide drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)]"
                     initial={{ y: 24, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -24, opacity: 0 }}
                     transition={{ duration: 0.4, ease: "easeInOut" }}
                   >
                     {"// "}
-                    <span className="text-indigo-600 dark:text-indigo-400">
+                    <span className="text-indigo-400 dark:text-indigo-300">
                       {ROLES[roleIndex]}
                     </span>
                   </motion.p>

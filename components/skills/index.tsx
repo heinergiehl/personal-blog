@@ -88,8 +88,8 @@ const Skills = () => {
               key={group.category}
               initial={{ opacity: 0, y: 15 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: gi * 0.06, duration: 0.4 }}
-              viewport={{ once: true }}
+              transition={{ delay: gi * 0.08, duration: 0.5 }}
+              viewport={{ once: true, amount: 0.2 }}
             >
               <h3
                 className={cn(
@@ -100,7 +100,7 @@ const Skills = () => {
                 {group.category}
               </h3>
               <div className="flex flex-wrap gap-2">
-                {group.items.map((tech, ti) => (
+                {group.items.map((tech) => (
                   <motion.span
                     key={tech}
                     className={cn(
@@ -109,10 +109,6 @@ const Skills = () => {
                         ? "border-gray-200 text-gray-600 bg-white/60 hover:border-indigo-400/60 hover:text-indigo-700 hover:bg-indigo-50"
                         : "border-gray-800 text-gray-400 bg-gray-900/40 hover:border-indigo-500/40 hover:text-indigo-300 hover:bg-indigo-950/40",
                     )}
-                    initial={{ opacity: 0, y: 6 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: gi * 0.06 + ti * 0.03, duration: 0.3 }}
-                    viewport={{ once: true }}
                     whileHover={{ y: -2, scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
                     suppressHydrationWarning
