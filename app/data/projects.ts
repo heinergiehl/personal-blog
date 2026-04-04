@@ -13,7 +13,7 @@ export interface Project {
 export const projects: Project[] = [
   {
     slug: "image-studio-pro",
-    image: "/image-studio-pro.png",
+    image: "/image-studio-pro.webp",
     title: "Image Studio Pro",
     description:
       "A full in-panel image editor for Filament with canvas tools, templates, brand presets, and advanced editing capabilities.",
@@ -23,7 +23,7 @@ export const projects: Project[] = [
   },
   {
     slug: "rag-chatbot",
-    image: "/rag-chatbot.png",
+    image: "/rag-chatbot.webp",
     title: "RAG Chatbot",
     description:
       "Production-ready AI chatbot management for Laravel + Filament with multi-bot support, knowledge ingestion, and embeddable widgets.",
