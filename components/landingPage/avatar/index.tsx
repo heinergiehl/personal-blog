@@ -153,17 +153,24 @@ const Avatar = () => {
 
               {/* Cycling role — with crossfade */}
               <div className="h-8 relative overflow-hidden">
+                {/* Mobile readability blur behind the text */}
+                <div className="absolute inset-0 max-w-[280px] bg-gradient-to-r from-gray-50/80 via-gray-50/40 to-transparent dark:from-gray-950/80 dark:via-gray-950/40 dark:to-transparent blur-sm rounded-l-lg pointer-events-none md:hidden" />
+                
                 <AnimatePresence mode="wait">
                   <motion.p
                     key={roleIndex}
-                    className="absolute text-base sm:text-lg font-mono text-gray-300 dark:text-gray-300 tracking-wide drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)]"
+                    className="absolute z-10 text-base sm:text-lg font-mono tracking-wide flex items-center gap-1.5"
                     initial={{ y: 24, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -24, opacity: 0 }}
                     transition={{ duration: 0.4, ease: "easeInOut" }}
                   >
-                    {"// "}
-                    <span className="text-indigo-400 dark:text-indigo-300">
+                    {/* The "//" part — darker in light mode so it has contrast, bright in dark mode */}
+                    <span className="text-gray-500 dark:text-gray-300 font-bold drop-shadow-[0_1px_2px_rgba(255,255,255,0.5)] dark:drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
+                      {"//"}
+                    </span>
+                    {/* The role part — strong brand color, high contrast drop shadow */}
+                    <span className="text-indigo-600 dark:text-indigo-400 font-semibold drop-shadow-[0_1px_2px_rgba(255,255,255,0.6)] dark:drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
                       {ROLES[roleIndex]}
                     </span>
                   </motion.p>
