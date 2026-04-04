@@ -58,14 +58,24 @@ jobs:
             echo "--- Ensure deploy dir exists ---"
             mkdir -p "$(dirname "$DEPLOY_DIR")"
 
+            if [ -n "${GH_TOKEN:-}" ]; then
+              REPO_URL="https://x-access-token:${GH_TOKEN}@github.com/${GH_REPO}.git"
+              echo "--- Git auth ---"
+              echo "Using authenticated GitHub remote"
+            else
+              REPO_URL="https://github.com/${GH_REPO}.git"
+              echo "--- Git auth ---"
+              echo "GH_DEPLOY_TOKEN not set; using public GitHub remote"
+            fi
+
             if [ ! -d "$DEPLOY_DIR/.git" ]; then
               echo "--- Fresh clone ---"
               rm -rf "$DEPLOY_DIR"
-              git clone --branch "$GH_BRANCH" "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPO}.git" "$DEPLOY_DIR"
+              git clone --branch "$GH_BRANCH" "$REPO_URL" "$DEPLOY_DIR"
             else
               echo "--- Update existing repo ---"
               cd "$DEPLOY_DIR"
-              git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPO}.git"
+              git remote set-url origin "$REPO_URL"
               git fetch origin "$GH_BRANCH"
               git reset --hard "origin/$GH_BRANCH"
             fi
