@@ -1,243 +1,252 @@
 "use client";
 
-import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useTransform, useSpring, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useTheme } from "next-themes";
-import { COLOR_ONE, COLOR_TWO } from "@/config";
 
-// Beautiful loading spinner component
+// Minimal loading state — just a subtle pulse, no spinner circus
 const LoadingSpinner = () => (
   <div className="w-full h-full flex items-center justify-center min-h-[400px] lg:min-h-[600px]">
-    <div className="relative">
-      {/* Outer ring */}
-      <motion.div
-        className="w-32 h-32 rounded-full border-4 border-indigo-500/20"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 3, repeat: Infinity, ease: "linear", delay: 0 }}
-      />
-      {/* Middle ring */}
-      <motion.div
-        className="absolute inset-0 w-32 h-32 rounded-full border-4 border-transparent border-t-indigo-500 border-r-cyan-500"
-        animate={{ rotate: -360 }}
-        transition={{
-          duration: 1.5,
-          repeat: Infinity,
-          ease: "linear",
-          delay: 0,
-        }}
-      />
-      {/* Inner pulsing circle */}
-      <motion.div
-        className="absolute inset-0 m-auto w-16 h-16 rounded-full bg-gradient-to-r from-indigo-500 to-cyan-500"
-        animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.5, 0.8, 0.5],
-        }}
-        transition={{ duration: 2, repeat: Infinity, delay: 0 }}
-      />
-      {/* Center dot */}
-      <div className="absolute inset-0 m-auto w-4 h-4 rounded-full bg-white dark:bg-gray-900" />
-    </div>
-    {/* Loading text */}
     <motion.div
-      className="absolute mt-48 text-indigo-500 dark:text-purple-400 font-semibold"
-      animate={{ opacity: [0.5, 1, 0.5] }}
-      transition={{ duration: 1.5, repeat: Infinity, delay: 0 }}
-    >
-      Loading experience...
-    </motion.div>
+      className="w-2 h-2 rounded-full bg-indigo-500/60"
+      animate={{ scale: [1, 2.5, 1], opacity: [0.3, 0.7, 0.3] }}
+      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+    />
   </div>
 );
 
-// Dynamic import to avoid SSR issues with Three.js - with immediate loading state
 const ParticleAvatar = dynamic(() => import("./ParticleAvatar"), {
   ssr: false,
   loading: () => <LoadingSpinner />,
 });
 
+// Roles to cycle through
+const ROLES = [
+  "Full-Stack Developer",
+  "UI/UX Enthusiast",
+  "API Architect",
+  "Creative Coder",
+];
+
 const Avatar = () => {
   const { theme, systemTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isLoaded, setIsLoaded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [roleIndex, setRoleIndex] = useState(0);
+  const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     setMounted(true);
-    // Detect mobile devices
     const checkMobile = () => {
-      const isMobileDevice =
+      const mobile =
         /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-          navigator.userAgent,
+          navigator.userAgent
         ) || window.innerWidth < 768;
-      setIsMobile(isMobileDevice);
+      setIsMobile(mobile);
     };
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Resolve the actual theme (handle 'system' theme)
+  // Cycle roles
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRoleIndex((prev) => (prev + 1) % ROLES.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
   const resolvedTheme = theme === "system" ? systemTheme : theme;
   const isLightMode = mounted ? resolvedTheme === "light" : false;
 
-  useEffect(() => {
-    if (isMobile) return; // Disable mouse tracking on mobile
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const x = (e.clientX / window.innerWidth - 0.5) * 20;
-      const y = (e.clientY / window.innerHeight - 0.5) * 20;
-      setMousePosition({ x, y });
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [isMobile]);
+  // Stagger animation for text lines
+  const textLines = [
+    { text: "Heiner", delay: 0.3 },
+    { text: "Giehl", delay: 0.5 },
+  ];
 
   return (
     <>
       {!isLoaded && (
-        <section className="min-h-screen relative flex items-center justify-center py-12 px-4 bg-gray-50 dark:bg-gray-950">
+        <section className="min-h-screen relative flex items-center justify-center bg-gray-50 dark:bg-gray-950">
           <LoadingSpinner />
         </section>
       )}
       <section
+        ref={sectionRef}
         id="Header"
         className="min-h-screen relative flex items-center justify-center overflow-hidden"
         style={{ display: isLoaded ? "flex" : "none" }}
       >
-        {/* Animated Background Gradients */}
-        <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-          <motion.div
-            className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30 dark:opacity-20"
-            style={{
-              backgroundColor: isLightMode ? "#4F46E5" : "#7C3AED", // Indigo / Violet
-            }}
-            animate={{
-              scale: [1, 1.2, 1],
-              x: [0, 50, 0],
-              y: [0, 30, 0],
-            }}
-            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div
-            className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full blur-[120px] opacity-30 dark:opacity-20"
-            style={{
-              backgroundColor: isLightMode ? "#06B6D4" : "#2563EB", // Cyan / Blue
-            }}
-            animate={{
-              scale: [1, 1.1, 1],
-              x: [0, -30, 0],
-              y: [0, -50, 0],
-            }}
-            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </div>
-
-        {/* Full Screen Particle Background */}
+        {/* Particle Background — full bleed */}
         <div className="absolute inset-0 z-0 w-full h-full">
           <ParticleAvatar
             key={`particle-avatar-${mounted && isLightMode ? "light" : "dark"}`}
             imageUrl="/heiner-profile.png"
-            particleCount={isMobile ? 12500 : 100000}
-            particleSize={isMobile ? 4.5 : 3.}
+            particleCount={isMobile ? 8100 : 100000}
+            particleSize={isMobile ? 5.0 : 3.0}
             formationSpeed={isMobile ? 0.02 : 0.012}
             mouseInfluence={isMobile ? 0 : 1}
             isMobile={isMobile}
             onLoad={() => setIsLoaded(true)}
-            faceOffset={isMobile ? [0, 1.5, 0] : [-6.5, 0, 0]} 
+            faceOffset={isMobile ? [0, 1.5, 0] : [-6.5, 0, 0]}
             faceScale={isMobile ? 0.6 : 0.45}
           />
         </div>
 
-        {/* Content Container - Glass Card Layout */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full min-h-screen flex flex-col justify-end pb-20 lg:pb-0 lg:justify-center lg:flex-row lg:items-center pointer-events-none">
-          
-          {/* Left Spacer (Desktop) to balance the face */}
+        {/* Content Layer */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 min-h-screen flex flex-col justify-end pb-24 lg:pb-0 lg:justify-center lg:flex-row lg:items-center pointer-events-none">
+          {/* Spacer for particle face on desktop */}
           <div className="hidden lg:block lg:flex-1" />
 
-          {/* Right Content (Card) */}
+          {/* Content — raw, no glass card */}
           <motion.div
-            className="w-full lg:flex-1 max-w-xl ml-auto pointer-events-auto"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            className="w-full lg:flex-1 max-w-2xl ml-auto pointer-events-auto"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 0.1 }}
           >
-            <div className="relative overflow-hidden rounded-3xl border border-white/20 dark:border-gray-800 bg-white/10 dark:bg-black/40 backdrop-blur-xl shadow-2xl p-8 md:p-10 lg:p-12">
-              
-              {/* Decorative gradient blob inside card */}
-              <div className="absolute -top-24 -right-24 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="flex flex-col gap-6 md:gap-8">
 
-              <div className="relative z-10 flex flex-col space-y-6">
-                
-                {/* Intro Tag */}
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="flex items-center space-x-2"
-                >
-                   <span className="flex h-2 w-2 relative">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                   </span>
-                   <span className="text-sm font-medium tracking-wider uppercase text-gray-600 dark:text-gray-400">Available for work</span>
-                </motion.div>
+              {/* Status chip — minimal */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4, duration: 0.6 }}
+                className="flex items-center gap-3 w-fit"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+                <span className="text-[11px] font-medium tracking-[0.25em] uppercase text-gray-500 dark:text-gray-400">
+                  Open to opportunities
+                </span>
+              </motion.div>
 
-                {/* Main Heading */}
-                <div className="space-y-2">
-                  <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-gray-900 dark:text-white">
-                    Hello! <span className="inline-block origin-bottom-right animate-wave ml-1 text-4xl lg:text-6xl">👋</span>
-                  </h1>
-                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-800 dark:text-gray-100">
-                    I'm <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-blue-500 to-cyan-500">Heiner</span>
-                  </h2>
-                </div>
-
-                {/* Description */}
-                <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 leading-relaxed font-light">
-                  A passionate <span className="font-semibold text-gray-900 dark:text-white">Full-Stack Developer</span> building exceptional digital experiences with modern web technologies.
-                </p>
-
-                {/* Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                  <motion.a
-                    href="#Contact"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="flex justify-center items-center px-8 py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-shadow"
-                  >
-                    Get in Touch
-                  </motion.a>
-                  
-                  <motion.a
-                    href="#Projects"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="flex justify-center items-center px-8 py-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-black/50 hover:bg-white dark:hover:bg-gray-900 text-gray-900 dark:text-white font-medium backdrop-blur-sm transition-colors"
-                  >
-                    View Projects
-                  </motion.a>
-                </div>
-
+              {/* Name — big, bold, split into two lines for impact */}
+              <div className="space-y-1">
+                {textLines.map(({ text, delay }, i) => (
+                  <div key={text} className="overflow-hidden">
+                    <motion.h1
+                      className={`text-6xl sm:text-7xl lg:text-8xl xl:text-9xl font-black tracking-tighter leading-[0.9] ${
+                        i === 0
+                          ? "text-gray-900 dark:text-white"
+                          : "text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500"
+                      }`}
+                      initial={{ y: "110%" }}
+                      animate={{ y: "0%" }}
+                      transition={{
+                        delay,
+                        duration: 0.8,
+                        ease: [0.16, 1, 0.3, 1],
+                      }}
+                    >
+                      {text}
+                    </motion.h1>
+                  </div>
+                ))}
               </div>
+
+              {/* Cycling role — with crossfade */}
+              <div className="h-8 relative overflow-hidden">
+                <AnimatePresence mode="wait">
+                  <motion.p
+                    key={roleIndex}
+                    className="absolute text-base sm:text-lg font-mono text-gray-500 dark:text-gray-400 tracking-wide"
+                    initial={{ y: 24, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -24, opacity: 0 }}
+                    transition={{ duration: 0.4, ease: "easeInOut" }}
+                  >
+                    {"// "}
+                    <span className="text-indigo-600 dark:text-indigo-400">
+                      {ROLES[roleIndex]}
+                    </span>
+                  </motion.p>
+                </AnimatePresence>
+              </div>
+
+              {/* Thin separator */}
+              <motion.div
+                className="w-16 h-px bg-gradient-to-r from-indigo-500 to-transparent"
+                initial={{ scaleX: 0, originX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ delay: 0.8, duration: 0.8 }}
+              />
+
+              {/* Description — conversational, not corporate */}
+              <motion.p
+                className="text-base sm:text-lg text-gray-600 dark:text-gray-400 leading-relaxed max-w-md font-light"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.9, duration: 0.6 }}
+              >
+                I craft{" "}
+                <span className="font-medium text-gray-900 dark:text-gray-100">
+                  performant
+                </span>{" "}
+                and{" "}
+                <span className="font-medium text-gray-900 dark:text-gray-100">
+                  beautiful
+                </span>{" "}
+                web experiences — from pixel-perfect interfaces to robust backends.
+              </motion.p>
+
+              {/* CTA row — asymmetric, one bold + one text link */}
+              <motion.div
+                className="flex items-center gap-6 pt-2"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.1, duration: 0.6 }}
+              >
+                <motion.a
+                  href="#Contact"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="group relative inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-semibold shadow-lg shadow-gray-900/10 dark:shadow-white/10 overflow-hidden transition-shadow hover:shadow-xl"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-violet-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <span className="relative z-10 group-hover:text-white transition-colors">Let&apos;s talk</span>
+                  <svg className="relative z-10 w-4 h-4 group-hover:translate-x-0.5 transition-transform group-hover:text-white" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                  </svg>
+                </motion.a>
+
+                <motion.a
+                  href="#Projects"
+                  whileHover={{ x: 4 }}
+                  className="group inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  <span>View work</span>
+                  <svg className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                  </svg>
+                </motion.a>
+              </motion.div>
             </div>
           </motion.div>
-
         </div>
 
-        {/* Scroll Indicator */}
-        <motion.div 
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 text-gray-400 dark:text-gray-500 flex flex-col items-center gap-2 cursor-pointer hidden md:flex"
+        {/* Scroll indicator — minimal line */}
+        <motion.div
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden md:flex flex-col items-center gap-2 cursor-pointer text-gray-400 dark:text-gray-600"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1, y: [0, 10, 0] }}
-          transition={{ delay: 1.5, duration: 2, repeat: Infinity }}
-          onClick={() => window.scrollBy({ top: window.innerHeight, behavior: "smooth" })}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2 }}
+          onClick={() =>
+            window.scrollBy({ top: window.innerHeight, behavior: "smooth" })
+          }
         >
-          <span className="text-xs uppercase tracking-widest">Scroll</span>
-          <div className="w-px h-12 bg-gradient-to-b from-transparent via-gray-400 to-transparent dark:via-gray-600" />
+          <motion.div
+            className="w-px h-10 bg-gradient-to-b from-gray-400 to-transparent dark:from-gray-600"
+            animate={{ scaleY: [0.3, 1, 0.3] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+            style={{ originY: 0 }}
+          />
         </motion.div>
       </section>
     </>

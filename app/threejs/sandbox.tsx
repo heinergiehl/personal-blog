@@ -99,8 +99,7 @@ const defaultFilesByTemplate: DefaultFiles = {
   "vanilla-ts": "",
   angular: "",
   vue: "",
-  vue3: "",
-  "vue3-ts": "",
+  
   svelte: "",
   solid: "",
   "test-ts": "",
@@ -148,9 +147,10 @@ export function Sandpack({
         <SandpackLayout>
           <div className="flex flex-col w-full md:flex-row">
             <div className="flex flex-col w-full md:w-1/2 h-full">
+              {/* @ts-ignore */}
               <PreviewTabs
                 onClear={() => setConsoleKey(consoleKey + 1)}
-                onTabSelect={(tab) =>
+                onTabSelect={(tab: any) =>
                   setSelectedTab(tab as "preview" | "console")
                 }
 

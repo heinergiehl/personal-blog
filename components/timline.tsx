@@ -2,7 +2,6 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { dot } from "node:test/reporters";
 import { COLOR_ONE, COLOR_TWO } from "@/config";
 import { useTheme } from "next-themes";
 
@@ -11,9 +10,17 @@ interface TimelineItem {
   company: string;
   timeframe: string;
   description: string;
+  links?: { label: string; url: string }[];
 }
 
 const timelineData: TimelineItem[] = [
+  {
+    title: "Building & Selling Software Products",
+    company: "Filament Ecosystem",
+    timeframe: "2026 - Present",
+    description:
+      "Developing and selling premium Filament plugins for the Laravel ecosystem. Building developer tools that solve real problems and shipping them as commercial products.",
+  },
   {
     title: "Freelancing Fullstack Web Developer",
     company: "Self-employed",
@@ -129,7 +136,7 @@ export default function Timeline() {
     <section
       id="Timeline"
       ref={containerRef}
-      className="h-[calc(100vh+1100px)] relative flex flex-col md:px-20 py-16 mt-24"
+      className="h-[calc(100vh+1000px)] relative flex flex-col md:px-20 py-16 mt-24"
     >
       {/* Enhanced background with animated gradients */}
       <div className="absolute inset-0 overflow-hidden">
@@ -183,7 +190,7 @@ export default function Timeline() {
       />
 
       {/* Timeline Items */}
-      <div className="absolute md:space-y-[150px] inset-0 max-w-4xl m-auto h-full md:my-[400px] mt-[420px]">
+      <div className="absolute md:space-y-[120px] inset-0 max-w-4xl m-auto h-full md:my-[200px] mt-[220px]">
         {timelineData.map((item, idx) => {
           const isEven = idx % 2 === 0;
           const showCard = !!cardActivated[idx];
@@ -322,6 +329,35 @@ export default function Timeline() {
                   >
                     {item.description}
                   </motion.p>
+                  {item.links && item.links.length > 0 && (
+                    <motion.div
+                      className="flex flex-wrap gap-2 mt-4"
+                      initial={{ opacity: 0 }}
+                      animate={showCard ? { opacity: 1 } : { opacity: 0 }}
+                      transition={{ delay: 0.4, duration: 0.4 }}
+                    >
+                      {item.links.map((link) => (
+                        <a
+                          key={link.url}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={cn(
+                            "inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-200 hover:scale-105",
+                            mounted && isLightMode
+                              ? "border-indigo-200 text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100"
+                              : "border-purple-500/30 text-purple-300 bg-purple-950/30 hover:bg-purple-900/40"
+                          )}
+                          suppressHydrationWarning
+                        >
+                          {link.label}
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                          </svg>
+                        </a>
+                      ))}
+                    </motion.div>
+                  )}
                 </motion.div>
               </div>
             </motion.div>

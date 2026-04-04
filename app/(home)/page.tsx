@@ -7,6 +7,7 @@ import Contact from "@/components/landingPage/contact"
 import Avatar from "@/components/landingPage/avatar"
 import AboutMe from "@/components/aboutme"
 import Skills from "@/components/skills"
+import GitHub from "@/components/landingPage/github"
 
 import { ProjectsWrapper } from "@/components/projects/ProjectsWrapper"
 import React from "react"
@@ -22,6 +23,7 @@ const Main = () => {
         <AboutMe />
         <Timeline />
         <Skills />
+        <GitHub />
         <ProjectsWrapper />
         <Socials />
         <Contact />

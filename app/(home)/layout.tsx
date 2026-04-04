@@ -2,7 +2,8 @@ import type { Metadata } from "next"
 import { Inter as FontSans } from "next/font/google"
 import "@/app/globals.css"
 
-import NavBar from "@/components/NavBar"
+
+
 
 
 const fontSans = FontSans({
@@ -15,15 +16,13 @@ export const metadata: Metadata = {
   description: "Personal blog and portfolio of Heiner Giehl",
 }
 
-export default function RootLayout({
+export default function HomeLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   return (
     <>
-      <NavBar />
-
       {children}
     </>
   )

@@ -7,7 +7,15 @@ type ListProps = ComponentPropsWithoutRef<"ul">
 type ListItemProps = ComponentPropsWithoutRef<"li">
 type AnchorProps = ComponentPropsWithoutRef<"a">
 type BlockquoteProps = ComponentPropsWithoutRef<"blockquote">
+
+import dynamic from "next/dynamic"
+
+const CodeSandbox = dynamic(() => import("./components/CodeSandbox"), {
+  ssr: false,
+})
+
 const components = {
+  CodeSandbox,
   h1: (props: HeadingProps) => (
     <h1 className="font-medium pt-12 mb-0 fade-in" {...props} />
   ),
@@ -103,3 +111,4 @@ declare global {
 export function useMDXComponents(): MDXProvidedComponents {
   return components
 }
+

@@ -28,7 +28,11 @@ export function ProjectFilters({
               category === "Frontend" ||
               category === "Backend" ||
               category === "All" ||
-              category === "Vue.js"
+              category === "Vue.js" ||
+              category === "Tool" ||
+              category === "Filament" ||
+              category === "PHP" ||
+              category === "Livewire"
           ) && (
             <AnimatedFilterButton
               key={category}

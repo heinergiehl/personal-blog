@@ -9,7 +9,7 @@ import { COLOR_ONE, COLOR_TWO } from "@/config"
 import { useTheme } from "next-themes"
 
 // Define only the main categories statically
-const mainCategories = ["All", "Fullstack", "Frontend"]
+const mainCategories = ["All", "Fullstack", "Frontend", "Tool"]
 
 export function ProjectsWrapper() {
   const { theme, systemTheme } = useTheme()

@@ -18,6 +18,7 @@ export const navItems = [
   { name: "Skills", href: "#Skills" },
   { name: "Projects", href: "#Projects" },
   { name: "Contact", href: "#Contact" },
+  { name: "Feedback", href: "/feedback" },
 ]
 
 /* ───────────────────────────── Constants ─────────────────────────────── */
@@ -154,32 +155,61 @@ const NavBar: React.FC = () => {
             {/* links */}
             {navItems.map((item, i) => (
               <li key={item.href} className="relative z-10">
-                <a
-                  ref={(el) => {
-                    linkRefs.current[i] = el
-                  }}
-                  href={item.href}
-                  onMouseEnter={() => setHoveredIdx(i)}
-                  onClick={() => handleClick(item.href)}
-                  className={`relative px-3 py-1 rounded-md cursor-pointer ${
-                    activeHref === item.href
-                      ? "dark:text-white text-gray-900"
-                      : "text-gray-700 dark:text-gray-200"
-                  }`}
-                >
-                  <motion.span
-                    initial={false}
-                    animate={animatingHref === item.href ? "pulse" : "rest"}
-                    whileHover="hover"
-                    variants={linkVariants}
-                    onAnimationComplete={() => {
-                      if (animatingHref === item.href) setAnimatingHref(null)
+                {item.href.startsWith("/") ? (
+                  <Link
+                    ref={(el) => {
+                      linkRefs.current[i] = el
                     }}
-                    style={{ display: "inline-block" }}
+                    href={item.href}
+                    onMouseEnter={() => setHoveredIdx(i)}
+                    onClick={() => handleClick(item.href)}
+                    className={`relative px-3 py-1 rounded-md cursor-pointer ${
+                      activeHref === item.href
+                        ? "dark:text-white text-gray-900"
+                        : "text-gray-700 dark:text-gray-200"
+                    }`}
                   >
-                    {item.name}
-                  </motion.span>
-                </a>
+                    <motion.span
+                      initial={false}
+                      animate={animatingHref === item.href ? "pulse" : "rest"}
+                      whileHover="hover"
+                      variants={linkVariants}
+                      onAnimationComplete={() => {
+                        if (animatingHref === item.href) setAnimatingHref(null)
+                      }}
+                      style={{ display: "inline-block" }}
+                    >
+                      {item.name}
+                    </motion.span>
+                  </Link>
+                ) : (
+                  <a
+                    ref={(el) => {
+                      linkRefs.current[i] = el
+                    }}
+                    href={item.href}
+                    onMouseEnter={() => setHoveredIdx(i)}
+                    onClick={() => handleClick(item.href)}
+                    className={`relative px-3 py-1 rounded-md cursor-pointer ${
+                      activeHref === item.href
+                        ? "dark:text-white text-gray-900"
+                        : "text-gray-700 dark:text-gray-200"
+                    }`}
+                  >
+                    <motion.span
+                      initial={false}
+                      animate={animatingHref === item.href ? "pulse" : "rest"}
+                      whileHover="hover"
+                      variants={linkVariants}
+                      onAnimationComplete={() => {
+                        if (animatingHref === item.href) setAnimatingHref(null)
+                      }}
+                      style={{ display: "inline-block" }}
+                    >
+                      {item.name}
+                    </motion.span>
+                  </a>
+                )}
               </li>
             ))}
           </ul>

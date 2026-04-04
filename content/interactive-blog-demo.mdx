@@ -1,0 +1,34 @@
+---
+title: "Interactive Code Sandboxes in MDX"
+publishedAt: "2026-01-11"
+summary: "Testing the new interactive coding environment directly in the blog."
+---
+
+# Hello from the Sandbox
+
+This is a test of the new `<CodeSandbox />` component. Below is a live React environment running directly in your browser.
+
+<CodeSandbox
+  files={{
+    "App.js": `import React from 'react';
+
+export default function App() {
+  return (
+    <div style={{ padding: 20 }}>
+      <h1>✨ It Works!</h1>
+      <p>Edit this code to see changes instantly.</p>
+      <button 
+        style={{ padding: '10px 20px', fontSize: '1.2rem' }}
+        onClick={() => alert('Clicked!')}
+      >
+        Click Me
+      </button>
+    </div>
+  );
+}`
+  }}
+/>
+
+## How it works
+
+We are using `Sandpack` to bundle and run the code on the client side. No server required!

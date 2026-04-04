@@ -1,169 +1,211 @@
-import { motion } from "framer-motion"
-import { Mail, MessageSquare, Send, Sparkles } from "lucide-react"
-import CopyEmailButton from "@/components/copy-email-button"
-import { COLOR_ONE, COLOR_TWO } from "@/config"
+import { motion, useMotionValue, useSpring } from "framer-motion"
+import { ArrowUpRight, Copy, Check } from "lucide-react"
 import { useTheme } from "next-themes"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
+import { cn } from "@/lib/utils"
+import { useToast } from "@/hooks/use-toast"
+
+const EMAIL = "webdevislife2021@gmail.com"
 
 const Contact = () => {
   const { theme, systemTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const { toast } = useToast()
+
+  // Magnetic button
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const btnX = useMotionValue(0)
+  const btnY = useMotionValue(0)
+  const springX = useSpring(btnX, { stiffness: 180, damping: 18 })
+  const springY = useSpring(btnY, { stiffness: 180, damping: 18 })
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Resolve the actual theme (handle 'system' theme)
-  const resolvedTheme = theme === 'system' ? systemTheme : theme
-  const isLightMode = mounted ? resolvedTheme === 'light' : false
+  const resolvedTheme = theme === "system" ? systemTheme : theme
+  const isLightMode = mounted ? resolvedTheme === "light" : false
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!btnRef.current) return
+      const rect = btnRef.current.getBoundingClientRect()
+      btnX.set((e.clientX - (rect.left + rect.width / 2)) * 0.12)
+      btnY.set((e.clientY - (rect.top + rect.height / 2)) * 0.12)
+    },
+    [btnX, btnY],
+  )
+
+  const handleMouseLeave = useCallback(() => {
+    btnX.set(0)
+    btnY.set(0)
+  }, [btnX, btnY])
+
+  const copyEmail = () => {
+    navigator.clipboard.writeText(EMAIL)
+    setCopied(true)
+    toast({
+      duration: 2000,
+      title: "Email copied!",
+      description: "You can now paste it anywhere.",
+    })
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   return (
     <motion.section
-      whileInView={{ opacity: 1, y: 0 }}
-      initial={{ opacity: 0, y: 20 }}
-      transition={{ duration: 0.5 }}
       id="Contact"
-      className="relative min-h-[60vh] flex flex-col items-center justify-center p-8 md:p-16 mt-24 mb-16 overflow-hidden"
+      className="relative flex flex-col items-center justify-center px-6 md:px-16 py-28 mt-24 mb-8 overflow-hidden"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+      viewport={{ once: true, amount: 0.2 }}
     >
-      {/* Animated gradient background */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50/70 via-white to-blue-50/60 dark:from-gray-950 dark:via-violet-950/30 dark:to-gray-900" />
-        <motion.div
-          className="absolute top-0 left-0 w-[600px] h-[600px] rounded-full blur-3xl opacity-20"
-          style={{ background: mounted && isLightMode ? '#4f46e5' : COLOR_ONE }}
-          animate={{
-            x: [0, 100, 0],
-            y: [0, 80, 0],
-            scale: [1, 1.4, 1],
-          }}
-          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-          suppressHydrationWarning
-        />
-        <motion.div
-          className="absolute bottom-0 right-0 w-[600px] h-[600px] rounded-full blur-3xl opacity-20"
-          style={{ background: mounted && isLightMode ? '#06b6d4' : COLOR_TWO }}
-          animate={{
-            x: [0, -100, 0],
-            y: [0, -80, 0],
-            scale: [1, 1.3, 1],
-          }}
-          transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
-          suppressHydrationWarning
-        />
-      </div>
+      {/* Dot grid */}
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, currentColor 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
+      />
 
-      {/* Content */}
-      <div className="relative z-10 max-w-4xl mx-auto text-center">
-        {/* Decorative sparkle */}
+      <div className="relative z-10 max-w-2xl mx-auto text-center">
+        {/* Availability badge */}
         <motion.div
-          className="flex justify-center mb-4"
-          initial={{ opacity: 0, scale: 0 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
+          className="inline-flex items-center gap-2 mb-8"
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
           viewport={{ once: true }}
         >
-          <div className="relative">
-            <Sparkles className="w-12 h-12 text-indigo-600 dark:text-purple-400" />
-            <motion.div
-              className="absolute inset-0 blur-xl opacity-50"
-              style={{ background: mounted && isLightMode ? '#4f46e5' : COLOR_ONE }}
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.5, 0.8, 0.5],
-              }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              suppressHydrationWarning
-            />
-          </div>
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+          </span>
+          <span
+            className={cn(
+              "text-[11px] font-mono tracking-[0.2em] uppercase",
+              isLightMode ? "text-gray-400" : "text-gray-600",
+            )}
+          >
+            Available for new projects
+          </span>
         </motion.div>
 
+        {/* Heading */}
         <motion.h2
-          className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-indigo-600 via-blue-700 to-cyan-700 dark:from-purple-400 dark:via-purple-300 dark:to-purple-500 bg-clip-text text-transparent"
-          initial={{ opacity: 0, y: -20 }}
+          className={cn(
+            "text-4xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6",
+            isLightMode ? "text-gray-900" : "text-white",
+          )}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+          transition={{ delay: 0.15, duration: 0.5 }}
           viewport={{ once: true }}
+          suppressHydrationWarning
         >
-          Let's Create Something Amazing
+          Let&apos;s work
+          <span
+            className={cn(
+              "block font-mono text-2xl md:text-3xl mt-3 font-normal",
+              isLightMode ? "text-indigo-600" : "text-indigo-400",
+            )}
+            suppressHydrationWarning
+          >
+            together.
+          </span>
         </motion.h2>
 
+        {/* One-liner */}
         <motion.p
-          className="text-lg md:text-xl text-gray-700 dark:text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed"
-          initial={{ opacity: 0, y: 20 }}
+          className={cn(
+            "text-base md:text-lg leading-relaxed mb-12 max-w-md mx-auto",
+            isLightMode ? "text-gray-500" : "text-gray-400",
+          )}
+          initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
+          transition={{ delay: 0.25, duration: 0.5 }}
           viewport={{ once: true }}
         >
-          Have a project in mind? Whether it's a new venture or an existing product that needs a refresh, 
-          I'd love to hear about it. Let's collaborate and bring your vision to life.
+          Have an idea, a project, or just want to say hi? Drop me a line — I
+          typically reply within a day.
         </motion.p>
 
-        {/* Feature cards */}
+        {/* CTA buttons */}
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10"
-          initial={{ opacity: 0, y: 20 }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
+          transition={{ delay: 0.35, duration: 0.5 }}
           viewport={{ once: true }}
         >
-          {[
-            { icon: MessageSquare, title: "Quick Response", desc: "I typically respond within 24 hours" },
-            { icon: Mail, title: "Direct Contact", desc: "Reach me directly via email" },
-            { icon: Send, title: "Let's Connect", desc: "Start your project today" },
-          ].map((item, idx) => (
-            <motion.div
-              key={idx}
-              className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-indigo-200/50 dark:border-purple-800/50 rounded-2xl p-6 hover:shadow-lg transition-all duration-300"
-              whileHover={{ y: -5, scale: 1.02 }}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 + idx * 0.1 }}
-              viewport={{ once: true }}
-            >
-              <div className="flex flex-col items-center gap-3">
-                <div
-                  className="p-3 rounded-full"
-                  style={{
-                    background: `linear-gradient(135deg, ${COLOR_ONE}20, ${COLOR_TWO}20)`,
-                  }}
-                >
-                  <item.icon className="w-6 h-6 text-indigo-700 dark:text-purple-400" />
-                </div>
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-                  {item.title}
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {item.desc}
-                </p>
-              </div>
-            </motion.div>
-          ))}
+          {/* Primary — magnetic email button */}
+          <motion.button
+            ref={btnRef}
+            onClick={() =>
+              (window.location.href = `mailto:${EMAIL}`)
+            }
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            style={{ x: springX, y: springY }}
+            whileTap={{ scale: 0.95 }}
+            className={cn(
+              "group relative inline-flex items-center gap-2.5 px-8 py-4 rounded-xl text-base font-semibold transition-all duration-300 cursor-pointer select-none",
+              isLightMode
+                ? "bg-gray-900 text-white shadow-lg shadow-gray-900/10 hover:bg-indigo-600 hover:shadow-xl hover:shadow-indigo-500/20"
+                : "bg-white text-gray-900 shadow-lg shadow-white/5 hover:bg-indigo-500 hover:text-white hover:shadow-xl hover:shadow-indigo-500/20",
+            )}
+            suppressHydrationWarning
+          >
+            Send an email
+            <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </motion.button>
+
+          {/* Secondary — copy email */}
+          <motion.button
+            onClick={copyEmail}
+            whileTap={{ scale: 0.95 }}
+            className={cn(
+              "inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border text-sm font-medium transition-all duration-300 cursor-pointer select-none",
+              isLightMode
+                ? "border-gray-200 text-gray-500 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50/50"
+                : "border-gray-800 text-gray-500 hover:border-indigo-500/30 hover:text-indigo-400 hover:bg-indigo-950/30",
+            )}
+            suppressHydrationWarning
+          >
+            {copied ? (
+              <Check className="w-4 h-4 text-emerald-500" />
+            ) : (
+              <Copy className="w-4 h-4" />
+            )}
+            <span className="font-mono text-xs">
+              {copied ? "Copied!" : EMAIL}
+            </span>
+          </motion.button>
         </motion.div>
 
-        {/* Email button */}
+        {/* Feedback link */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.7 }}
-          viewport={{ once: true }}
-          className="flex justify-center"
-        >
-          <CopyEmailButton email="webdevislife2021@gmail.com" />
-        </motion.div>
-
-        {/* Decorative line */}
-        <motion.div
-          className="mt-12 flex items-center justify-center gap-4"
+          className="mt-10"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 0.8 }}
+          transition={{ delay: 0.5 }}
           viewport={{ once: true }}
         >
-          <div className="h-px w-20 bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Open to opportunities
-          </p>
-          <div className="h-px w-20 bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
+          <a
+            href="/feedback"
+            className={cn(
+              "text-xs font-mono tracking-wide transition-colors",
+              isLightMode
+                ? "text-gray-400 hover:text-indigo-600"
+                : "text-gray-600 hover:text-indigo-400",
+            )}
+          >
+            Using one of my products? → Leave feedback
+          </a>
         </motion.div>
       </div>
     </motion.section>

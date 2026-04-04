@@ -9,7 +9,11 @@ const MobileNav = () => {
       <ul className="flex flex-col gap-4">
         {navItems.map((item) => (
           <li key={item.name}>
-            <a href={item.href}>{item.name}</a>
+            {item.href.startsWith("/") ? (
+              <Link href={item.href}>{item.name}</Link>
+            ) : (
+              <a href={item.href}>{item.name}</a>
+            )}
           </li>
         ))}
       </ul>

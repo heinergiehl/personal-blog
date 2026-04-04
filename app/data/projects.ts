@@ -12,6 +12,26 @@ export interface Project {
 
 export const projects: Project[] = [
   {
+    slug: "image-studio-pro",
+    image: "/image-studio-pro.png",
+    title: "Image Studio Pro",
+    description:
+      "A full in-panel image editor for Filament with canvas tools, templates, brand presets, and advanced editing capabilities.",
+    techStack: ["Filament", "Laravel", "PHP", "Livewire"],
+    category: "Tool",
+    liveUrl: "https://filamentphp.com/plugins/heiner-giehl-image-studio-pro",
+  },
+  {
+    slug: "rag-chatbot",
+    image: "/rag-chatbot.png",
+    title: "RAG Chatbot",
+    description:
+      "Production-ready AI chatbot management for Laravel + Filament with multi-bot support, knowledge ingestion, and embeddable widgets.",
+    techStack: ["Filament", "Laravel", "PHP", "Livewire", "AI"],
+    category: "Tool",
+    liveUrl: "https://filamentphp.com/plugins/heiner-giehl-rag-chatbot",
+  },
+  {
     slug: "interview-scheduler",
     image: "/interview-scheduler.png",
     title: "Interview-Scheduler",

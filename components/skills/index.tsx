@@ -1,10 +1,8 @@
-import { Card } from "../landingPage/card/card"
-import Spotlight from "../landingPage/card/spotlight"
-import { skillsData } from "./data"
+import { skillGroups } from "./data"
 import { motion } from "framer-motion"
-import { COLOR_ONE, COLOR_TWO } from "@/config"
 import { useTheme } from "next-themes"
 import { useState, useEffect } from "react"
+import { cn } from "@/lib/utils"
 
 const Skills = () => {
   const { theme, systemTheme } = useTheme()
@@ -14,67 +12,120 @@ const Skills = () => {
     setMounted(true)
   }, [])
 
-  // Resolve the actual theme (handle 'system' theme)
-  const resolvedTheme = theme === 'system' ? systemTheme : theme
-  const isLightMode = mounted ? resolvedTheme === 'light' : false
+  const resolvedTheme = theme === "system" ? systemTheme : theme
+  const isLightMode = mounted ? resolvedTheme === "light" : false
 
   return (
-  <section
-    id="Skills"
-    className="relative min-h-screen py-16 mt-24 overflow-hidden"
-  >
-    {/* Animated gradient background */}
-    <div className="absolute inset-0">
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-50/70 via-white to-blue-50/80 dark:from-gray-950 dark:via-blue-950/20 dark:to-gray-900" />
-      <motion.div
-        className="absolute top-1/4 -right-1/4 w-[600px] h-[600px] rounded-full blur-3xl opacity-20"
-        style={{ background: mounted && isLightMode ? '#06b6d4' : COLOR_TWO }}
-        animate={{
-          x: [0, -100, 0],
-          y: [0, 80, 0],
-          scale: [1, 1.4, 1],
+    <section
+      id="Skills"
+      className="relative py-20 mt-24 overflow-hidden"
+    >
+      {/* Dot grid background */}
+      <div
+        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, currentColor 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
         }}
-        transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
-        suppressHydrationWarning
       />
-      <motion.div
-        className="absolute bottom-1/4 -left-1/4 w-[600px] h-[600px] rounded-full blur-3xl opacity-20"
-        style={{ background: mounted && isLightMode ? '#4f46e5' : COLOR_ONE }}
-        animate={{
-          x: [0, 100, 0],
-          y: [0, -80, 0],
-          scale: [1, 1.3, 1],
-        }}
-        transition={{ duration: 32, repeat: Infinity, ease: "easeInOut" }}
-        suppressHydrationWarning
-      />
-    </div>
 
-    {/* Content */}
-    <div className="relative z-10">
-      <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center bg-gradient-to-r from-indigo-600 via-blue-700 to-cyan-700 dark:from-purple-400 dark:via-purple-300 dark:to-purple-500 bg-clip-text text-transparent">
-        Skills
-      </h2>
-      <p className="text-center text-pretty text-sm text-gray-500 mt-2">
-        I love to work with powerful, highly-customizable tools to build Apps that
-        exactly meet the customers disire and needs.
-      </p>
+      <div className="relative z-10 max-w-5xl mx-auto px-6">
+        {/* Section tag */}
+        <motion.div
+          className="flex items-center gap-3 mb-10"
+          initial={{ opacity: 0, x: -20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+        >
+          <div
+            className={cn(
+              "h-px w-10",
+              isLightMode ? "bg-gray-300" : "bg-gray-700",
+            )}
+          />
+          <span
+            className={cn(
+              "text-[11px] font-mono tracking-[0.25em] uppercase",
+              isLightMode ? "text-gray-400" : "text-gray-600",
+            )}
+          >
+            Skills
+          </span>
+        </motion.div>
 
-      <Spotlight className="h-full max-w-xl mx-auto grid gap-6 grid-cols-1 lg:grid-cols-3 items-start lg:max-w-none group lg:p-20">
-        {skillsData.map(
-          ({ title, descriptionHeader, description, technologies }) => (
-            <Card
-              key={title}
-              title={title}
-              descriptionHeader={descriptionHeader}
-              description={description}
-              technologies={technologies}
-            />
-          )
-        )}
-      </Spotlight>
-    </div>
-  </section>
+        {/* Header row */}
+        <div className="grid md:grid-cols-[1.2fr_1fr] gap-6 mb-14">
+          <motion.h2
+            className={cn(
+              "text-3xl md:text-4xl font-bold tracking-tight leading-[1.15]",
+              isLightMode ? "text-gray-900" : "text-white",
+            )}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            suppressHydrationWarning
+          >
+            Tools I use{" "}
+            <span
+              className={cn(
+                "block font-mono text-lg md:text-xl mt-2 font-normal",
+                isLightMode ? "text-indigo-600" : "text-indigo-400",
+              )}
+              suppressHydrationWarning
+            >
+              to build things that work.
+            </span>
+          </motion.h2>
+        </div>
+
+        {/* Skill groups */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-10">
+          {skillGroups.map((group, gi) => (
+            <motion.div
+              key={group.category}
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: gi * 0.06, duration: 0.4 }}
+              viewport={{ once: true }}
+            >
+              <h3
+                className={cn(
+                  "text-[11px] font-mono tracking-[0.2em] uppercase mb-4",
+                  isLightMode ? "text-gray-400" : "text-gray-600",
+                )}
+              >
+                {group.category}
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {group.items.map((tech, ti) => (
+                  <motion.span
+                    key={tech}
+                    className={cn(
+                      "px-3 py-1.5 rounded-md text-[13px] font-mono border cursor-default transition-all duration-200",
+                      isLightMode
+                        ? "border-gray-200 text-gray-600 bg-white/60 hover:border-indigo-400/60 hover:text-indigo-700 hover:bg-indigo-50"
+                        : "border-gray-800 text-gray-400 bg-gray-900/40 hover:border-indigo-500/40 hover:text-indigo-300 hover:bg-indigo-950/40",
+                    )}
+                    initial={{ opacity: 0, y: 6 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: gi * 0.06 + ti * 0.03, duration: 0.3 }}
+                    viewport={{ once: true }}
+                    whileHover={{ y: -2, scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    suppressHydrationWarning
+                  >
+                    {tech}
+                  </motion.span>
+                ))}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
   )
 }
 

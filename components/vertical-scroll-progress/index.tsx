@@ -1,14 +1,13 @@
-import { COLOR_ONE, COLOR_TWO } from "@/config"
 import { motion, useScroll, useSpring, useTransform } from "framer-motion"
 import { useEffect, useState, FC } from "react"
 import { useTheme } from "next-themes"
+import { cn } from "@/lib/utils"
 
 // --- Helpers ---
-/** turn "my-section_id" → "My Section Id" */
 const formatLabel = (id: string) =>
   id.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
 
-// --- Type Definitions ---
+// --- Types ---
 interface Section {
   id: string
   offsetTop: number
@@ -17,75 +16,82 @@ interface SectionMarkerProps {
   isCurrent: boolean
   onClick: () => void
   label: string
-  primaryColor: string
-  secondaryColor: string
+  isLightMode: boolean
 }
 
-// --- Redesigned Marker with Polished Label ---
+// --- Minimal Marker with clean tooltip ---
 const SectionMarker: FC<SectionMarkerProps> = ({
   isCurrent,
   onClick,
   label,
-  primaryColor,
-  secondaryColor,
+  isLightMode,
 }) => {
   const [isHovered, setIsHovered] = useState(false)
   const showLabel = isCurrent || isHovered
 
   return (
     <div
-      className="relative flex items-center justify-center h-full w-full cursor-pointer group"
+      className="relative flex items-center justify-center h-full w-full cursor-pointer"
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Dot */}
       <motion.div
-        className="z-10 h-3.5 w-3.5 rounded-full border-2 backdrop-blur-sm"
+        className="z-10 rounded-full"
         animate={{
-          scale: showLabel ? 1.4 : 1,
-          borderColor: isCurrent ? primaryColor : "rgba(100,116,139,0.4)",
-          backgroundColor: isCurrent 
-            ? primaryColor 
-            : isHovered 
-            ? "rgba(100,116,139,0.3)" 
-            : "rgba(100,116,139,0.1)",
+          width: isCurrent ? 8 : isHovered ? 7 : 5,
+          height: isCurrent ? 8 : isHovered ? 7 : 5,
+          backgroundColor: isCurrent
+            ? isLightMode
+              ? "#4f46e5"
+              : "#818cf8"
+            : isHovered
+              ? isLightMode
+                ? "#94a3b8"
+                : "#64748b"
+              : isLightMode
+                ? "#cbd5e1"
+                : "#374151",
+          boxShadow: isCurrent
+            ? isLightMode
+              ? "0 0 8px 2px rgba(79,70,229,0.35)"
+              : "0 0 8px 2px rgba(129,140,248,0.35)"
+            : "none",
         }}
-        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+        transition={{ type: "spring", stiffness: 500, damping: 30 }}
         suppressHydrationWarning
-      >
-        <motion.div
-          className="h-full w-full rounded-full"
-          animate={{
-            boxShadow: isCurrent
-              ? `0 0 20px 4px ${primaryColor}, 0 0 10px 2px ${secondaryColor}`
-              : isHovered
-              ? `0 0 12px 3px rgba(100,116,139,0.5)`
-              : "0 0 0 0px rgba(0,0,0,0)",
-          }}
-          transition={{ type: "tween", duration: 0.3, ease: "easeOut" }}
-          suppressHydrationWarning
-        />
-      </motion.div>
+      />
 
-      {/* Polished Tooltip Label */}
+      {/* Clean tooltip */}
       <motion.div
-        className="absolute left-[75%] whitespace-nowrap text-xs font-bold text-white px-4 py-1.5 rounded-full backdrop-blur-md border pointer-events-none"
+        className={cn(
+          "absolute left-[calc(50%+18px)] whitespace-nowrap text-[11px] font-medium px-2.5 py-1 rounded pointer-events-none",
+          isLightMode
+            ? "bg-gray-900 text-white"
+            : "bg-gray-100 text-gray-900",
+        )}
         style={{
-          background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
-          borderColor: "rgba(255,255,255,0.2)",
-          boxShadow: `0 4px 12px ${primaryColor}40`,
+          boxShadow: isLightMode
+            ? "0 2px 8px rgba(0,0,0,0.12)"
+            : "0 2px 8px rgba(0,0,0,0.4)",
         }}
-        initial={{ opacity: 0, x: -10, scale: 0.9 }}
+        initial={{ opacity: 0, x: -4 }}
         animate={{
           opacity: showLabel ? 1 : 0,
-          x: showLabel ? 0 : -10,
-          scale: showLabel ? 1 : 0.9,
+          x: showLabel ? 0 : -4,
         }}
-        transition={{ type: "spring", stiffness: 350, damping: 22 }}
+        transition={{ duration: 0.15, ease: "easeOut" }}
         suppressHydrationWarning
       >
         {label}
+        {/* Arrow pointing left */}
+        <div
+          className={cn(
+            "absolute top-1/2 -translate-y-1/2 -left-[3px] w-[6px] h-[6px] rotate-45",
+            isLightMode ? "bg-gray-900" : "bg-gray-100",
+          )}
+        />
       </motion.div>
     </div>
   )
@@ -99,59 +105,45 @@ const LivingAuraScrollIndicator: FC = () => {
   const [hasScrolled, setHasScrolled] = useState(false)
   const { scrollYProgress } = useScroll()
   const { theme, systemTheme } = useTheme()
-  
-  // Resolve theme
-  const resolvedTheme = theme === 'system' ? systemTheme : theme
-  const isLightMode = mounted ? resolvedTheme === 'light' : false
-  
-  // Theme-aware colors
-  const primaryColor = isLightMode ? '#4f46e5' : COLOR_ONE // indigo-600
-  const secondaryColor = isLightMode ? '#06b6d4' : COLOR_TWO // cyan-500
 
-  // smooth raw 0→1 scroll progress
+  const resolvedTheme = theme === "system" ? systemTheme : theme
+  const isLightMode = mounted ? resolvedTheme === "light" : false
+
+  // Accent color
+  const accentColor = isLightMode ? "#4f46e5" : "#818cf8"
+
   const smoothProg = useSpring(scrollYProgress, {
-    stiffness: 120,
-    damping: 40,
+    stiffness: 150,
+    damping: 30,
   })
-
-  // map 0–1 to 0%–100%
   const percent = useTransform(smoothProg, [0, 1], ["0%", "100%"])
 
   useEffect(() => {
     setMounted(true)
-    
-    // Only show after user scrolls a bit
     const handleScroll = () => {
-      if (window.scrollY > 100) {
-        setHasScrolled(true)
-      }
+      if (window.scrollY > 100) setHasScrolled(true)
     }
-    
-    handleScroll() // Check initial scroll position
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    handleScroll()
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   useEffect(() => {
     const calc = () => {
       const els = Array.from(
-        document.querySelectorAll("section")
+        document.querySelectorAll("section"),
       ) as HTMLElement[]
       const docHeight = document.documentElement.scrollHeight
       if (docHeight <= 0) return
 
-      // **Place each dot at the center of its section, relative to the full doc height**
-      // Filter out sections without IDs to prevent duplicate empty keys
       setSections(
         els
           .filter((el) => el.id && el.id.trim() !== "")
-          .map((el) => {
-            const midOfSection = el.offsetTop + el.offsetHeight / 2
-            return {
-              id: el.id,
-              offsetTop: (midOfSection / docHeight) * 100,
-            }
-          })
+          .map((el) => ({
+            id: el.id,
+            offsetTop:
+              ((el.offsetTop + el.offsetHeight / 2) / docHeight) * 100,
+          })),
       )
     }
 
@@ -163,7 +155,7 @@ const LivingAuraScrollIndicator: FC = () => {
         const vis = entries.find((e) => e.isIntersecting)
         if (vis && vis.target.id) setCurrentSection(vis.target.id)
       },
-      { rootMargin: "-40% 0px -60% 0px" }
+      { rootMargin: "-40% 0px -60% 0px" },
     )
     document.querySelectorAll("section[id]").forEach((s) => obs.observe(s))
 
@@ -192,85 +184,61 @@ const LivingAuraScrollIndicator: FC = () => {
 
   return (
     <motion.div
-      className="hidden fixed top-[20vh] left-6 bottom-20 w-28 md:flex flex-col items-center z-40 overflow-visible"
+      className="hidden fixed top-[20vh] left-6 bottom-20 w-20 md:flex flex-col items-center z-40 overflow-visible"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.6, delay: 0.3 }}
     >
       <div className="relative flex-1 w-full py-4">
-        {/* Subtle background glow */}
-        <motion.div
-          className="absolute inset-0 left-1/2 -translate-x-1/2 w-12 blur-3xl pointer-events-none"
-          style={{
-            background: `linear-gradient(to bottom, ${primaryColor}20, ${secondaryColor}20)`,
-          }}
-          animate={{ opacity: [0.4, 0.6, 0.4] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          suppressHydrationWarning
-        />
-
-        {/* Base Gradient Track */}
+        {/* Thin base track */}
         <div
-          className="absolute left-1/2 top-0 h-full w-1 -translate-x-1/2 rounded-full"
+          className="absolute left-1/2 top-0 h-full w-[1.5px] -translate-x-1/2 rounded-full"
           style={{
-            background: `linear-gradient(to bottom, ${primaryColor}, ${secondaryColor})`,
-            opacity: 0.3,
-            boxShadow: `0 0 6px 1px ${primaryColor}40`,
+            background: isLightMode
+              ? "rgba(203,213,225,0.5)"
+              : "rgba(55,65,81,0.5)",
           }}
         />
 
-        {/* Scroll-Fill (progress) */}
+        {/* Progress fill */}
         <motion.div
-          className="absolute left-1/2 top-0 w-1 -translate-x-1/2 rounded-full"
+          className="absolute left-1/2 top-0 w-[1.5px] -translate-x-1/2 rounded-full"
           style={{
             height: percent,
-            background: `linear-gradient(to bottom, ${primaryColor}, ${secondaryColor})`,
-            boxShadow: `0 0 10px 2px ${primaryColor}50`,
+            background: accentColor,
           }}
         />
 
-        {/* Enhanced Comet Head */}
+        {/* Scroll head — small glowing dot */}
         <motion.div
-          className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-          style={{
-            top: percent,
-            width: "6px",
-            height: "80px",
-          }}
+          className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20"
+          style={{ top: percent }}
           suppressHydrationWarning
         >
-          {/* Core bright spot */}
           <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full"
+            className="w-[7px] h-[7px] rounded-full"
             style={{
-              background: "rgba(255,255,255,0.95)",
-              boxShadow: `0 0 15px 3px ${primaryColor}, 0 0 8px 2px ${secondaryColor}`,
-            }}
-          />
-          {/* Glow trail */}
-          <div
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: `linear-gradient(to bottom, ${primaryColor}90, ${secondaryColor}40, transparent)`,
-              filter: "blur(10px)",
+              background: isLightMode ? "#4f46e5" : "#a5b4fc",
+              boxShadow: isLightMode
+                ? "0 0 8px 2px rgba(79,70,229,0.4)"
+                : "0 0 8px 2px rgba(165,180,252,0.35)",
             }}
           />
         </motion.div>
 
-        {/* 5) Section Markers + Labels */}
+        {/* Section markers */}
         <div className="relative h-full w-full">
           {sections.map(({ id, offsetTop }, index) => (
             <div
               key={`section-${id}-${index}`}
-              className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 h-8 w-full flex items-center justify-center"
+              className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 h-6 w-full flex items-center justify-center"
               style={{ top: `${offsetTop}%` }}
             >
               <SectionMarker
                 isCurrent={currentSection === id}
                 onClick={() => goTo(id)}
                 label={formatLabel(id)}
-                primaryColor={primaryColor}
-                secondaryColor={secondaryColor}
+                isLightMode={isLightMode}
               />
             </div>
           ))}
