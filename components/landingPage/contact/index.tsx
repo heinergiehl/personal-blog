@@ -156,7 +156,7 @@ const Contact = () => {
               "group relative inline-flex items-center gap-2.5 px-8 py-4 rounded-xl text-base font-semibold transition-all duration-300 cursor-pointer select-none",
               isLightMode
                 ? "bg-gray-900 text-white shadow-lg shadow-gray-900/10 hover:bg-indigo-600 hover:shadow-xl hover:shadow-indigo-500/20"
-                : "bg-white text-gray-900 shadow-lg shadow-white/5 hover:bg-indigo-500 hover:text-white hover:shadow-xl hover:shadow-indigo-500/20",
+                : "bg-indigo-600 text-white shadow-lg shadow-indigo-900/30 hover:bg-indigo-500 hover:shadow-xl hover:shadow-indigo-500/20",
             )}
             suppressHydrationWarning
           >

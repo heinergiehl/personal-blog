@@ -138,28 +138,19 @@ export default function Timeline() {
       ref={containerRef}
       className="h-[calc(100vh+1000px)] relative flex flex-col md:px-20 py-16 mt-24"
     >
-      {/* Enhanced background with animated gradients */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50/80 via-white to-blue-50/60 dark:from-gray-950 dark:via-indigo-950/30 dark:to-gray-900" />
+      {/* Ambient glow blobs — no hard background, inherits page bg */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          className="absolute -top-1/4 left-1/4 w-[500px] h-[500px] rounded-full blur-3xl opacity-20"
+          className="absolute -top-1/4 left-1/4 w-[500px] h-[500px] rounded-full blur-3xl opacity-[0.07] dark:opacity-[0.12]"
           style={{ background: mounted && isLightMode ? '#4f46e5' : COLOR_ONE }}
-          animate={{
-            x: [-50, 50, -50],
-            y: [0, 100, 0],
-            scale: [1, 1.3, 1],
-          }}
+          animate={{ x: [-50, 50, -50], y: [0, 100, 0], scale: [1, 1.3, 1] }}
           transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
           suppressHydrationWarning
         />
         <motion.div
-          className="absolute top-1/2 right-1/4 w-[500px] h-[500px] rounded-full blur-3xl opacity-20"
+          className="absolute top-1/2 right-1/4 w-[500px] h-[500px] rounded-full blur-3xl opacity-[0.07] dark:opacity-[0.12]"
           style={{ background: mounted && isLightMode ? '#06b6d4' : COLOR_TWO }}
-          animate={{
-            x: [50, -50, 50],
-            y: [0, -100, 0],
-            scale: [1, 1.2, 1],
-          }}
+          animate={{ x: [50, -50, 50], y: [0, -100, 0], scale: [1, 1.2, 1] }}
           transition={{ duration: 35, repeat: Infinity, ease: "easeInOut" }}
           suppressHydrationWarning
         />

@@ -66,20 +66,20 @@ const SectionMarker: FC<SectionMarkerProps> = ({
       {/* Clean tooltip */}
       <motion.div
         className={cn(
-          "absolute left-[calc(50%+18px)] whitespace-nowrap text-[11px] font-medium px-2.5 py-1 rounded pointer-events-none",
+          "absolute left-[calc(50%+14px)] whitespace-nowrap text-[10px] font-semibold tracking-wide px-2.5 py-1 rounded-md pointer-events-none",
           isLightMode
-            ? "bg-gray-900 text-white"
-            : "bg-gray-100 text-gray-900",
+            ? "bg-slate-900 text-white"
+            : "bg-white/10 text-white backdrop-blur-sm",
         )}
         style={{
           boxShadow: isLightMode
-            ? "0 2px 8px rgba(0,0,0,0.12)"
-            : "0 2px 8px rgba(0,0,0,0.4)",
+            ? "0 4px 12px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.06)"
+            : "0 4px 12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08)",
         }}
-        initial={{ opacity: 0, x: -4 }}
+        initial={{ opacity: 0, x: -6 }}
         animate={{
           opacity: showLabel ? 1 : 0,
-          x: showLabel ? 0 : -4,
+          x: showLabel ? 0 : -6,
         }}
         transition={{ duration: 0.15, ease: "easeOut" }}
         suppressHydrationWarning
@@ -88,9 +88,14 @@ const SectionMarker: FC<SectionMarkerProps> = ({
         {/* Arrow pointing left */}
         <div
           className={cn(
-            "absolute top-1/2 -translate-y-1/2 -left-[3px] w-[6px] h-[6px] rotate-45",
-            isLightMode ? "bg-gray-900" : "bg-gray-100",
+            "absolute top-1/2 -translate-y-1/2 -left-[3px] w-[5px] h-[5px] rotate-45",
+            isLightMode
+              ? "bg-slate-900"
+              : "bg-white/10",
           )}
+          style={{
+            backdropFilter: isLightMode ? undefined : "blur(8px)",
+          }}
         />
       </motion.div>
     </div>

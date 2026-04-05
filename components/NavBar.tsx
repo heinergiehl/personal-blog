@@ -27,7 +27,7 @@ const VPAD = 4 // vertical pill padding
 
 const linkVariants = {
   rest: { y: 0, scale: 1 },
-  hover: { y: -1.5, scale: 1 },
+  hover: { y: 0, scale: 1 },
   pulse: {
     // one-off celebration
     y: [0, -4, 0, -4, 0],
@@ -125,107 +125,104 @@ const NavBar: React.FC = () => {
           zIndex: 9999,
         }}
       />
-      <div className="w-full md:max-w-[800px] border border-gray-700 bg-background/60 backdrop-blur md:rounded-lg px-[50px] py-2 flex items-center justify-between gap-x-4 overflow-hidden">
-        {/* logo + nav + theme toggle */}
-        <div className="flex items-center justify-between md:justify-start space-x-4 w-full">
-          <div className="text-lg font-bold md:text-xl">
-            <Link href="/">HeinerDevelops</Link>
-          </div>
+      {/* Single-level flex row: logo | links (desktop) | toggle | hamburger (mobile) */}
+      <div className="w-full md:max-w-[900px] border border-border bg-background/70 backdrop-blur-md md:rounded-xl px-4 py-2 mx-4 flex items-center gap-3">
 
-          {/* desktop nav */}
-          <ul
-            ref={navListRef}
-            className="hidden md:flex relative flex-1 justify-end space-x-4 text-sm"
-            onMouseLeave={() => setHoveredIdx(null)}
-          >
-            {/* pill */}
-            <AnimatePresence>
-              {hoveredIdx !== null && (
-                <motion.div
-                  key="pill"
-                  className="absolute dark:bg-white/10 bg-slate-200 rounded-md z-0 pointer-events-none"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1, ...pill }}
-                  exit={{ opacity: 0 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                />
-              )}
-            </AnimatePresence>
-
-            {/* links */}
-            {navItems.map((item, i) => (
-              <li key={item.href} className="relative z-10">
-                {item.href.startsWith("/") ? (
-                  <Link
-                    ref={(el) => {
-                      linkRefs.current[i] = el
-                    }}
-                    href={item.href}
-                    onMouseEnter={() => setHoveredIdx(i)}
-                    onClick={() => handleClick(item.href)}
-                    className={`relative px-3 py-1 rounded-md cursor-pointer ${
-                      activeHref === item.href
-                        ? "dark:text-white text-gray-900"
-                        : "text-gray-700 dark:text-gray-200"
-                    }`}
-                  >
-                    <motion.span
-                      initial={false}
-                      animate={animatingHref === item.href ? "pulse" : "rest"}
-                      whileHover="hover"
-                      variants={linkVariants}
-                      onAnimationComplete={() => {
-                        if (animatingHref === item.href) setAnimatingHref(null)
-                      }}
-                      style={{ display: "inline-block" }}
-                    >
-                      {item.name}
-                    </motion.span>
-                  </Link>
-                ) : (
-                  <a
-                    ref={(el) => {
-                      linkRefs.current[i] = el
-                    }}
-                    href={item.href}
-                    onMouseEnter={() => setHoveredIdx(i)}
-                    onClick={() => handleClick(item.href)}
-                    className={`relative px-3 py-1 rounded-md cursor-pointer ${
-                      activeHref === item.href
-                        ? "dark:text-white text-gray-900"
-                        : "text-gray-700 dark:text-gray-200"
-                    }`}
-                  >
-                    <motion.span
-                      initial={false}
-                      animate={animatingHref === item.href ? "pulse" : "rest"}
-                      whileHover="hover"
-                      variants={linkVariants}
-                      onAnimationComplete={() => {
-                        if (animatingHref === item.href) setAnimatingHref(null)
-                      }}
-                      style={{ display: "inline-block" }}
-                    >
-                      {item.name}
-                    </motion.span>
-                  </a>
-                )}
-              </li>
-            ))}
-          </ul>
-
-          <ModeToggle />
+        {/* Logo */}
+        <div className="text-base font-bold md:text-lg shrink-0 mr-2">
+          <Link href="/">HeinerDevelops</Link>
         </div>
 
-        {/* mobile nav trigger */}
-        <div className="md:hidden flex items-start justify-end">
+        {/* Desktop nav — expands to fill remaining space, links right-aligned */}
+        <ul
+          ref={navListRef}
+          className="hidden md:flex relative flex-1 justify-end items-center gap-0.5 text-sm"
+          onMouseLeave={() => setHoveredIdx(null)}
+        >
+          {/* Sliding pill highlight */}
+          <AnimatePresence>
+            {hoveredIdx !== null && (
+              <motion.div
+                key="pill"
+                className="absolute bg-black/5 dark:bg-white/10 rounded-md z-0 pointer-events-none"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, ...pill }}
+                exit={{ opacity: 0 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              />
+            )}
+          </AnimatePresence>
+
+          {navItems.map((item, i) => (
+            <li key={item.href} className="relative z-10">
+              {item.href.startsWith("/") ? (
+                <Link
+                  ref={(el) => { linkRefs.current[i] = el }}
+                  href={item.href}
+                  onMouseEnter={() => setHoveredIdx(i)}
+                  onClick={() => handleClick(item.href)}
+                  className={`relative px-3 py-1.5 rounded-md cursor-pointer whitespace-nowrap text-sm transition-colors duration-150 select-none ${
+                    activeHref === item.href
+                      ? "text-foreground font-medium"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <motion.span
+                    initial={false}
+                    animate={animatingHref === item.href ? "pulse" : "rest"}
+                    variants={linkVariants}
+                    onAnimationComplete={() => {
+                      if (animatingHref === item.href) setAnimatingHref(null)
+                    }}
+                    style={{ display: "inline-block" }}
+                  >
+                    {item.name}
+                  </motion.span>
+                </Link>
+              ) : (
+                <a
+                  ref={(el) => { linkRefs.current[i] = el }}
+                  href={item.href}
+                  onMouseEnter={() => setHoveredIdx(i)}
+                  onClick={() => handleClick(item.href)}
+                  className={`relative px-3 py-1.5 rounded-md cursor-pointer whitespace-nowrap text-sm transition-colors duration-150 select-none ${
+                    activeHref === item.href
+                      ? "text-foreground font-medium"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <motion.span
+                    initial={false}
+                    animate={animatingHref === item.href ? "pulse" : "rest"}
+                    variants={linkVariants}
+                    onAnimationComplete={() => {
+                      if (animatingHref === item.href) setAnimatingHref(null)
+                    }}
+                    style={{ display: "inline-block" }}
+                  >
+                    {item.name}
+                  </motion.span>
+                </a>
+              )}
+            </li>
+          ))}
+        </ul>
+
+        {/* Spacer on mobile so logo stays left and toggle+hamburger stay right */}
+        <div className="flex-1 md:hidden" />
+
+        {/* Dark-mode toggle — always visible */}
+        <ModeToggle />
+
+        {/* Mobile hamburger */}
+        <div className="md:hidden shrink-0">
           <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon" aria-label="Open menu">
-                <Menu />
+              <Button variant="ghost" size="icon" aria-label="Open menu">
+                <Menu className="w-4 h-4" />
               </Button>
             </SheetTrigger>
-            <SheetContent className="w-[40%]">
+            <SheetContent className="w-[60vw]">
               <MobileNav />
             </SheetContent>
           </Sheet>
