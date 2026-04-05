@@ -4,6 +4,7 @@ import { motion, useMotionValue, useTransform, useSpring, AnimatePresence } from
 import dynamic from "next/dynamic";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useTheme } from "next-themes";
+import { AnimatedFilterButton } from "@/components/projects/AnimatedFilterButton";
 
 // Minimal loading state — just a subtle pulse, no spinner circus
 const LoadingSpinner = () => (
@@ -210,18 +211,14 @@ const Avatar = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.1, duration: 0.6 }}
               >
-                <motion.a
-                  href="#Contact"
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="group relative inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-semibold shadow-lg shadow-gray-900/10 dark:shadow-white/10 overflow-hidden transition-shadow hover:shadow-xl"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-violet-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <span className="relative z-10 group-hover:text-white transition-colors">Let&apos;s talk</span>
-                  <svg className="relative z-10 w-4 h-4 group-hover:translate-x-0.5 transition-transform group-hover:text-white" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                  </svg>
-                </motion.a>
+                <AnimatedFilterButton
+                  category="Let's talk"
+                  isActive={true}
+                  onClick={() => { window.location.href = "/#Contact" }}
+                  size="lg"
+                  rounded="xl"
+                  layoutId="hero-cta"
+                />
 
                 <motion.a
                   href="#Projects"

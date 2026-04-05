@@ -1,8 +1,9 @@
-import { motion, useMotionValue, useSpring, useInView, useTransform, animate } from "framer-motion"
+import { motion, useMotionValue, useInView, useTransform, animate } from "framer-motion"
 import CopyEmailButton from "../copy-email-button"
 import { useTheme } from "next-themes"
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
+import { AnimatedFilterButton } from "@/components/projects/AnimatedFilterButton"
 
 const TECH_STACK = [
   "Next.js", "Nuxt", "React", "Vue.js",
@@ -39,11 +40,7 @@ const AboutMe = () => {
   const { theme, systemTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [hoveredTech, setHoveredTech] = useState<string | null>(null)
-  const btnRef = useRef<HTMLAnchorElement>(null)
-  const btnX = useMotionValue(0)
-  const btnY = useMotionValue(0)
-  const springBtnX = useSpring(btnX, { stiffness: 200, damping: 20 })
-  const springBtnY = useSpring(btnY, { stiffness: 200, damping: 20 })
+
 
   useEffect(() => {
     setMounted(true)
@@ -51,21 +48,6 @@ const AboutMe = () => {
 
   const resolvedTheme = theme === "system" ? systemTheme : theme
   const isLightMode = mounted ? resolvedTheme === "light" : false
-
-  const handleBtnMouseMove = useCallback(
-    (e: React.MouseEvent) => {
-      if (!btnRef.current) return
-      const rect = btnRef.current.getBoundingClientRect()
-      btnX.set((e.clientX - (rect.left + rect.width / 2)) * 0.15)
-      btnY.set((e.clientY - (rect.top + rect.height / 2)) * 0.15)
-    },
-    [btnX, btnY],
-  )
-
-  const handleBtnMouseLeave = useCallback(() => {
-    btnX.set(0)
-    btnY.set(0)
-  }, [btnX, btnY])
 
   return (
     <motion.section
@@ -226,37 +208,15 @@ const AboutMe = () => {
               transition={{ duration: 0.5, delay: 0.3 }}
               viewport={{ once: true }}
             >
-              {/* Primary — magnetic button */}
-              <motion.a
-                ref={btnRef}
-                href="#Contact"
-                style={{ x: springBtnX, y: springBtnY }}
-                onMouseMove={handleBtnMouseMove}
-                onMouseLeave={handleBtnMouseLeave}
-                whileTap={{ scale: 0.95 }}
-                className={cn(
-                  "group relative inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 cursor-pointer select-none",
-                  isLightMode
-                    ? "bg-gray-900 text-white shadow-md shadow-gray-900/10 hover:bg-indigo-600 hover:shadow-lg hover:shadow-indigo-500/25"
-                    : "bg-indigo-600 text-white shadow-md shadow-indigo-900/30 hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/25",
-                )}
-                suppressHydrationWarning
-              >
-                Get in touch
-                <svg
-                  className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-                  />
-                </svg>
-              </motion.a>
+              {/* Primary — AnimatedFilterButton */}
+              <AnimatedFilterButton
+                category="Get in touch"
+                isActive={true}
+                onClick={() => { window.location.href = "/#Contact" }}
+                size="md"
+                rounded="xl"
+                layoutId="aboutme-cta"
+              />
 
               {/* Secondary — copy email */}
               <motion.div

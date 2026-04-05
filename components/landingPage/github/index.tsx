@@ -114,6 +114,9 @@ export default function GitHub() {
               category="Recent"
               isActive={selectedYear === undefined}
               onClick={() => setSelectedYear(undefined)}
+              size="xs"
+              rounded="lg"
+              layoutId="github-year"
             />
             {AVAILABLE_YEARS.map((year) => (
               <AnimatedFilterButton
@@ -121,6 +124,9 @@ export default function GitHub() {
                 category={year.toString()}
                 isActive={selectedYear === year}
                 onClick={() => setSelectedYear(year)}
+                size="xs"
+                rounded="lg"
+                layoutId="github-year"
               />
             ))}
           </div>
@@ -128,6 +134,14 @@ export default function GitHub() {
 
         <div className="overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700">
           {mounted && (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={selectedYear ?? "recent"}
+                initial={{ opacity: 0, y: 8, filter: "blur(6px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -8, filter: "blur(6px)" }}
+                transition={{ duration: 0.35, ease: "easeInOut" }}
+              >
             <TooltipProvider delayDuration={100}>
               <GitHubCalendar
                 key={selectedYear ?? "recent"}
@@ -155,6 +169,8 @@ export default function GitHub() {
                 )}
               />
             </TooltipProvider>
+              </motion.div>
+            </AnimatePresence>
           )}
         </div>
 

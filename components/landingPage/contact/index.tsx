@@ -1,9 +1,10 @@
-import { motion, useMotionValue, useSpring } from "framer-motion"
-import { ArrowUpRight, Copy, Check } from "lucide-react"
+import { motion } from "framer-motion"
+import { Copy, Check } from "lucide-react"
 import { useTheme } from "next-themes"
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
+import { AnimatedFilterButton } from "@/components/projects/AnimatedFilterButton"
 
 const EMAIL = "webdevislife2021@gmail.com"
 
@@ -13,34 +14,12 @@ const Contact = () => {
   const [copied, setCopied] = useState(false)
   const { toast } = useToast()
 
-  // Magnetic button
-  const btnRef = useRef<HTMLButtonElement>(null)
-  const btnX = useMotionValue(0)
-  const btnY = useMotionValue(0)
-  const springX = useSpring(btnX, { stiffness: 180, damping: 18 })
-  const springY = useSpring(btnY, { stiffness: 180, damping: 18 })
-
   useEffect(() => {
     setMounted(true)
   }, [])
 
   const resolvedTheme = theme === "system" ? systemTheme : theme
   const isLightMode = mounted ? resolvedTheme === "light" : false
-
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent) => {
-      if (!btnRef.current) return
-      const rect = btnRef.current.getBoundingClientRect()
-      btnX.set((e.clientX - (rect.left + rect.width / 2)) * 0.12)
-      btnY.set((e.clientY - (rect.top + rect.height / 2)) * 0.12)
-    },
-    [btnX, btnY],
-  )
-
-  const handleMouseLeave = useCallback(() => {
-    btnX.set(0)
-    btnY.set(0)
-  }, [btnX, btnY])
 
   const copyEmail = () => {
     navigator.clipboard.writeText(EMAIL)
@@ -142,27 +121,15 @@ const Contact = () => {
           transition={{ delay: 0.35, duration: 0.5 }}
           viewport={{ once: true }}
         >
-          {/* Primary — magnetic email button */}
-          <motion.button
-            ref={btnRef}
-            onClick={() =>
-              (window.location.href = `mailto:${EMAIL}`)
-            }
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            style={{ x: springX, y: springY }}
-            whileTap={{ scale: 0.95 }}
-            className={cn(
-              "group relative inline-flex items-center gap-2.5 px-8 py-4 rounded-xl text-base font-semibold transition-all duration-300 cursor-pointer select-none",
-              isLightMode
-                ? "bg-gray-900 text-white shadow-lg shadow-gray-900/10 hover:bg-indigo-600 hover:shadow-xl hover:shadow-indigo-500/20"
-                : "bg-indigo-600 text-white shadow-lg shadow-indigo-900/30 hover:bg-indigo-500 hover:shadow-xl hover:shadow-indigo-500/20",
-            )}
-            suppressHydrationWarning
-          >
-            Send an email
-            <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </motion.button>
+          {/* Primary — AnimatedFilterButton */}
+          <AnimatedFilterButton
+            category="Send an email"
+            isActive={true}
+            onClick={() => { window.location.href = `mailto:${EMAIL}` }}
+            size="lg"
+            rounded="xl"
+            layoutId="contact-cta"
+          />
 
           {/* Secondary — copy email */}
           <motion.button

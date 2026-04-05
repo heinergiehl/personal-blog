@@ -1,163 +1,187 @@
 "use client"
 
-import { useState, MouseEvent, useEffect } from "react"
+import { useState, MouseEvent, useEffect, ReactNode } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useTheme } from "next-themes"
 
-// Define the shape of a single ripple
 interface Ripple {
   key: number
   x: number
   y: number
 }
 
-interface AnimatedFilterButtonProps {
+export interface AnimatedFilterButtonProps {
+  /** Text label shown inside the button */
   category: string
   isActive: boolean
   onClick: () => void
+  /** Controls padding / font size */
+  size?: "xs" | "sm" | "md" | "lg"
+  /** Controls border-radius */
+  rounded?: "lg" | "xl" | "2xl" | "full"
+  /** Override inner label with custom children (icons etc.) */
+  children?: ReactNode
+  /** Unique layoutId for the shared active-fill animation */
+  layoutId?: string
+  /** Render as <a> instead of <button> */
+  href?: string
 }
 
-// Define the new gradient colors for easy access
-const COLOR_ONE = "#4f16eb" // Primary purple
-const COLOR_TWO = "#4b0358" // Darker purple/pink
+const COLOR_ONE = "#4f46e5"
+const COLOR_TWO = "#7c3aed"
+
+const sizeClasses: Record<string, string> = {
+  xs: "px-3 py-1.5 text-xs font-medium",
+  sm: "px-5 py-2.5 text-sm font-medium",
+  md: "px-6 py-3 text-sm font-semibold",
+  lg: "px-7 py-3.5 text-base font-semibold",
+}
+
+const roundedClasses: Record<string, string> = {
+  full: "rounded-full",
+  "2xl": "rounded-2xl",
+  xl:   "rounded-xl",
+  lg:   "rounded-lg",
+}
+
+const borderRadiusValues: Record<string, number> = {
+  full: 9999,
+  "2xl": 16,
+  xl:   12,
+  lg:   8,
+}
 
 export function AnimatedFilterButton({
   category,
   isActive,
   onClick,
+  size = "sm",
+  rounded = "full",
+  children,
+  layoutId = "active-pill",
+  href,
 }: AnimatedFilterButtonProps) {
   const [ripples, setRipples] = useState<Ripple[]>([])
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
   const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
-  
-  // Ensure the component is mounted before checking the theme
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-  
-  if (!mounted) return null // Prevent rendering until mounted
-  
-  const isLightMode = resolvedTheme === "light"
 
-  const handleCreateRipple = (event: MouseEvent<HTMLButtonElement>) => {
-    const button = event.currentTarget
-    const rect = button.getBoundingClientRect()
+  useEffect(() => { setMounted(true) }, [])
+  if (!mounted) return null
 
-    const newRipple: Ripple = {
-      key: Date.now(),
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
-    }
-    setRipples((prev) => [...prev, newRipple])
+  const isLight = resolvedTheme === "light"
+  const br = borderRadiusValues[rounded] ?? 9999
 
+  const handleClick = (e: MouseEvent<HTMLElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    setRipples((prev) => [
+      ...prev,
+      { key: Date.now(), x: e.clientX - rect.left, y: e.clientY - rect.top },
+    ])
     onClick()
   }
 
-  const handleMouseMove = (event: MouseEvent<HTMLButtonElement>) => {
-    const button = event.currentTarget
-    const rect = button.getBoundingClientRect()
-    setMousePosition({
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
-    })
+  const handleMouseMove = (e: MouseEvent<HTMLElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top })
   }
 
-  // --- Dynamic Styles based on Light/Dark Mode ---
-  const buttonBaseClasses = `
-    relative px-5 py-2.5 text-sm font-medium rounded-full overflow-hidden
-    transition-colors duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2
-  `
+  const base = [
+    "relative overflow-hidden transition-colors duration-300 ease-in-out",
+    "focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer select-none",
+    "inline-flex items-center justify-center gap-2",
+    sizeClasses[size],
+    roundedClasses[rounded],
+  ].join(" ")
 
-  const activeClasses = isLightMode
-    ? "text-gray-900 shadow-lg shadow-indigo-300/40" // Stronger shadow for active pill in light mode
-    : "text-white" // Active text white for dark mode
+  const activeCls = "text-white shadow-lg shadow-indigo-400/30"
+  const inactiveCls = isLight
+    ? "bg-white text-gray-800 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 shadow-sm"
+    : "bg-slate-800 text-slate-400 hover:text-slate-100"
+  const focusCls = isLight
+    ? "focus:ring-indigo-500 focus:ring-offset-white"
+    : "focus:ring-indigo-500 focus:ring-offset-slate-900"
 
-  const inactiveClasses = isLightMode
-    ? "bg-white text-gray-800 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900 shadow-sm" // Clean white, subtle border/shadow, clear hover
-    : "bg-slate-800 text-slate-400 hover:text-slate-100" // Existing dark mode styles
+  const hoverGlow = {
+    background: isLight
+      ? `radial-gradient(circle at ${mousePos.x}px ${mousePos.y}px, #4f46e51A, transparent 60%)`
+      : `radial-gradient(circle at ${mousePos.x}px ${mousePos.y}px, ${COLOR_ONE}4D, transparent 60%)`,
+  }
 
-  const focusRingClasses = isLightMode
-    ? "focus:ring-indigo-500 focus:ring-offset-white" // Use a more brand-aligned indigo for focus, white offset
-    : "focus:ring-purple-500 focus:ring-offset-slate-900" // Existing dark mode focus
-
-  // Hover glow for inactive buttons
-  const inactiveHoverGlowStyle = isLightMode
-    ? {
-        background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, #4f46e51A, transparent 60%)`, // Light indigo with low opacity
-        boxShadow: `0px 2px 8px rgba(0,0,0,0.05)`, // Add a very subtle general shadow on hover
-      }
-    : {
-        background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, ${COLOR_ONE}4D, transparent 60%)`,
-      }
-
-  // Ripple color
-  const rippleColorClass = isLightMode
-    ? "bg-indigo-500 shadow-md shadow-indigo-300/60" // Indigo ripple with soft shadow
-    : "bg-white shadow-lg shadow-purple-500/50" // Existing white ripple
-
-  return (
-    <motion.button
-      layout
-      key={category}
-      onClick={handleCreateRipple}
-      onMouseMove={handleMouseMove}
-      className={`${buttonBaseClasses} ${
-        isActive ? activeClasses : inactiveClasses
-      } ${focusRingClasses}`}
-    >
-      {/* ===== HOVER GLOW EFFECT (FOR INACTIVE BUTTONS) ===== */}
+  const inner = (
+    <>
+      {/* Inactive hover glow */}
       <AnimatePresence>
         {!isActive && (
           <motion.div
             className="absolute inset-0 z-0"
-            style={inactiveHoverGlowStyle} // Apply dynamic style object
+            style={hoverGlow}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+            transition={{ duration: 0.3 }}
           />
         )}
       </AnimatePresence>
 
-      {/* Text content - Always on top */}
-      <span className="relative z-20">{category}</span>
+      {/* Label */}
+      <span className="relative z-20 inline-flex items-center gap-2">
+        {children ?? category}
+      </span>
 
-      {/* ===== RIPPLE EFFECT CONTAINER ===== */}
-      <div className="absolute inset-0 z-10">
+      {/* Ripples */}
+      <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden">
         <AnimatePresence>
-          {ripples.map((ripple) => (
+          {ripples.map((r) => (
             <motion.span
-              key={ripple.key}
-              className={`absolute rounded-full ${rippleColorClass}`} // Use dynamic ripple class
-              style={{
-                left: ripple.x,
-                top: ripple.y,
-                transform: "translate(-50%, -50%)",
-              }}
-              initial={{ scale: 0, opacity: 0.7, width: 80, height: 80 }}
+              key={r.key}
+              className="absolute rounded-full bg-white/60"
+              style={{ left: r.x, top: r.y, transform: "translate(-50%, -50%)" }}
+              initial={{ scale: 0, opacity: 0.6, width: 80, height: 80 }}
               animate={{ scale: 4, opacity: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.7, ease: "easeOut" }}
-              onAnimationComplete={() => {
-                setRipples((prev) => prev.filter((r) => r.key !== ripple.key))
-              }}
+              onAnimationComplete={() =>
+                setRipples((prev) => prev.filter((x) => x.key !== r.key))
+              }
             />
           ))}
         </AnimatePresence>
       </div>
 
-      {/* ===== ACTIVE STATE GRADIENT PILL ===== */}
+      {/* Active gradient fill — shared layoutId for smooth pill movement */}
       <AnimatePresence>
         {isActive && (
           <motion.div
-            layoutId="active-pill"
-            className={`absolute inset-0 z-0 bg-gradient-to-r from-[${COLOR_ONE}] to-[${COLOR_TWO}]`}
-            style={{ borderRadius: 9999 }}
+            layoutId={layoutId}
+            className="absolute inset-0 z-0"
+            style={{
+              background: `linear-gradient(135deg, ${COLOR_ONE}, ${COLOR_TWO})`,
+              borderRadius: br,
+            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ type: "spring", stiffness: 350, damping: 30 }}
           />
         )}
       </AnimatePresence>
+    </>
+  )
+
+  const className = `${base} ${isActive ? activeCls : inactiveCls} ${focusCls}`
+
+  if (href) {
+    return (
+      <motion.a href={href} layout onClick={handleClick as any} onMouseMove={handleMouseMove as any} className={className}>
+        {inner}
+      </motion.a>
+    )
+  }
+
+  return (
+    <motion.button layout onClick={handleClick} onMouseMove={handleMouseMove} className={className}>
+      {inner}
     </motion.button>
   )
 }
