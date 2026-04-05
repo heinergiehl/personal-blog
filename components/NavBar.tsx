@@ -13,11 +13,11 @@ import { Button } from "./ui/button"
 
 /* ───────────────────────────── Nav items ─────────────────────────────── */
 export const navItems = [
-  { name: "About", href: "#About Me" },
-  { name: "Timeline", href: "#Timeline" },
-  { name: "Skills", href: "#Skills" },
-  { name: "Projects", href: "#Projects" },
-  { name: "Contact", href: "#Contact" },
+  { name: "About", href: "/#About Me" },
+  { name: "Timeline", href: "/#Timeline" },
+  { name: "Skills", href: "/#Skills" },
+  { name: "Projects", href: "/#Projects" },
+  { name: "Contact", href: "/#Contact" },
   { name: "Feedback", href: "/feedback" },
 ]
 
@@ -129,9 +129,15 @@ const NavBar: React.FC = () => {
       <div className="w-full md:max-w-[900px] border border-border bg-background/70 backdrop-blur-md md:rounded-xl px-4 py-2 mx-4 flex items-center gap-3">
 
         {/* Logo */}
-        <div className="text-base font-bold md:text-lg shrink-0 mr-2">
-          <Link href="/">HeinerDevelops</Link>
-        </div>
+        <Link href="/" className="shrink-0 flex items-center gap-2 group select-none">
+          {/* Monogram badge */}
+          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-indigo-600 dark:bg-indigo-500 text-white text-xs font-black tracking-tight shadow-sm group-hover:bg-indigo-500 dark:group-hover:bg-indigo-400 transition-colors duration-200">
+            HG
+          </span>
+          <span className="text-sm font-bold tracking-tight text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200">
+            HeinerDevelops
+          </span>
+        </Link>
 
         {/* Desktop nav — expands to fill remaining space, links right-aligned */}
         <ul

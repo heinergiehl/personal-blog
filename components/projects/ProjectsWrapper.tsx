@@ -64,18 +64,18 @@ export function ProjectsWrapper() {
       className="relative min-h-screen py-16 mt-24 overflow-hidden"
       id="Projects"
     >
-      {/* Ambient glow blobs — no hard background, inherits page bg */}
+      {/* Ambient glow — only visible in dark mode to avoid light-mode tint */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          className="absolute -top-1/4 left-0 w-[700px] h-[700px] rounded-full blur-3xl opacity-[0.07] dark:opacity-[0.12]"
-          style={{ background: mounted && isLightMode ? '#4f46e5' : COLOR_ONE }}
+          className="absolute -top-1/4 left-0 w-[700px] h-[700px] rounded-full blur-3xl opacity-0 dark:opacity-[0.10]"
+          style={{ background: COLOR_ONE }}
           animate={{ x: [0, 150, 0], y: [0, 100, 0], scale: [1, 1.5, 1] }}
           transition={{ duration: 40, repeat: Infinity, ease: "easeInOut" }}
           suppressHydrationWarning
         />
         <motion.div
-          className="absolute bottom-0 right-0 w-[700px] h-[700px] rounded-full blur-3xl opacity-[0.07] dark:opacity-[0.12]"
-          style={{ background: mounted && isLightMode ? '#06b6d4' : COLOR_TWO }}
+          className="absolute bottom-0 right-0 w-[700px] h-[700px] rounded-full blur-3xl opacity-0 dark:opacity-[0.10]"
+          style={{ background: COLOR_TWO }}
           animate={{ x: [0, -150, 0], y: [0, -100, 0], scale: [1, 1.4, 1] }}
           transition={{ duration: 45, repeat: Infinity, ease: "easeInOut" }}
           suppressHydrationWarning

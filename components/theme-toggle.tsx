@@ -15,8 +15,7 @@ export function ModeToggle() {
     setMounted(true)
   }, [])
   if (!mounted) {
-    // prevents hydration mismatch
-    return null
+    return <div className="w-10 h-8 shrink-0 relative rounded-lg" />
   }
   const handleToggle = () => {
     setTheme(isDark ? "light" : "dark")
@@ -29,13 +28,14 @@ export function ModeToggle() {
       className="
         relative
         w-10 h-8
+        shrink-0 z-50
         rounded-lg
         overflow-hidden
         flex items-center justify-center
-       
-     
+        bg-gray-200 dark:bg-gray-800
+        text-gray-900 dark:text-gray-100
+        hover:bg-gray-300 dark:hover:bg-gray-700
         focus:outline-none focus:ring-1 focus:ring-offset-0
-       
       "
       whileTap={{ scale: 0.9 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
