@@ -2,9 +2,7 @@
 
 import React, { useState, useRef, useLayoutEffect, useEffect } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import LoadingBar from "react-top-loading-bar"
 import { ModeToggle } from "./theme-toggle"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import MobileNav from "./mobile-nav"
@@ -42,23 +40,6 @@ const linkVariants = {
 
 /* ───────────────────────────── Component ─────────────────────────────── */
 const NavBar: React.FC = () => {
-  /* loading bar -------------------------------------------------------- */
-  const [progress, setProgress] = useState(0)
-  const pathname = usePathname()
-  useEffect(() => {
-    setProgress(30)
-    const t1 = setTimeout(() => setProgress(70), 100)
-    const t2 = setTimeout(() => setProgress(100), 800)
-    return () => {
-      clearTimeout(t1)
-      clearTimeout(t2)
-    }
-  }, [pathname])
-  useEffect(() => {
-    const t = setTimeout(() => setProgress(0), 900)
-    return () => clearTimeout(t)
-  }, [])
-
   /* mobile sheet ------------------------------------------------------- */
   const [sheetOpen, setSheetOpen] = useState(false)
   useEffect(() => {
@@ -111,27 +92,13 @@ const NavBar: React.FC = () => {
   /* ───────────────────────────── JSX ─────────────────────────────── */
   return (
     <nav className="w-full sticky top-5 flex justify-center z-30">
-      <LoadingBar
-        color="#6028ff"
-        progress={progress}
-        onLoaderFinished={() => setProgress(0)}
-        height={3}
-        shadow={false}
-        containerStyle={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          zIndex: 9999,
-        }}
-      />
       {/* Single-level flex row: logo | links (desktop) | toggle | hamburger (mobile) */}
       <div className="w-full md:max-w-[900px] border border-border bg-background/70 backdrop-blur-md md:rounded-xl px-4 py-2 mx-4 flex items-center gap-3">
 
         {/* Logo */}
         <Link href="/" className="shrink-0 flex items-center gap-2 group select-none">
           {/* </> badge */}
-          <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-600 dark:bg-indigo-500 shadow-sm shadow-indigo-600/20 group-hover:bg-indigo-500 dark:group-hover:bg-indigo-400 transition-colors duration-200">
+          <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 dark:from-indigo-500 dark:to-violet-500 shadow-sm shadow-indigo-600/20 group-hover:from-indigo-500 group-hover:to-violet-500 transition-all duration-200">
             <span className="text-white font-black text-[11px] leading-none font-mono tracking-tighter">&lt;/&gt;</span>
           </span>
           {/* Two-tone wordmark */}

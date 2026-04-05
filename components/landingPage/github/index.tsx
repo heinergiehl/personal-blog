@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { FaGithub } from "react-icons/fa";
 import "react-github-calendar/tooltips.css";
 import { cn } from "@/lib/utils";
+import { AnimatedFilterButton } from "@/components/projects/AnimatedFilterButton";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -109,42 +110,18 @@ export default function GitHub() {
             {selectedYear ?? "Last 12 months"}
           </span>
           <div className="flex items-center gap-1.5">
-            <motion.button
+            <AnimatedFilterButton
+              category="Recent"
+              isActive={selectedYear === undefined}
               onClick={() => setSelectedYear(undefined)}
-              className={cn(
-                "px-3 py-1 rounded-md text-xs font-medium transition-all duration-200",
-                selectedYear === undefined
-                  ? isLightMode
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "bg-indigo-500 text-white shadow-sm shadow-indigo-500/20"
-                  : isLightMode
-                    ? "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                    : "text-gray-500 hover:text-gray-300 hover:bg-gray-800",
-              )}
-              whileTap={{ scale: 0.95 }}
-              suppressHydrationWarning
-            >
-              Recent
-            </motion.button>
+            />
             {AVAILABLE_YEARS.map((year) => (
-              <motion.button
+              <AnimatedFilterButton
                 key={year}
+                category={year.toString()}
+                isActive={selectedYear === year}
                 onClick={() => setSelectedYear(year)}
-                className={cn(
-                  "px-3 py-1 rounded-md text-xs font-medium transition-all duration-200",
-                  selectedYear === year
-                    ? isLightMode
-                      ? "bg-indigo-600 text-white shadow-sm"
-                      : "bg-indigo-500 text-white shadow-sm shadow-indigo-500/20"
-                    : isLightMode
-                      ? "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                      : "text-gray-500 hover:text-gray-300 hover:bg-gray-800",
-                )}
-                whileTap={{ scale: 0.95 }}
-                suppressHydrationWarning
-              >
-                {year}
-              </motion.button>
+              />
             ))}
           </div>
         </div>
