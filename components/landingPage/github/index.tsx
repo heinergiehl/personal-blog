@@ -2,7 +2,7 @@
 
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { FaGithub } from "react-icons/fa";
 import "react-github-calendar/tooltips.css";
 import { cn } from "@/lib/utils";

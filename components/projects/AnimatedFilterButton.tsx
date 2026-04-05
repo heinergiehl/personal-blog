@@ -159,9 +159,6 @@ export function AnimatedFilterButton({
               background: `linear-gradient(135deg, ${COLOR_ONE}, ${COLOR_TWO})`,
               borderRadius: br,
             }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
             transition={{ type: "spring", stiffness: 350, damping: 30 }}
           />
         )}
@@ -173,14 +170,29 @@ export function AnimatedFilterButton({
 
   if (href) {
     return (
-      <motion.a href={href} layout onClick={handleClick as any} onMouseMove={handleMouseMove as any} className={className}>
+      <motion.a
+        href={href}
+        layout
+        onClick={handleClick as any}
+        onMouseMove={handleMouseMove as any}
+        className={className}
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.97 }}
+      >
         {inner}
       </motion.a>
     )
   }
 
   return (
-    <motion.button layout onClick={handleClick} onMouseMove={handleMouseMove} className={className}>
+    <motion.button
+      layout
+      onClick={handleClick}
+      onMouseMove={handleMouseMove}
+      className={className}
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.97 }}
+    >
       {inner}
     </motion.button>
   )
