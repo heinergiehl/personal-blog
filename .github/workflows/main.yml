@@ -85,10 +85,10 @@ jobs:
 
             echo "--- Write .env.production ---"
             cat > .env.production <<EOF
-APP_PORT=${APP_PORT}
-NODE_ENV=production
-GOOGLE_ANALYTICS=${GOOGLE_ANALYTICS}
-EOF
+            APP_PORT=${APP_PORT}
+            NODE_ENV=production
+            GOOGLE_ANALYTICS=${GOOGLE_ANALYTICS}
+            EOF
 
             echo "--- Commit on server ---"
             git log --oneline -1
