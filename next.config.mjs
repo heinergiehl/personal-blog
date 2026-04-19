@@ -1,3 +1,6 @@
+import path from "path"
+import { fileURLToPath } from "url"
+
 // Suppress punycode deprecation warning from transitive deps (uri-js → ajv)
 const _origEmit = process.emit;
 process.emit = function (event, error) {
@@ -13,6 +16,8 @@ process.emit = function (event, error) {
 
 /** @type {import('next').NextConfig} */
 import createMDX from '@next/mdx'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 const nextConfig = {
     rewrites: async () => {
         // for sitemap.xml
@@ -71,12 +76,13 @@ const nextConfig = {
     typescript: {
         ignoreBuildErrors: true,
     },
-    eslint: {
-        ignoreDuringBuilds: true,
+    turbopack: {
+        root: __dirname,
     },
     pageExtensions: ['mdx', 'ts', 'tsx'],
     experimental: {
         mdxRs: true,
+        viewTransition: true,
     },
 }
 

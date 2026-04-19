@@ -3,7 +3,7 @@
 
 import { motion, AnimatePresence } from "framer-motion"
 
-import type { Project } from "../ProjectDetail"
+import type { Project } from "@/app/data/projects"
 
 import { ProjectCard, ProjectGrid } from "../landingPage/project"
 
@@ -41,9 +41,10 @@ export function ProjectsList({ projects }: ProjectsListProps) {
             exit="exit"
           >
             <ProjectCard
+              slug={project.slug}
               title={project.title}
               image={project.image}
-              link={`${project.slug}`} // Use the slug for the link
+              link={`/${project.slug}`}
             />
           </motion.div>
         ))}

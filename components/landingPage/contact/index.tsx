@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { AnimatedFilterButton } from "@/components/projects/AnimatedFilterButton"
+import Link from "next/link"
 
 const EMAIL = "webdevislife2021@gmail.com"
 
@@ -162,8 +163,9 @@ const Contact = () => {
           transition={{ delay: 0.5 }}
           viewport={{ once: true }}
         >
-          <a
+          <Link
             href="/feedback"
+            transitionTypes={["nav-forward"]}
             className={cn(
               "text-xs font-mono tracking-wide transition-colors",
               isLightMode
@@ -172,7 +174,7 @@ const Contact = () => {
             )}
           >
             Using one of my products? → Leave feedback
-          </a>
+          </Link>
         </motion.div>
       </div>
     </motion.section>

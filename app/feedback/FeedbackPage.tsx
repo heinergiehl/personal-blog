@@ -34,6 +34,7 @@ export default function FeedbackPage() {
         {/* Back link */}
         <Link
           href="/"
+          transitionTypes={["nav-back"]}
           className={cn(
             "inline-flex items-center gap-1.5 text-sm font-medium mb-12 transition-colors",
             isLightMode

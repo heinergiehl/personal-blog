@@ -19,7 +19,7 @@ export function BlogCard({ slug, title, summary, publishedAt, index }: BlogCardP
     const isLight = theme === "light"
 
     return (
-        <Link href={`/blog/${slug}`}>
+        <Link href={`/blog/${slug}`} transitionTypes={["nav-forward"]}>
             <motion.article
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}

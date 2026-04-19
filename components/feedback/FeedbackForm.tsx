@@ -9,6 +9,12 @@ import Link from "next/link"
 
 const PRODUCTS = [
   {
+    id: "agentic-chatbot",
+    name: "Agentic Chatbot",
+    description: "RAG + visual agentic workflows for Filament",
+    url: "https://filamentphp.com/plugins/heiner-giehl-agentic-chatbot",
+  },
+  {
     id: "image-studio-pro",
     name: "Image Studio Pro",
     description: "In-panel image editor for Filament",
@@ -111,6 +117,7 @@ export default function FeedbackForm() {
         </p>
         <Link
           href="/"
+          transitionTypes={["nav-back"]}
           className={cn(
             "inline-flex items-center gap-2 text-sm font-medium transition-colors",
             isLightMode

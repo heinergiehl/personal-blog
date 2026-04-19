@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useLayoutEffect, useEffect } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { ModeToggle } from "./theme-toggle"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -40,6 +41,7 @@ const linkVariants = {
 
 /* ───────────────────────────── Component ─────────────────────────────── */
 const NavBar: React.FC = () => {
+  const pathname = usePathname()
   /* mobile sheet ------------------------------------------------------- */
   const [sheetOpen, setSheetOpen] = useState(false)
   useEffect(() => {
@@ -89,14 +91,29 @@ const NavBar: React.FC = () => {
     setAnimatingHref(href) // flag to play pulse once
   }
 
+  const getTransitionTypes = (href: string) => {
+    if (href === "/feedback") return ["nav-forward"]
+    if (href === "/" || (href.startsWith("/#") && pathname !== "/")) {
+      return ["nav-back"]
+    }
+    return undefined
+  }
+
   /* ───────────────────────────── JSX ─────────────────────────────── */
   return (
-    <nav className="w-full sticky top-5 flex justify-center z-30">
+    <nav
+      className="w-full sticky top-5 flex justify-center z-30"
+      style={{ viewTransitionName: "site-header" }}
+    >
       {/* Single-level flex row: logo | links (desktop) | toggle | hamburger (mobile) */}
       <div className="w-full md:max-w-[900px] border border-border bg-background/70 backdrop-blur-md md:rounded-xl px-4 py-2 mx-4 flex items-center gap-3">
 
         {/* Logo */}
-        <Link href="/" className="shrink-0 flex items-center gap-2 group select-none">
+        <Link
+          href="/"
+          transitionTypes={pathname === "/" ? undefined : ["nav-back"]}
+          className="shrink-0 flex items-center gap-2 group select-none"
+        >
           {/* </> badge */}
           <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 dark:from-indigo-500 dark:to-violet-500 shadow-sm shadow-indigo-600/20 group-hover:from-indigo-500 group-hover:to-violet-500 transition-all duration-200">
             <span className="text-white font-black text-[11px] leading-none font-mono tracking-tighter">&lt;/&gt;</span>
@@ -133,6 +150,7 @@ const NavBar: React.FC = () => {
                 <Link
                   ref={(el) => { linkRefs.current[i] = el }}
                   href={item.href}
+                  transitionTypes={getTransitionTypes(item.href)}
                   onMouseEnter={() => setHoveredIdx(i)}
                   onClick={() => handleClick(item.href)}
                   className={`relative px-3 py-1.5 rounded-md cursor-pointer whitespace-nowrap text-sm transition-colors duration-150 select-none ${

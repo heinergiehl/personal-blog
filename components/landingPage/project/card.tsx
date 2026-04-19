@@ -3,6 +3,7 @@ import { motion, useMotionTemplate, useMotionValue, useSpring } from "motion/rea
 import Image from "next/image"
 import { useTheme } from "next-themes"
 import Link from "next/link"
+import { ViewTransition } from "react"
 import { COLOR_ONE, COLOR_TWO } from "@/config"
 
 interface CardProps {
@@ -16,6 +17,7 @@ interface CardProps {
   title: string
   image?: string
   link?: string
+  slug?: string
 }
 
 /**
@@ -31,6 +33,7 @@ function ProjectCard({
   title,
   cardCSS = "w-[400px] h-auto rounded-xl transition-all duration-300 relative",
   link,
+  slug,
 }: CardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   const [isHovered, setIsHovered] = useState(false)
@@ -106,6 +109,8 @@ function ProjectCard({
   const isLightMode = mounted ? resolvedTheme === 'light' : false
   
   const gradientColor = isLightMode ? "#ffffff80" : "#50505080"
+  const transitionKey = slug ?? link?.replace(/^\//, "") ?? title
+
   return (
     <motion.div
       ref={cardRef}
@@ -183,19 +188,24 @@ function ProjectCard({
         {image && (
           <div className="p-1 overflow-hidden rounded-t-xl">
             <div className="relative overflow-hidden rounded-t-lg">
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className="w-full h-full"
+              <ViewTransition
+                name={`project-hero-${transitionKey}`}
+                share="project-morph"
               >
-                <Image
-                  className="rounded-t-lg object-cover w-[400px] h-[200px]"
-                  width={400}
-                  height={200}
-                  src={image}
-                  alt={title}
-                />
-              </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  className="w-full h-full"
+                >
+                  <Image
+                    className="rounded-t-lg object-cover w-[400px] h-[200px]"
+                    width={400}
+                    height={200}
+                    src={image}
+                    alt={title}
+                  />
+                </motion.div>
+              </ViewTransition>
               
               {/* Overlay gradient on image hover */}
               <motion.div
@@ -215,20 +225,23 @@ function ProjectCard({
             {link ? (
               <Link 
                 href={link} 
+                transitionTypes={["nav-forward"]}
                 className="group/link inline-flex items-center gap-2 hover:gap-3 transition-all duration-300"
               >
-                <motion.span
-                  className={`
-                    transition-all duration-300
-                    ${mounted && isLightMode 
-                      ? 'group-hover/link:text-transparent group-hover/link:bg-clip-text group-hover/link:bg-gradient-to-r group-hover/link:from-indigo-600 group-hover/link:to-cyan-600' 
-                      : 'group-hover/link:text-transparent group-hover/link:bg-clip-text group-hover/link:bg-gradient-to-r group-hover/link:from-purple-400 group-hover/link:to-violet-400'
-                    }
-                  `}
-                  suppressHydrationWarning
-                >
-                  {title}
-                </motion.span>
+                <ViewTransition name={`project-title-${transitionKey}`}>
+                  <motion.span
+                    className={`
+                      transition-all duration-300
+                      ${mounted && isLightMode 
+                        ? 'group-hover/link:text-transparent group-hover/link:bg-clip-text group-hover/link:bg-gradient-to-r group-hover/link:from-indigo-600 group-hover/link:to-cyan-600' 
+                        : 'group-hover/link:text-transparent group-hover/link:bg-clip-text group-hover/link:bg-gradient-to-r group-hover/link:from-purple-400 group-hover/link:to-violet-400'
+                      }
+                    `}
+                    suppressHydrationWarning
+                  >
+                    {title}
+                  </motion.span>
+                </ViewTransition>
                 <motion.span
                   className={`
                     inline-block transition-all duration-300

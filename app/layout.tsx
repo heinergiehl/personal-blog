@@ -7,6 +7,7 @@ import Script from "next/script"
 import { Toaster } from "@/components/ui/toaster"
 import NavBar from "@/components/NavBar"
 import SiteFooter from "@/components/SiteFooter"
+import { PageTransitionShell } from "@/components/PageTransitionShell"
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -40,7 +41,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <NavBar />
-          <div className="flex-1 flex flex-col min-h-0">{children}</div>
+          <PageTransitionShell>
+            <div className="flex-1 flex flex-col min-h-0">{children}</div>
+          </PageTransitionShell>
           <SiteFooter />
           <Toaster />
         </ThemeProvider>
