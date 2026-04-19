@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import Script from "next/script"
 import { Toaster } from "@/components/ui/toaster"
 import NavBar from "@/components/NavBar"
+import SiteFooter from "@/components/SiteFooter"
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -28,7 +29,7 @@ export default function RootLayout({
       </head>
       <body
         className={cn(
-          "min-h-screen min-w-screen bg-background font-sans antialiased",
+          "min-h-screen min-w-screen bg-background font-sans antialiased flex flex-col",
           fontSans.variable
         )}
       >
@@ -39,7 +40,8 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <NavBar />
-          {children}
+          <div className="flex-1 flex flex-col min-h-0">{children}</div>
+          <SiteFooter />
           <Toaster />
         </ThemeProvider>
         {GA_ID && (

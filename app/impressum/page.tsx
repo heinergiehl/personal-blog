@@ -1,97 +1,186 @@
+import type { Metadata } from "next"
+import Link from "next/link"
+import siteConfig from "@/config/site"
+
+export const metadata: Metadata = {
+  title: "Impressum",
+  description: "Impressum und rechtliche Angaben.",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
+}
+
 const Impressum = () => {
+  const { ownerName, addressLine1, postalCode, city, country, email, phone, url } =
+    siteConfig
+
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-6 text-center">Impressum</h1>
-      <p className="mb-6">
-        This is the legal disclosure for FileTalky.com, in compliance with the
-        European Union legal requirements.
+    <div className="max-w-3xl mx-auto px-4 py-16 pb-24">
+      <p className="text-[11px] font-mono uppercase tracking-[0.2em] text-muted-foreground mb-4">
+        Rechtliches
       </p>
-      <h2 className="text-xl font-semibold mb-4">
-        Information in accordance with Section 5 TMG
-      </h2>
-      <ul className="list-disc list-inside mb-6">
-        <li>Company Name: [Your Company Name]</li>
-        <li>
-          Address: [Your Street Address], [Postal Code], [City], [Country]
-        </li>
-        <li>Phone: [Your Phone Number]</li>
-        <li>Email: [Your Email Address]</li>
-        <li>
-          Website:{" "}
-          <a
-            href="https://www.filetalky.com"
-            className="text-blue-500 hover:underline"
-          >
-            https://www.filetalky.com
-          </a>
-        </li>
-      </ul>
-      <h2 className="text-xl font-semibold mb-4">Represented by</h2>
-      <p className="mb-6">
-        [Your Name or Legal Representative Name] <br />
-        [Company Name or Organization] <br />
-        [Your Contact Information]
-      </p>
-      <h2 className="text-xl font-semibold mb-4">Registration Information</h2>
-      <p className="mb-6">
-        Business Registration Number: [Your Business Registration Number] <br />
-        VAT ID: [Your VAT Number] <br />
-        Regulatory Authority: [Your Regulatory Body] (if applicable)
-      </p>
-      <h2 className="text-xl font-semibold mb-4">EU Dispute Resolution</h2>
-      <p className="mb-6">
-        The European Commission provides a platform for online dispute
-        resolution (ODR):{" "}
-        <a
-          href="https://ec.europa.eu/consumers/odr"
-          className="text-blue-500 hover:underline"
+      <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-10">
+        Impressum
+      </h1>
+
+      <section className="space-y-8 text-sm leading-relaxed text-muted-foreground">
+        <div>
+          <h2 className="text-base font-semibold text-foreground mb-3">
+            Angaben gemäß § 5 TMG
+          </h2>
+          <p className="whitespace-pre-line">
+            {ownerName}
+            {"\n"}
+            {addressLine1}
+            {"\n"}
+            {postalCode} {city}
+            {"\n"}
+            {country}
+          </p>
+        </div>
+
+        <div>
+          <h2 className="text-base font-semibold text-foreground mb-3">
+            Kontakt
+          </h2>
+          <p>
+            E-Mail:{" "}
+            <a
+              href={`mailto:${email}`}
+              className="text-indigo-600 dark:text-indigo-400 hover:underline underline-offset-2"
+            >
+              {email}
+            </a>
+          </p>
+          {phone ? (
+            <p className="mt-2">
+              Telefon:{" "}
+              <a
+                href={`tel:${phone.replace(/\s/g, "")}`}
+                className="text-indigo-600 dark:text-indigo-400 hover:underline underline-offset-2"
+              >
+                {phone}
+              </a>
+            </p>
+          ) : null}
+          <p className="mt-2">
+            Website:{" "}
+            <a
+              href={url}
+              className="text-indigo-600 dark:text-indigo-400 hover:underline underline-offset-2"
+            >
+              {url.replace(/^https?:\/\//, "")}
+            </a>
+          </p>
+        </div>
+
+        <div>
+          <h2 className="text-base font-semibold text-foreground mb-3">
+            Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV
+          </h2>
+          <p className="whitespace-pre-line">
+            {ownerName}
+            {"\n"}
+            {addressLine1}
+            {"\n"}
+            {postalCode} {city}
+          </p>
+        </div>
+
+        <div>
+          <h2 className="text-base font-semibold text-foreground mb-3">
+            Haftung für Inhalte
+          </h2>
+          <p>
+            Als Diensteanbieter bin ich gemäß § 7 Abs. 1 TMG für eigene Inhalte
+            auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach
+            §§ 8 bis 10 TMG bin ich als Diensteanbieter jedoch nicht
+            verpflichtet, übermittelte oder gespeicherte fremde Informationen zu
+            überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige
+            Tätigkeit hinweisen. Verpflichtungen zur Entfernung oder Sperrung der
+            Nutzung von Informationen nach den allgemeinen Gesetzen bleiben
+            unberührt. Eine diesbezügliche Haftung ist erst ab dem Zeitpunkt der
+            Kenntnis einer konkreten Rechtsverletzung möglich. Bei Bekanntwerden
+            entsprechender Rechtsverletzungen werde ich diese Inhalte umgehend
+            entfernen.
+          </p>
+        </div>
+
+        <div>
+          <h2 className="text-base font-semibold text-foreground mb-3">
+            Haftung für Links
+          </h2>
+          <p>
+            Dieses Angebot enthält ggf. Links zu externen Websites Dritter, auf
+            deren Inhalte ich keinen Einfluss habe. Deshalb kann ich für diese
+            fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der
+            verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der
+            Seiten verantwortlich. Die verlinkten Seiten wurden zum Zeitpunkt der
+            Verlinkung auf mögliche Rechtsverstöße überprüft. Rechtswidrige
+            Inhalte waren zum Zeitpunkt der Verlinkung nicht erkennbar. Eine
+            permanente inhaltliche Kontrolle der verlinkten Seiten ist jedoch
+            ohne konkrete Anhaltspunkte einer Rechtsverletzung nicht zumutbar.
+            Bei Bekanntwerden von Rechtsverletzungen werde ich derartige Links
+            umgehend entfernen.
+          </p>
+        </div>
+
+        <div>
+          <h2 className="text-base font-semibold text-foreground mb-3">
+            Urheberrecht
+          </h2>
+          <p>
+            Die durch den Seitenbetreiber erstellten Inhalte und Werke auf diesen
+            Seiten unterliegen dem deutschen Urheberrecht. Die Vervielfältigung,
+            Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der
+            Grenzen des Urheberrechts bedürfen der schriftlichen Zustimmung des
+            jeweiligen Autors bzw. Erstellers. Downloads und Kopien dieser Seite
+            sind nur für den privaten, nicht kommerziellen Gebrauch gestattet.
+            Soweit die Inhalte auf dieser Seite nicht vom Betreiber erstellt
+            wurden, werden die Urheberrechte Dritter beachtet. Insbesondere werden
+            Inhalte Dritter als solche gekennzeichnet. Sollten Sie trotzdem auf eine
+            Urheberrechtsverletzung aufmerksam werden, bitte ich um einen
+            entsprechenden Hinweis. Bei Bekanntwerden von Rechtsverletzungen werde
+            ich derartige Inhalte umgehend entfernen.
+          </p>
+        </div>
+
+        <div>
+          <h2 className="text-base font-semibold text-foreground mb-3">
+            Streitschlichtung
+          </h2>
+          <p>
+            Die Europäische Kommission stellt eine Plattform zur
+            Online-Streitbeilegung (OS) bereit:{" "}
+            <a
+              href="https://ec.europa.eu/consumers/odr"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-indigo-600 dark:text-indigo-400 hover:underline underline-offset-2"
+            >
+              https://ec.europa.eu/consumers/odr
+            </a>
+            . Ich bin nicht verpflichtet und nicht bereit, an Streitbeilegungsverfahren
+            vor einer Verbraucherschlichtungsstelle teilzunehmen.
+          </p>
+        </div>
+      </section>
+
+      <p className="mt-14 text-xs text-muted-foreground">
+        <Link
+          href="/"
+          className="text-indigo-600 dark:text-indigo-400 hover:underline underline-offset-2"
         >
-          https://ec.europa.eu/consumers/odr
-        </a>
-        . You can find our email address above.
-      </p>
-      <h2 className="text-xl font-semibold mb-4">Disclaimer</h2>
-      <p className="mb-6">
-        Liability for content: As the service provider, we are responsible for
-        our own content on these pages according to Section 7, paragraph 1 of
-        the German Telemedia Act (TMG). However, according to Sections 8 to 10
-        of the TMG, we are not obliged to monitor transmitted or stored
-        third-party information or to investigate circumstances that indicate
-        illegal activity. Obligations to remove or block the use of information
-        under general laws remain unaffected. However, liability in this regard
-        is only possible from the time of knowledge of a specific infringement.
-        Upon notification of such violations, we will remove the content
-        immediately.
-      </p>
-      <h2 className="text-xl font-semibold mb-4">Copyright</h2>
-      <p className="mb-6">
-        The content and works on these pages created by the website operators
-        are subject to copyright law. Duplication, editing, distribution, and
-        any kind of use outside the limits of copyright require the written
-        consent of the respective author or creator. Downloads and copies of
-        this site are only permitted for private, non-commercial use. Insofar as
-        the content on this site was not created by the operator, the copyrights
-        of third parties are respected. In particular, third-party content is
-        identified as such. If you nevertheless become aware of a copyright
-        infringement, please inform us. Upon notification of violations, we will
-        remove such content immediately.
-      </p>
-      <h2 className="text-xl font-semibold mb-4">Liability for Links</h2>
-      <p className="mb-6">
-        Our offer contains links to external third-party websites, over whose
-        contents we have no control. Therefore, we cannot assume any liability
-        for these external contents. The respective provider or operator of the
-        pages is always responsible for the content of the linked pages. The
-        linked pages were checked for possible legal violations at the time of
-        linking. Illegal content was not recognizable at the time of linking.
-        However, permanent monitoring of the content of the linked pages is not
-        reasonable without concrete evidence of a violation. Upon notification
-        of violations, we will remove such links immediately.
-      </p>
-      <p className="text-sm text-gray-500 mt-10 text-center">
-        Last updated: [Insert Date]
+          ← Zur Startseite
+        </Link>
       </p>
     </div>
   )
 }
+
 export default Impressum
