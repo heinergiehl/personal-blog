@@ -1,4 +1,9 @@
-User-agent: Googlebot
-Disallow: /contact
-Disallow: /cookie-policy
+User-agent: *
+Allow: /
+
 Disallow: /impressum
+Disallow: /cookie-policy
+Disallow: /privacy-policy
+Disallow: /api/
+
+Sitemap: https://heinerdevelops.tech/sitemap.xml

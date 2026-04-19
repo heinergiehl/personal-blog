@@ -30,28 +30,37 @@ const nextConfig = {
     },
     async headers() {
         return [
+            // Immutable static assets — long cache with content-hash filenames
             {
-                source: '/(.*)',
+                source: '/_next/static/(.*)',
                 headers: [
                     {
                         key: 'Cache-Control',
-                        value: 'no-cache, no-store, must-revalidate, max-age=0',
+                        value: 'public, max-age=31536000, immutable',
                     },
+                ],
+            },
+            // Public folder assets
+            {
+                source: '/(.*)\\.(ico|png|webp|jpg|jpeg|svg|gif|woff2|woff)',
+                headers: [
                     {
-                        key: 'Pragma',
-                        value: 'no-cache',
+                        key: 'Cache-Control',
+                        value: 'public, max-age=86400, stale-while-revalidate=604800',
                     },
+                ],
+            },
+            // HTML pages — always revalidate so content stays fresh
+            {
+                source: '/((?!_next/static|_next/image|favicon.ico).*)',
+                headers: [
                     {
-                        key: 'Expires',
-                        value: '0',
+                        key: 'Cache-Control',
+                        value: 'no-cache, no-store, must-revalidate',
                     },
                     {
                         key: 'X-Accel-Expires',
                         value: '0',
-                    },
-                    {
-                        key: 'Vary',
-                        value: '*',
                     },
                 ],
             },

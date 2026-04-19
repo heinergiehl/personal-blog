@@ -1,4 +1,4 @@
-
+import type { Metadata } from "next"
 import { Inter as FontSans } from "next/font/google"
 import "./globals.css"
 import { cn } from "@/lib/utils"
@@ -13,6 +13,35 @@ const fontSans = FontSans({
   subsets: ["latin"],
   variable: "--font-sans",
 })
+
+export const metadata: Metadata = {
+  metadataBase: new URL("https://heinerdevelops.tech"),
+  title: {
+    default: "Heiner Giehl — Fullstack Developer",
+    template: "%s | Heiner Giehl",
+  },
+  description:
+    "Portfolio and blog of Heiner Giehl — Fullstack developer specializing in Laravel, Filament, and modern web technologies.",
+  openGraph: {
+    type: "website",
+    siteName: "Heiner Giehl",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-snippet": -1,
+      "max-image-preview": "large",
+      "max-video-preview": -1,
+    },
+  },
+}
 
 export default function RootLayout({
   children,
