@@ -5,12 +5,7 @@ import path from "path"
 import { Metadata, ResolvingMetadata } from "next"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import matter from "gray-matter"
-import dynamic from "next/dynamic"
-
-// Dynamic import for CodeSandbox to avoid SSR issues with some browser-only APIs
-const CodeSandbox = dynamic(() => import("@/components/CodeSandbox"), {
-  ssr: false,
-})
+import CodeSandbox from "@/components/CodeSandboxClient"
 
 // Define available components for MDX
 const components = {

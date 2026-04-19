@@ -8,11 +8,7 @@ type ListItemProps = ComponentPropsWithoutRef<"li">
 type AnchorProps = ComponentPropsWithoutRef<"a">
 type BlockquoteProps = ComponentPropsWithoutRef<"blockquote">
 
-import dynamic from "next/dynamic"
-
-const CodeSandbox = dynamic(() => import("./components/CodeSandbox"), {
-  ssr: false,
-})
+import CodeSandbox from "./components/CodeSandboxClient"
 
 const components = {
   CodeSandbox,
