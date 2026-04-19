@@ -198,7 +198,7 @@ function ProjectCard({
                   className="w-full h-full"
                 >
                   <Image
-                    className="rounded-t-lg object-cover w-[400px] h-[200px]"
+                    className="rounded-t-lg object-cover w-full h-auto aspect-[2/1]"
                     width={400}
                     height={200}
                     src={image}

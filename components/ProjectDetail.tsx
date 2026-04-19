@@ -189,7 +189,7 @@ export function ProjectDetail(project: Project) {
               height={500}
               placeholder="blur"
               blurDataURL="/placeholder.png"
-              className="object-cover w-full h-full"
+              className="object-cover w-full h-auto"
               priority={Boolean(product)}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />

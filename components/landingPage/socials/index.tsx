@@ -107,7 +107,7 @@ export const Socials = () => {
     },
     {
       href: "https://www.upwork.com/freelancers/~01e359856bc8297a0f",
-      icon: <Image src="/upwork.svg" width={28} height={28} alt="Upwork" />,
+      icon: <Image src="/upwork.svg" width={28} height={28} alt="Upwork" className="h-auto w-[28px]" />,
       tooltip: "Hire me on Upwork",
       color: "#6fda44",
       size: 28,

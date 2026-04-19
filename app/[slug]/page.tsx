@@ -15,12 +15,13 @@ function absoluteUrl(path: string) {
   return `${base}${path.startsWith("/") ? path : `/${path}`}`
 }
 
-export function generateMetadata({
+export async function generateMetadata({
   params,
 }: {
-  params: { slug: string }
-}): Metadata {
-  const project = projects.find((p) => p.slug === params.slug)
+  params: Promise<{ slug: string }>
+}): Promise<Metadata> {
+  const { slug } = await params
+  const project = projects.find((p) => p.slug === slug)
   if (!project) return {}
 
   const product = project.product
@@ -111,8 +112,13 @@ function JsonLd({ project }: { project: (typeof projects)[number] }) {
   )
 }
 
-export default function ProjectPage({ params }: { params: { slug: string } }) {
-  const project = projects.find((p) => p.slug === params.slug)
+export default async function ProjectPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}) {
+  const { slug } = await params
+  const project = projects.find((p) => p.slug === slug)
   if (!project) return notFound()
 
   return (

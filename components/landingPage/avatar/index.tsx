@@ -87,7 +87,7 @@ const Avatar = () => {
           <ParticleAvatar
             key={`particle-avatar-${mounted && isLightMode ? "light" : "dark"}`}
             imageUrl="/heiner-profile.png"
-            particleCount={isMobile ? 8100 : 100000}
+            particleCount={isMobile ? 6400 : 65536}
             particleSize={isMobile ? 5.0 : 3.0}
             formationSpeed={isMobile ? 0.02 : 0.012}
             mouseInfluence={isMobile ? 0 : 1}

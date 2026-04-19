@@ -21,7 +21,12 @@ export default function RootLayout({
 }>) {
   const GA_ID = process.env.GOOGLE_ANALYTICS
   return (
-    <html lang="en" className="scroll-smooth">
+    <html
+      lang="en"
+      className="scroll-smooth"
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
       <head>
         <link
           rel="stylesheet"

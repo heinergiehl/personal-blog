@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, Suspense, useEffect } from "react";
+import { useMemo, useRef, Suspense, useEffect, useState } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useTexture, Stats } from "@react-three/drei";
@@ -689,6 +689,9 @@ const ParticleAvatar = ({
   faceScale = 1.0,
 }: ParticleAvatarProps) => {
   const { theme } = useTheme();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isInViewport, setIsInViewport] = useState(true);
+  const [isScrolling, setIsScrolling] = useState(false);
   const dynamicSize =
     theme === "light" ? particleSize * 1.25 : particleSize;
 
@@ -704,14 +707,55 @@ const ParticleAvatar = ({
     return () => clearTimeout(timer);
   }, [onLoad]);
 
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInViewport(entry.isIntersecting);
+      },
+      {
+        rootMargin: "200px 0px 200px 0px",
+        threshold: 0,
+      }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const handleScroll = () => {
+      setIsScrolling(true);
+
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setIsScrolling(false);
+      }, 140);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, []);
+
+  const effectiveMouseInfluence = isScrolling ? mouseInfluence * 0.35 : mouseInfluence;
+
   return (
     <div
+      ref={containerRef}
       className={`w-full h-full min-h-[500px] relative ${className || ""}`}
     >
       <Canvas
         camera={{ position: [0, 0, 18], fov: 35 }}
-        dpr={isMobile ? [1, 1] : 1}
-        frameloop={isMobile ? "demand" : "always"}
+        dpr={isMobile ? [1, 1] : isInViewport ? [1, 1.25] : 1}
+        frameloop={isMobile || !isInViewport || isScrolling ? "demand" : "always"}
         gl={{
           alpha: true,
           antialias: false,
@@ -719,7 +763,9 @@ const ParticleAvatar = ({
           ...(isMobile ? { precision: "mediump" } : {}),
         }}
       >
-        {process.env.NODE_ENV === "development" && !isMobile && <Stats />}
+        {process.env.NODE_ENV === "development" && !isMobile && isInViewport ? (
+          <Stats />
+        ) : null}
 
         {isMobile ? (
           <>
@@ -734,15 +780,18 @@ const ParticleAvatar = ({
             />
           </>
         ) : (
-          <DesktopScene
-            imageUrl={imageUrl}
-            onLoad={onLoad}
-            gridSize={gridSize}
-            pointSize={dynamicSize}
-            mouseInfluence={mouseInfluence}
-            faceOffset={faceOffset as [number, number, number]}
-            faceScale={faceScale}
-          />
+          <>
+            <DesktopVisibilityThrottle active={isInViewport} />
+            <DesktopScene
+              imageUrl={imageUrl}
+              onLoad={onLoad}
+              gridSize={gridSize}
+              pointSize={dynamicSize}
+            mouseInfluence={effectiveMouseInfluence}
+              faceOffset={faceOffset as [number, number, number]}
+              faceScale={faceScale}
+            />
+          </>
         )}
       </Canvas>
     </div>
@@ -773,6 +822,23 @@ function MobileFrameThrottle() {
       observer.disconnect();
     };
   }, [invalidate, gl]);
+  return null;
+}
+
+function DesktopVisibilityThrottle({ active }: { active: boolean }) {
+  const { invalidate } = useThree();
+
+  useEffect(() => {
+    if (!active) return;
+
+    invalidate();
+    const id = setInterval(() => {
+      invalidate();
+    }, 140);
+
+    return () => clearInterval(id);
+  }, [active, invalidate]);
+
   return null;
 }
 
