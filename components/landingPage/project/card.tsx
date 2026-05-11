@@ -18,6 +18,7 @@ interface CardProps {
   image?: string
   link?: string
   slug?: string
+  eager?: boolean
 }
 
 /**
@@ -34,6 +35,7 @@ function ProjectCard({
   cardCSS = "w-[400px] h-auto rounded-xl transition-all duration-300 relative",
   link,
   slug,
+  eager = false,
 }: CardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   const [isHovered, setIsHovered] = useState(false)
@@ -203,6 +205,9 @@ function ProjectCard({
                     height={200}
                     src={image}
                     alt={title}
+                    loading={eager ? "eager" : "lazy"}
+                    fetchPriority={eager ? "high" : "auto"}
+                    sizes="(min-width: 768px) 400px, calc(100vw - 2rem)"
                   />
                 </motion.div>
               </ViewTransition>

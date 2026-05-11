@@ -57,6 +57,7 @@ export default function Timeline() {
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
+    layoutEffect: false,
     // --- START OF REVISED CHANGE FOR MIDDLE ITEM FIX ---
     // Use "start center" and "end center" to provide a more balanced scroll range
     // for scrollYProgress across the entire content.
@@ -80,8 +81,8 @@ export default function Timeline() {
   }, []);
 
   // Resolve the actual theme (handle 'system' theme)
-  const resolvedTheme = theme === 'system' ? systemTheme : theme;
-  const isLightMode = mounted ? resolvedTheme === 'light' : false;
+  const resolvedTheme = theme === "system" ? systemTheme : theme;
+  const isLightMode = mounted ? resolvedTheme === "light" : false;
 
   const handleScroll = useCallback(() => {
     if (!timelineLineRef.current) return;
@@ -137,6 +138,7 @@ export default function Timeline() {
       id="Timeline"
       ref={containerRef}
       className="h-[calc(100vh+1000px)] relative flex flex-col md:px-20 py-16 mt-24"
+      style={{ position: "relative" }}
     >
       <h2 className="relative z-10 text-3xl md:text-4xl font-bold text-center mb-12 bg-gradient-to-r from-indigo-600 via-blue-700 to-cyan-700 dark:from-indigo-400 dark:via-violet-300 dark:to-indigo-500 bg-clip-text text-transparent">
         Career
@@ -152,12 +154,14 @@ export default function Timeline() {
           height: "120vh",
           scaleY: lineScale,
           transformOrigin: "top center",
-          background: mounted && isLightMode 
-            ? `linear-gradient(to bottom, #4f46e5, #06b6d4)` 
-            : `linear-gradient(to bottom, ${COLOR_ONE}, ${COLOR_TWO})`,
-          boxShadow: mounted && isLightMode
-            ? `0 0 8px 2px rgba(79, 70, 229, 0.3)`
-            : `0 0 8px 2px ${COLOR_ONE}30`,
+          background:
+            mounted && isLightMode
+              ? `linear-gradient(to bottom, #4f46e5, #06b6d4)`
+              : `linear-gradient(to bottom, ${COLOR_ONE}, ${COLOR_TWO})`,
+          boxShadow:
+            mounted && isLightMode
+              ? `0 0 8px 2px rgba(79, 70, 229, 0.3)`
+              : `0 0 8px 2px ${COLOR_ONE}30`,
         }}
         suppressHydrationWarning
       />
@@ -191,10 +195,11 @@ export default function Timeline() {
                 initial="hidden"
                 animate={showDot ? "show" : "hidden"}
                 style={{
-                  borderColor: mounted && isLightMode ? '#4f46e5' : COLOR_ONE,
-                  boxShadow: mounted && isLightMode
-                    ? `0 0 20px 4px rgba(79, 70, 229, 0.7), 0 0 10px 2px rgba(6, 182, 212, 0.5)`
-                    : `0 0 20px 4px ${COLOR_ONE}70, 0 0 10px 2px ${COLOR_TWO}50`,
+                  borderColor: mounted && isLightMode ? "#4f46e5" : COLOR_ONE,
+                  boxShadow:
+                    mounted && isLightMode
+                      ? `0 0 20px 4px rgba(79, 70, 229, 0.7), 0 0 10px 2px rgba(6, 182, 212, 0.5)`
+                      : `0 0 20px 4px ${COLOR_ONE}70, 0 0 10px 2px ${COLOR_TWO}50`,
                 }}
                 suppressHydrationWarning
               />
@@ -214,10 +219,13 @@ export default function Timeline() {
                 }}
                 suppressHydrationWarning
               >
-                <span className={cn(
-                  "text-xl font-semibold uppercase tracking-wide",
-                  mounted && (isLightMode ? "text-indigo-600" : "text-indigo-400")
-                )}>
+                <span
+                  className={cn(
+                    "text-xl font-semibold uppercase tracking-wide",
+                    mounted &&
+                      (isLightMode ? "text-indigo-600" : "text-indigo-400"),
+                  )}
+                >
                   {item.timeframe}
                 </span>
               </motion.div>
@@ -238,50 +246,58 @@ export default function Timeline() {
                     mounted && isLightMode
                       ? "bg-gradient-to-br from-slate-50/70 via-white/60 to-blue-50/70 border-indigo-200/30 shadow-lg shadow-indigo-200/20"
                       : "bg-gradient-to-br from-slate-900/70 via-indigo-950/40 to-slate-900/70 border-indigo-500/20 shadow-lg shadow-indigo-500/10",
-                    !isEven ? "pl-12" : "pr-12"
+                    !isEven ? "pl-12" : "pr-12",
                   )}
                   style={{
                     y: isEven ? parallaxY : parallaxYReverse,
                   }}
-                  whileHover={{ 
+                  whileHover={{
                     scale: 1.02,
-                    boxShadow: mounted && isLightMode 
-                      ? "0 20px 40px rgba(79, 70, 229, 0.2)" 
-                      : "0 20px 40px rgba(99, 102, 241, 0.3)",
+                    boxShadow:
+                      mounted && isLightMode
+                        ? "0 20px 40px rgba(79, 70, 229, 0.2)"
+                        : "0 20px 40px rgba(99, 102, 241, 0.3)",
                     y: -5,
                   }}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: "spring", stiffness: 200, damping: 15 }}
                   suppressHydrationWarning
                 >
-                  <motion.h3 
+                  <motion.h3
                     className={cn(
                       "text-2xl font-bold mb-2",
-                mounted && (isLightMode ? "text-indigo-900" : "text-slate-100")
+                      mounted &&
+                        (isLightMode ? "text-indigo-900" : "text-slate-100"),
                     )}
                     initial={{ opacity: 0, y: 10 }}
-                    animate={showCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+                    animate={
+                      showCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }
+                    }
                     transition={{ delay: 0.1, duration: 0.4 }}
                     suppressHydrationWarning
                   >
                     {item.title}
                   </motion.h3>
-                  <motion.h4 
+                  <motion.h4
                     className={cn(
                       "text-base font-semibold mb-4",
-                      mounted && (isLightMode ? "text-indigo-700" : "text-indigo-300")
+                      mounted &&
+                        (isLightMode ? "text-indigo-700" : "text-indigo-300"),
                     )}
                     initial={{ opacity: 0, y: 10 }}
-                    animate={showCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+                    animate={
+                      showCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }
+                    }
                     transition={{ delay: 0.2, duration: 0.4 }}
                     suppressHydrationWarning
                   >
                     {item.company}
                   </motion.h4>
-                  <motion.span 
+                  <motion.span
                     className={cn(
                       "text-sm mb-4 block uppercase tracking-wide font-medium md:hidden",
-                      mounted && (isLightMode ? "text-indigo-600" : "text-indigo-400")
+                      mounted &&
+                        (isLightMode ? "text-indigo-600" : "text-indigo-400"),
                     )}
                     initial={{ opacity: 0 }}
                     animate={showCard ? { opacity: 1 } : { opacity: 0 }}
@@ -290,13 +306,16 @@ export default function Timeline() {
                   >
                     {item.timeframe}
                   </motion.span>
-                  <motion.p 
+                  <motion.p
                     className={cn(
                       "leading-relaxed text-sm",
-                      mounted && (isLightMode ? "text-slate-700" : "text-gray-300")
+                      mounted &&
+                        (isLightMode ? "text-slate-700" : "text-gray-300"),
                     )}
                     initial={{ opacity: 0, y: 10 }}
-                    animate={showCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+                    animate={
+                      showCard ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }
+                    }
                     transition={{ delay: 0.3, duration: 0.4 }}
                     suppressHydrationWarning
                   >
@@ -319,13 +338,23 @@ export default function Timeline() {
                             "inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium border transition-all duration-200 hover:scale-105",
                             mounted && isLightMode
                               ? "border-indigo-200 text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100"
-                              : "border-indigo-500/30 text-indigo-300 bg-indigo-950/30 hover:bg-indigo-900/40"
+                              : "border-indigo-500/30 text-indigo-300 bg-indigo-950/30 hover:bg-indigo-900/40",
                           )}
                           suppressHydrationWarning
                         >
                           {link.label}
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={2}
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+                            />
                           </svg>
                         </a>
                       ))}

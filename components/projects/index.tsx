@@ -31,7 +31,7 @@ export function ProjectsList({ projects }: ProjectsListProps) {
   return (
     <ProjectGrid>
       <AnimatePresence>
-        {projects.map((project) => (
+        {projects.map((project, index) => (
           <motion.div
             key={project.slug}
             layout // This is the magic prop for re-ordering animations!
@@ -45,6 +45,7 @@ export function ProjectsList({ projects }: ProjectsListProps) {
               title={project.title}
               image={project.image}
               link={`/${project.slug}`}
+              eager={index < 3}
             />
           </motion.div>
         ))}

@@ -5,42 +5,185 @@ import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
 import { ViewTransition } from "react"
-import { useState } from "react"
+import { useState, type CSSProperties, type MouseEvent, type ReactNode } from "react"
+import {
+  ArrowRight,
+  BookOpen,
+  Check,
+  ChevronDown,
+  ChevronLeft,
+  ExternalLink,
+  Layers,
+  Package,
+  ShieldCheck,
+  ShoppingCart,
+  Sparkles,
+  TerminalSquare,
+  Zap,
+  type LucideIcon,
+} from "lucide-react"
 
+import { cn } from "@/lib/utils"
 import type { Project } from "@/app/data/projects"
 import { projects as allProjects } from "@/app/data/projects"
 
 export type { Project }
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 22 },
   visible: (i: number = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+    transition: { delay: i * 0.07, duration: 0.55, ease: [0.22, 1, 0.36, 1] },
   }),
+}
+
+function GlowPanel({
+  children,
+  className,
+  delay = 0,
+}: {
+  children: ReactNode
+  className?: string
+  delay?: number
+}) {
+  const handleMouseMove = (event: MouseEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect()
+    event.currentTarget.style.setProperty(
+      "--mouse-x",
+      `${event.clientX - rect.left}px`
+    )
+    event.currentTarget.style.setProperty(
+      "--mouse-y",
+      `${event.clientY - rect.top}px`
+    )
+  }
+
+  return (
+    <motion.div
+      onMouseMove={handleMouseMove}
+      className={cn(
+        "group relative overflow-hidden rounded-2xl border border-indigo-200/30 bg-white/70 shadow-[0_20px_70px_rgba(79,70,229,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/55 dark:shadow-[0_24px_90px_rgba(0,0,0,0.42)]",
+        className
+      )}
+      style={{ "--mouse-x": "50%", "--mouse-y": "50%" } as CSSProperties}
+      variants={fadeUp}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.2 }}
+      custom={delay}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          background:
+            "radial-gradient(460px circle at var(--mouse-x) var(--mouse-y), rgba(99,102,241,0.22), rgba(6,182,212,0.09), transparent 58%)",
+        }}
+      />
+      <div className="pointer-events-none absolute inset-px rounded-[inherit] bg-gradient-to-br from-white/60 via-transparent to-cyan-400/10 dark:from-white/[0.08] dark:to-violet-500/[0.08]" />
+      <div className="relative z-10">{children}</div>
+    </motion.div>
+  )
+}
+
+function ActionButton({
+  href,
+  children,
+  icon: Icon,
+  variant = "primary",
+}: {
+  href: string
+  children: ReactNode
+  icon: LucideIcon
+  variant?: "primary" | "secondary" | "ghost"
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cn(
+        "inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all duration-200",
+        variant === "primary" &&
+          "bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 text-white shadow-lg shadow-indigo-500/25 hover:-translate-y-0.5 hover:shadow-indigo-500/40",
+        variant === "secondary" &&
+          "border border-indigo-300/40 bg-white/70 text-slate-950 hover:border-indigo-400 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10",
+        variant === "ghost" &&
+          "px-2 text-indigo-700 hover:text-cyan-700 dark:text-indigo-200 dark:hover:text-cyan-200"
+      )}
+    >
+      <Icon className="h-4 w-4" aria-hidden="true" />
+      {children}
+    </a>
+  )
+}
+
+function SectionHeader({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow: string
+  title: string
+  description?: string
+}) {
+  return (
+    <motion.div
+      className="mb-8 max-w-3xl"
+      variants={fadeUp}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.4 }}
+    >
+      <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">
+        {eyebrow}
+      </p>
+      <h2 className="text-3xl font-black tracking-tight text-slate-950 dark:text-white sm:text-4xl">
+        {title}
+      </h2>
+      {description && (
+        <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300 sm:text-base">
+          {description}
+        </p>
+      )}
+    </motion.div>
+  )
+}
+
+function TechPill({ tech, index }: { tech: string; index: number }) {
+  return (
+    <motion.span
+      className="inline-flex items-center rounded-lg border border-indigo-300/30 bg-indigo-50/80 px-3 py-1.5 text-xs font-semibold text-indigo-950 shadow-sm shadow-indigo-500/5 dark:border-white/10 dark:bg-white/[0.06] dark:text-indigo-100"
+      variants={fadeUp}
+      initial="hidden"
+      animate="visible"
+      custom={index + 4}
+    >
+      {tech}
+    </motion.span>
+  )
 }
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {
   const [open, setOpen] = useState(false)
+
   return (
-    <div className="border-b border-border last:border-0">
+    <div className="border-b border-indigo-200/40 last:border-0 dark:border-white/10">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-start justify-between gap-6 py-5 text-left group"
+        className="flex w-full items-start justify-between gap-6 py-5 text-left"
         aria-expanded={open}
       >
-        <span className="font-medium text-foreground text-sm leading-relaxed">
+        <span className="text-sm font-semibold leading-relaxed text-slate-950 dark:text-white">
           {question}
         </span>
-        <span
-          className={`shrink-0 mt-0.5 w-5 h-5 flex items-center justify-center text-muted-foreground transition-transform duration-200 ${
-            open ? "rotate-45" : ""
-          }`}
+        <ChevronDown
+          className={cn(
+            "mt-0.5 h-4 w-4 shrink-0 text-indigo-500 transition-transform duration-200",
+            open && "rotate-180"
+          )}
           aria-hidden="true"
-        >
-          +
-        </span>
+        />
       </button>
       <AnimatePresence initial={false}>
         {open && (
@@ -49,10 +192,10 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.22, ease: "easeInOut" }}
+            transition={{ duration: 0.24, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <p className="pb-5 text-sm text-muted-foreground leading-relaxed">
+            <p className="pb-5 text-sm leading-7 text-slate-600 dark:text-slate-300">
               {answer}
             </p>
           </motion.div>
@@ -63,367 +206,411 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
 }
 
 export function ProjectDetail(project: Project) {
-  const { slug, title, description, image, liveUrl, techStack, product } =
+  const { slug, title, description, image, liveUrl, techStack, product, category } =
     project
 
-  const relatedProducts = allProjects.filter(
-    (p) => p.product && p.slug !== slug
-  )
+  const currencySymbol = product?.offer.priceCurrency === "EUR" ? "€" : "$"
+  const relatedProjects = allProjects
+    .filter((p) => p.slug !== slug && (product ? p.product : true))
+    .slice(0, 3)
 
-  const entranceInitial = product ? false : "hidden"
-  const currencySymbol =
-    product?.offer.priceCurrency === "EUR" ? "€" : "$"
+  const heroStats = product
+    ? [
+        { label: "Price", value: `${currencySymbol}${product.offer.price}` },
+        {
+          label: "Use cases",
+          value: String(product.searchUseCases?.length ?? product.highlights.length),
+        },
+        { label: "Stack", value: `${techStack.length} tools` },
+      ]
+    : [
+        { label: "Category", value: category },
+        { label: "Stack", value: `${techStack.length} tools` },
+        { label: "Status", value: liveUrl ? "Live" : "Archived" },
+      ]
+
+  const showcaseTags = product
+    ? product.highlights.map((highlight) => highlight.title).slice(0, 3)
+    : [category, ...techStack].slice(0, 3)
 
   return (
-    <main className="min-h-screen w-full">
-      {/* ── Hero ─────────────────────────────── */}
-      <section className="w-full max-w-6xl mx-auto px-6 pt-24 pb-16">
-        <motion.div
-          className="mb-4"
-          initial={entranceInitial}
-          animate="visible"
-          variants={fadeUp}
-          custom={0}
-        >
-          <span className="inline-block text-[11px] font-semibold tracking-[0.14em] uppercase text-indigo-500 dark:text-indigo-400">
-            {product ? "Filament Plugin" : "Project"}
-          </span>
-        </motion.div>
+    <main className="relative min-h-screen w-full overflow-hidden pt-20 text-slate-950 dark:text-white">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute left-[-10%] top-20 h-72 w-72 rounded-full bg-indigo-500/15 blur-3xl" />
+        <div className="absolute right-[-8%] top-56 h-96 w-96 rounded-full bg-cyan-400/10 blur-3xl" />
+      </div>
 
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-          {/* Copy column */}
-          <div>
-            <ViewTransition name={`project-title-${slug}`} enter="page-fade">
-              <motion.h1
-                className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground mb-5 leading-tight"
-                initial={entranceInitial}
-                animate="visible"
-                variants={fadeUp}
-                custom={1}
-              >
+      <section className="relative mx-auto grid min-h-[calc(100vh-5rem)] max-w-7xl content-center gap-12 px-4 py-14 sm:px-6 lg:grid-cols-[0.88fr_1.12fr] lg:px-8">
+        <div className="flex flex-col justify-center">
+          <motion.p
+            className="mb-4 text-[11px] font-bold uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300"
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+          >
+            {product ? "Filament plugin" : category}
+          </motion.p>
+
+          <ViewTransition name={`project-title-${slug}`} enter="page-fade">
+            <motion.h1
+              className="max-w-3xl text-5xl font-black tracking-tight text-slate-950 dark:text-white sm:text-6xl lg:text-7xl"
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              custom={1}
+            >
+              <span className="bg-gradient-to-r from-slate-950 via-indigo-700 to-cyan-700 bg-clip-text text-transparent dark:from-white dark:via-indigo-200 dark:to-cyan-200">
                 {title}
-              </motion.h1>
-            </ViewTransition>
+              </span>
+            </motion.h1>
+          </ViewTransition>
 
-            <motion.p
-              className="text-base text-muted-foreground leading-relaxed mb-8 max-w-lg"
-              initial={entranceInitial}
-              animate="visible"
-              variants={fadeUp}
-              custom={2}
-            >
-              {product ? product.subtitle : description}
-            </motion.p>
+          <motion.p
+            className="mt-6 max-w-2xl text-base leading-8 text-slate-600 dark:text-slate-300 sm:text-lg"
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            custom={2}
+          >
+            {product ? product.subtitle : description}
+          </motion.p>
 
-            {/* CTAs */}
-            <motion.div
-              className="flex flex-wrap gap-3 mb-10"
-              initial={entranceInitial}
-              animate="visible"
-              variants={fadeUp}
-              custom={3}
-            >
-              {product ? (
-                <>
-                  <a
-                    href={product.buyUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-indigo-600 hover:bg-indigo-500 text-white transition-colors duration-150"
-                  >
-                    {product.buyLabel}
-                    <span className="text-indigo-200" aria-hidden="true">
-                      →
-                    </span>
-                  </a>
-                  {product.demoUrl && (
-                    <a
-                      href={product.demoUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm border border-border text-foreground hover:bg-muted transition-colors duration-150"
-                    >
-                      Live demo
-                    </a>
-                  )}
-                  {product.docsUrl && (
-                    <a
-                      href={product.docsUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors duration-150"
-                    >
-                      Documentation
-                    </a>
-                  )}
-                </>
-              ) : liveUrl ? (
-                <a
-                  href={liveUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-indigo-600 hover:bg-indigo-500 text-white transition-colors duration-150"
-                >
-                  Visit Live →
-                </a>
-              ) : null}
-            </motion.div>
+          <motion.div
+            className="mt-8 flex flex-wrap items-center gap-3"
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            custom={3}
+          >
+            {product ? (
+              <>
+                <ActionButton href={product.buyUrl} icon={ShoppingCart}>
+                  {product.buyLabel}
+                </ActionButton>
+                {product.demoUrl && (
+                  <ActionButton href={product.demoUrl} icon={ExternalLink} variant="secondary">
+                    Live demo
+                  </ActionButton>
+                )}
+                {product.docsUrl && (
+                  <ActionButton href={product.docsUrl} icon={BookOpen} variant="ghost">
+                    Docs
+                  </ActionButton>
+                )}
+              </>
+            ) : liveUrl ? (
+              <ActionButton href={liveUrl} icon={ExternalLink}>
+                Visit live
+              </ActionButton>
+            ) : null}
+          </motion.div>
 
-            {/* Tech stack */}
-            <motion.div
-              initial={entranceInitial}
-              animate="visible"
-              variants={fadeUp}
-              custom={4}
-            >
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-3">
-                Tech stack
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {techStack.map((tech, i) => (
-                  <motion.span
-                    key={tech}
-                    className="px-3 py-1 text-xs font-medium rounded-md bg-muted text-muted-foreground border border-border"
-                    initial={product ? false : { opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.35 + i * 0.04 }}
-                  >
-                    {tech}
-                  </motion.span>
-                ))}
-              </div>
-            </motion.div>
+          <div className="mt-8 flex flex-wrap gap-2">
+            {techStack.map((tech, index) => (
+              <TechPill key={tech} tech={tech} index={index} />
+            ))}
           </div>
 
-          {/* Hero image */}
-          <ViewTransition name={`project-hero-${slug}`} share="project-morph">
-            <motion.div
-              className="relative rounded-xl overflow-hidden border border-border shadow-xl"
-              initial={product ? false : { opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <Image
-                src={image}
-                alt={`${title} screenshot`}
-                width={900}
-                height={560}
-                placeholder="blur"
-                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
-                className="object-cover w-full h-auto"
-                priority={Boolean(product)}
-              />
-            </motion.div>
-          </ViewTransition>
+          <motion.div
+            className="mt-8 grid max-w-xl grid-cols-3 gap-2"
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            custom={5}
+          >
+            {heroStats.map((stat) => (
+              <div
+                key={stat.label}
+                className="rounded-xl border border-indigo-200/40 bg-white/60 px-3 py-3 backdrop-blur-md dark:border-white/10 dark:bg-white/[0.04]"
+              >
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-500">
+                  {stat.label}
+                </p>
+                <p className="mt-1 truncate text-sm font-bold text-slate-950 dark:text-white">
+                  {stat.value}
+                </p>
+              </div>
+            ))}
+          </motion.div>
         </div>
+
+        <motion.div
+          className="relative"
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          custom={2}
+        >
+          <div className="absolute -inset-8 rounded-[2rem] bg-gradient-to-r from-indigo-500/20 via-violet-500/10 to-cyan-400/20 blur-3xl" />
+          <GlowPanel className="p-2 sm:p-3">
+            <div className="rounded-xl border border-white/60 bg-slate-950/95 p-2 shadow-2xl dark:border-white/10">
+              <div className="mb-2 flex items-center justify-between px-2 py-1">
+                <div className="flex gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                </div>
+                <div className="h-1.5 w-28 rounded-full bg-white/10" />
+              </div>
+              <ViewTransition name={`project-hero-${slug}`} share="project-morph">
+                <div className="relative overflow-hidden rounded-lg">
+                  <Image
+                    src={image}
+                    alt={`${title} screenshot`}
+                    width={1100}
+                    height={720}
+                    placeholder="blur"
+                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+                    className="aspect-[16/10] w-full object-cover"
+                    priority={Boolean(product)}
+                    loading="eager"
+                    fetchPriority="high"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/20 via-transparent to-white/10" />
+                </div>
+              </ViewTransition>
+            </div>
+          </GlowPanel>
+
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            {showcaseTags.map((tag, index) => (
+              <motion.div
+                key={tag}
+                className="rounded-xl border border-indigo-200/40 bg-white/70 px-3 py-3 text-xs font-semibold leading-relaxed text-slate-700 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/60 dark:text-indigo-100"
+                variants={fadeUp}
+                initial="hidden"
+                animate="visible"
+                custom={index + 4}
+              >
+                {tag}
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
       </section>
 
       {product && (
         <>
-          {/* ── Compare note ── */}
           {product.compareNote && (
-            <section className="w-full max-w-6xl mx-auto px-6 mb-14">
-              <p className="text-sm text-muted-foreground border-l-2 border-indigo-500/60 dark:border-indigo-500/50 pl-4 leading-relaxed">
-                {product.compareNote}
-              </p>
+            <section className="relative mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+              <GlowPanel className="p-5">
+                <div className="flex gap-4">
+                  <Sparkles className="mt-1 h-5 w-5 shrink-0 text-indigo-500" />
+                  <p className="text-sm leading-7 text-slate-700 dark:text-slate-200">
+                    {product.compareNote}
+                  </p>
+                </div>
+              </GlowPanel>
             </section>
           )}
 
-          {/* ── Search use cases ── */}
           {product.searchUseCases && product.searchUseCases.length > 0 && (
-            <section className="w-full max-w-6xl mx-auto px-6 mb-16">
-              <h2 className="text-2xl font-bold text-foreground mb-6 tracking-tight">
-                Popular use cases
-              </h2>
-              <div className="grid md:grid-cols-3 gap-4">
-                {product.searchUseCases.map((useCase) => (
-                  <div
-                    key={useCase.title}
-                    className="rounded-xl border border-border bg-card/50 dark:bg-card/30 p-6"
-                  >
-                    <h3 className="font-semibold text-[15px] text-foreground mb-3 leading-snug">
+            <section className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+              <SectionHeader
+                eyebrow="Use cases"
+                title="Built for the workflows buyers actually test"
+                description="Each path is written for a real Filament or Laravel team, not a generic AI feature grid."
+              />
+              <div className="grid gap-4 md:grid-cols-3">
+                {product.searchUseCases.map((useCase, index) => (
+                  <GlowPanel key={useCase.title} className="p-6" delay={index}>
+                    <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-cyan-500 text-sm font-black text-white shadow-lg shadow-indigo-500/25">
+                      0{index + 1}
+                    </div>
+                    <h3 className="text-base font-bold leading-snug text-slate-950 dark:text-white">
                       {useCase.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">
                       {useCase.description}
                     </p>
+                  </GlowPanel>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+            <SectionHeader
+              eyebrow="System"
+              title="A Filament-native control room"
+              description="The page now mirrors the product: operational, visual, and built around the plugin surface instead of generic marketing boxes."
+            />
+            <div className="grid gap-4 lg:grid-cols-3">
+              {product.highlights.map((block, index) => {
+                const icons = [Layers, Zap, ShieldCheck]
+                const Icon = icons[index % icons.length]
+
+                return (
+                  <GlowPanel key={block.title} className="p-6" delay={index}>
+                    <div className="mb-5 flex items-center gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-600/10 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-200">
+                        <Icon className="h-5 w-5" aria-hidden="true" />
+                      </div>
+                      <h3 className="text-base font-bold leading-snug text-slate-950 dark:text-white">
+                        {block.title}
+                      </h3>
+                    </div>
+                    <ul className="space-y-3">
+                      {block.items.map((item) => (
+                        <li
+                          key={item}
+                          className="flex gap-3 text-sm leading-6 text-slate-600 dark:text-slate-300"
+                        >
+                          <Check className="mt-1 h-4 w-4 shrink-0 text-cyan-500" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </GlowPanel>
+                )
+              })}
+            </div>
+          </section>
+
+          <section className="relative mx-auto grid max-w-7xl gap-4 px-4 py-14 sm:px-6 lg:grid-cols-[1fr_1fr] lg:px-8">
+            <GlowPanel className="p-7">
+              <div className="mb-6 flex items-center gap-3">
+                <Package className="h-5 w-5 text-indigo-500" />
+                <h2 className="text-2xl font-black text-slate-950 dark:text-white">
+                  What you gain
+                </h2>
+              </div>
+              <ul className="space-y-4">
+                {product.outcomes.map((line) => (
+                  <li key={line} className="flex gap-3 text-sm leading-7 text-slate-700 dark:text-slate-200">
+                    <Check className="mt-1 h-4 w-4 shrink-0 text-cyan-500" />
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
+            </GlowPanel>
+
+            <GlowPanel className="p-7">
+              <div className="mb-6 flex items-center gap-3">
+                <ShieldCheck className="h-5 w-5 text-indigo-500" />
+                <h2 className="text-2xl font-black text-slate-950 dark:text-white">
+                  Built for
+                </h2>
+              </div>
+              <ul className="space-y-4">
+                {product.whoItsFor.map((line) => (
+                  <li key={line} className="flex gap-3 text-sm leading-7 text-slate-700 dark:text-slate-200">
+                    <Check className="mt-1 h-4 w-4 shrink-0 text-violet-500" />
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
+            </GlowPanel>
+          </section>
+
+          <section className="relative mx-auto grid max-w-7xl gap-4 px-4 py-14 sm:px-6 lg:grid-cols-[1fr_0.72fr] lg:px-8">
+            <GlowPanel className="p-7">
+              <div className="mb-6 flex items-center gap-3">
+                <TerminalSquare className="h-5 w-5 text-cyan-500" />
+                <h2 className="text-2xl font-black text-slate-950 dark:text-white">
+                  Requirements
+                </h2>
+              </div>
+              <div className="overflow-hidden rounded-xl border border-indigo-200/40 bg-slate-950 p-4 font-mono text-sm text-indigo-100 shadow-inner dark:border-white/10">
+                {product.requirements.map((req, index) => (
+                  <div key={req} className="flex items-start gap-3 py-2">
+                    <span className="select-none text-cyan-400">
+                      {(index + 1).toString().padStart(2, "0")}
+                    </span>
+                    <span>{req}</span>
                   </div>
                 ))}
               </div>
-            </section>
-          )}
+            </GlowPanel>
 
-          {/* ── What you gain + Built for ── */}
-          <section className="w-full max-w-6xl mx-auto px-6 mb-16">
-            <div className="grid sm:grid-cols-2 gap-x-12 gap-y-10">
-              <div>
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-5">
-                  What you gain
-                </h2>
-                <ul className="space-y-3.5">
-                  {product.outcomes.map((line) => (
-                    <li key={line} className="flex gap-3 items-start">
-                      <span className="mt-[7px] w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
-                      <span className="text-sm text-foreground/80 leading-relaxed">
-                        {line}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-5">
-                  Built for
-                </h2>
-                <ul className="space-y-3.5">
-                  {product.whoItsFor.map((line) => (
-                    <li key={line} className="flex gap-3 items-start">
-                      <span className="mt-[7px] w-1.5 h-1.5 rounded-full bg-violet-500 shrink-0" />
-                      <span className="text-sm text-foreground/80 leading-relaxed">
-                        {line}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* ── Feature highlights ── */}
-          <section className="w-full max-w-6xl mx-auto px-6 mb-16">
-            <h2 className="text-2xl font-bold text-foreground mb-8 tracking-tight">
-              What&apos;s included
-            </h2>
-            <div className="grid md:grid-cols-3 gap-4">
-              {product.highlights.map((block) => (
-                <div
-                  key={block.title}
-                  className="rounded-xl border border-border bg-card/50 dark:bg-card/30 p-6 backdrop-blur-sm"
-                >
-                  <h3 className="font-semibold text-[15px] text-foreground mb-4 leading-snug">
-                    {block.title}
-                  </h3>
-                  <ul className="space-y-2.5">
-                    {block.items.map((item) => (
-                      <li
-                        key={item}
-                        className="flex gap-3 items-start text-sm text-muted-foreground"
-                      >
-                        <span className="mt-[7px] w-1 h-1 rounded-full bg-indigo-500/70 shrink-0" />
-                        <span className="leading-relaxed">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* ── Requirements + Pricing ── */}
-          <section className="w-full max-w-6xl mx-auto px-6 mb-16">
-            <div className="grid sm:grid-cols-2 gap-8 items-start">
-              <div>
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-5">
-                  Requirements
-                </h2>
-                <ul className="space-y-2">
-                  {product.requirements.map((req) => (
-                    <li key={req} className="text-sm text-foreground/80">
-                      {req}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="rounded-xl border border-border bg-card/50 dark:bg-card/30 p-7 backdrop-blur-sm">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2">
-                  One-time purchase
-                </p>
-                <p className="text-4xl font-bold text-foreground tabular-nums">
-                  {currencySymbol}
-                  {product.offer.price}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1 mb-6">
-                  + applicable taxes · Composer access included
-                </p>
-                <a
-                  href={product.buyUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex w-full items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-indigo-600 hover:bg-indigo-500 text-white transition-colors duration-150 mb-3"
-                >
+            <GlowPanel className="p-7">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-300">
+                One-time purchase
+              </p>
+              <p className="mt-3 text-5xl font-black tracking-tight text-slate-950 dark:text-white">
+                {currencySymbol}
+                {product.offer.price}
+              </p>
+              <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
+                Composer access, product updates, and the Filament listing flow stay tied to the official checkout.
+              </p>
+              <div className="mt-6 flex flex-col gap-3">
+                <ActionButton href={product.buyUrl} icon={ShoppingCart}>
                   {product.buyLabel}
-                </a>
-                <a
-                  href={product.filamentListingUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex w-full items-center justify-center text-xs text-muted-foreground hover:text-foreground transition-colors duration-150"
-                >
-                  View on Filament PHP →
-                </a>
+                </ActionButton>
+                <ActionButton href={product.filamentListingUrl} icon={ExternalLink} variant="secondary">
+                  View on Filament PHP
+                </ActionButton>
               </div>
-            </div>
+            </GlowPanel>
           </section>
 
-          {/* ── FAQ ── */}
           {product.faqs.length > 0 && (
-            <section className="w-full max-w-6xl mx-auto px-6 mb-16">
-              <h2 className="text-2xl font-bold text-foreground mb-6 tracking-tight">
-                Frequently asked questions
-              </h2>
-              <div className="max-w-3xl border-t border-border">
-                {product.faqs.map((faq) => (
-                  <FAQItem key={faq.question} {...faq} />
-                ))}
-              </div>
+            <section className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+              <SectionHeader eyebrow="FAQ" title="Decision details" />
+              <GlowPanel className="p-2 sm:p-5">
+                <div className="mx-auto max-w-4xl">
+                  {product.faqs.map((faq) => (
+                    <FAQItem key={faq.question} {...faq} />
+                  ))}
+                </div>
+              </GlowPanel>
             </section>
           )}
         </>
       )}
 
-      {/* ── Related products ── */}
-      {relatedProducts.length > 0 && (
-        <section className="w-full max-w-6xl mx-auto px-6 mb-16">
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              More Filament plugins
-            </p>
-            <Link
-              href="/filament-plugins"
-              className="text-xs font-medium text-indigo-500 hover:text-indigo-400"
-            >
-              Browse all plugins -&gt;
-            </Link>
-          </div>
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
-            {relatedProducts.map((p) => (
+      {relatedProjects.length > 0 && (
+        <section className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+            <SectionHeader
+              eyebrow={product ? "More plugins" : "More work"}
+              title={product ? "Same portfolio, same system" : "Other builds from the same bench"}
+            />
+            {product && (
               <Link
-                key={p.slug}
-                href={`/${p.slug}`}
+                href="/filament-plugins"
                 transitionTypes={["nav-forward"]}
-                className="group rounded-xl border border-border p-5 hover:border-indigo-500/50 hover:bg-muted/30 transition-colors duration-150"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-cyan-600 dark:text-indigo-300 dark:hover:text-cyan-200"
               >
-                <p className="font-semibold text-sm text-foreground group-hover:text-indigo-400 dark:group-hover:text-indigo-400 transition-colors duration-150 mb-1.5">
-                  {p.title}
-                </p>
-                <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                  {p.description}
-                </p>
+                Browse all plugins
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            )}
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {relatedProjects.map((related, index) => (
+              <Link
+                key={related.slug}
+                href={`/${related.slug}`}
+                transitionTypes={["nav-forward"]}
+              >
+                <GlowPanel className="h-full p-5" delay={index}>
+                  <p className="text-sm font-black text-slate-950 transition-colors group-hover:text-indigo-600 dark:text-white dark:group-hover:text-cyan-200">
+                    {related.title}
+                  </p>
+                  <p className="mt-3 line-clamp-3 text-xs leading-6 text-slate-600 dark:text-slate-300">
+                    {related.description}
+                  </p>
+                  <div className="mt-5 inline-flex items-center gap-2 text-xs font-semibold text-indigo-600 dark:text-indigo-300">
+                    Open project
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </div>
+                </GlowPanel>
               </Link>
             ))}
           </div>
         </section>
       )}
 
-      {/* ── Back link ── */}
-      <div className="w-full max-w-6xl mx-auto px-6 pb-20">
+      <div className="relative mx-auto max-w-7xl px-4 pb-20 pt-4 sm:px-6 lg:px-8">
         <Link
           href="/#Projects"
           transitionTypes={["nav-back"]}
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-150"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition-colors hover:text-indigo-600 dark:text-slate-300 dark:hover:text-cyan-200"
         >
-          ← Back to Projects
+          <ChevronLeft className="h-4 w-4" />
+          Back to projects
         </Link>
       </div>
     </main>

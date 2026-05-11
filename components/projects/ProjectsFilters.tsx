@@ -1,18 +1,20 @@
 // components/ProjectFilters.tsx
-"use client"
+"use client";
 
-import { AnimatedFilterButton } from "./AnimatedFilterButton"
+import { AnimatedFilterButton } from "./AnimatedFilterButton";
 
 interface ProjectFiltersProps {
-  categories: string[]
-  activeFilter: string
-  onFilterChange: (category: string) => void
+  categories: string[];
+  activeFilter: string;
+  onFilterChange: (category: string) => void;
+  layoutId: string;
 }
 
 export function ProjectFilters({
   categories,
   activeFilter,
   onFilterChange,
+  layoutId,
 }: ProjectFiltersProps) {
   return (
     <div className="flex flex-wrap justify-center gap-2 ">
@@ -32,16 +34,17 @@ export function ProjectFilters({
               category === "Tool" ||
               category === "Filament" ||
               category === "PHP" ||
-              category === "Livewire"
+              category === "Livewire",
           ) && (
             <AnimatedFilterButton
               key={category}
               category={category}
               isActive={activeFilter === category}
               onClick={() => onFilterChange(category)}
+              layoutId={layoutId}
             />
-          )
+          ),
       )}
     </div>
-  )
+  );
 }

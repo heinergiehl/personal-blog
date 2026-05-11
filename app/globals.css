@@ -92,6 +92,7 @@ code[data-line-numbers-max-digits="3"] > [data-line]::before {
   background-color: rgb(160, 160, 144);
 }
 html {
+  position: relative;
   scroll-behavior: smooth;
   scroll-padding-top: 4rem;
 }

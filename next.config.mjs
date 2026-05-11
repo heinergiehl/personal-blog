@@ -30,16 +30,6 @@ const nextConfig = {
     },
     async headers() {
         return [
-            // Immutable static assets — long cache with content-hash filenames
-            {
-                source: '/_next/static/(.*)',
-                headers: [
-                    {
-                        key: 'Cache-Control',
-                        value: 'public, max-age=31536000, immutable',
-                    },
-                ],
-            },
             // Public folder assets
             {
                 source: '/(.*)\\.(ico|png|webp|jpg|jpeg|svg|gif|woff2|woff)',

@@ -1,5 +1,5 @@
 import { motion, useScroll, useSpring, useTransform } from "framer-motion"
-import { useEffect, useRef, useState, FC } from "react"
+import { useEffect, useState, FC } from "react"
 import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
 
@@ -104,15 +104,11 @@ const SectionMarker: FC<SectionMarkerProps> = ({
 
 // --- Main Scroll Indicator ---
 const LivingAuraScrollIndicator: FC = () => {
-  const rootRef = useRef<HTMLDivElement | null>(null)
   const [sections, setSections] = useState<Section[]>([])
   const [currentSection, setCurrentSection] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
   const [hasScrolled, setHasScrolled] = useState(false)
-  const { scrollYProgress } = useScroll({
-    target: rootRef,
-    offset: ["start end", "end start"],
-  })
+  const { scrollYProgress } = useScroll()
   const { theme, systemTheme } = useTheme()
 
   const resolvedTheme = theme === "system" ? systemTheme : theme
@@ -193,7 +189,6 @@ const LivingAuraScrollIndicator: FC = () => {
 
   return (
     <motion.div
-      ref={rootRef}
       className="hidden fixed top-[20vh] left-6 bottom-20 w-20 md:flex flex-col items-center z-40 overflow-visible"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}

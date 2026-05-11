@@ -1,53 +1,77 @@
-import { motion, useMotionValue, useInView, useTransform, animate } from "framer-motion"
-import CopyEmailButton from "../copy-email-button"
-import { useTheme } from "next-themes"
-import { useState, useEffect, useRef } from "react"
-import { cn } from "@/lib/utils"
-import { AnimatedFilterButton } from "@/components/projects/AnimatedFilterButton"
+import {
+  motion,
+  useMotionValue,
+  useInView,
+  useTransform,
+  animate,
+} from "framer-motion";
+import { useTheme } from "next-themes";
+import { useState, useEffect, useRef } from "react";
+import { cn } from "@/lib/utils";
+import { AnimatedFilterButton } from "@/components/projects/AnimatedFilterButton";
 
 const TECH_STACK = [
-  "Next.js", "Nuxt", "React", "Vue.js",
-  "Laravel", "Express.js", "NestJS", "Node.js",
-  "TypeScript", "PHP", "PostgreSQL", "MongoDB",
-]
+  "Next.js",
+  "Nuxt",
+  "React",
+  "Vue.js",
+  "Laravel",
+  "Express.js",
+  "NestJS",
+  "Node.js",
+  "TypeScript",
+  "PHP",
+  "PostgreSQL",
+  "MongoDB",
+];
 
 // Animated counter – counts from 0 to target when scrolled into view
-const AnimatedCounter = ({ target, suffix = "" }: { target: number; suffix?: string }) => {
-  const ref = useRef<HTMLSpanElement>(null)
-  const isInView = useInView(ref, { once: true, amount: 0.5 })
-  const count = useMotionValue(0)
-  const rounded = useTransform(count, (v) => Math.round(v))
-  const [display, setDisplay] = useState(0)
+const AnimatedCounter = ({
+  target,
+  suffix = "",
+}: {
+  target: number;
+  suffix?: string;
+}) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true, amount: 0.5 });
+  const count = useMotionValue(0);
+  const rounded = useTransform(count, (v) => Math.round(v));
+  const [display, setDisplay] = useState(0);
 
   useEffect(() => {
-    if (!isInView) return
+    if (!isInView) return;
     const controls = animate(count, target, {
       duration: 2,
       ease: "easeOut",
-    })
-    return controls.stop
-  }, [isInView, count, target])
+    });
+    return controls.stop;
+  }, [isInView, count, target]);
 
   useEffect(() => {
-    const unsubscribe = rounded.on("change", (v) => setDisplay(v as number))
-    return unsubscribe
-  }, [rounded])
+    const unsubscribe = rounded.on("change", (v) => setDisplay(v as number));
+    return unsubscribe;
+  }, [rounded]);
 
-  return <span ref={ref}>{display}{suffix}</span>
-}
+  return (
+    <span ref={ref}>
+      {display}
+      {suffix}
+    </span>
+  );
+};
 
 const AboutMe = () => {
-  const { theme, systemTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  const [hoveredTech, setHoveredTech] = useState<string | null>(null)
-
+  const { theme, systemTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const [hoveredTech, setHoveredTech] = useState<string | null>(null);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
-  const resolvedTheme = theme === "system" ? systemTheme : theme
-  const isLightMode = mounted ? resolvedTheme === "light" : false
+  const resolvedTheme = theme === "system" ? systemTheme : theme;
+  const isLightMode = mounted ? resolvedTheme === "light" : false;
 
   return (
     <motion.section
@@ -141,9 +165,10 @@ const AboutMe = () => {
                 >
                   Heiner
                 </span>{" "}
-                — I build web apps from database schema to deploy button. Whether
-                it&apos;s a Laravel monolith, a Next.js app with server
-                components, or a Nuxt-powered storefront, I own the full picture.
+                — I build web apps from database schema to deploy button.
+                Whether it&apos;s a Laravel monolith, a Next.js app with server
+                components, or a Nuxt-powered storefront, I own the full
+                picture.
               </p>
               <p
                 className={cn(
@@ -195,8 +220,8 @@ const AboutMe = () => {
                   isLightMode ? "text-gray-600" : "text-gray-400",
                 )}
               >
-                Currently open to freelance work, internships, or full-time roles
-                where I can build products that matter.
+                Currently open to freelance work, internships, or full-time
+                roles where I can build products that matter.
               </p>
             </motion.div>
 
@@ -212,28 +237,13 @@ const AboutMe = () => {
               <AnimatedFilterButton
                 category="Get in touch"
                 isActive={true}
-                onClick={() => { window.location.href = "/#Contact" }}
+                onClick={() => {
+                  window.location.href = "/#Contact";
+                }}
                 size="md"
                 rounded="xl"
                 layoutId="aboutme-cta"
               />
-
-              {/* Secondary — copy email */}
-              <motion.div
-                className={cn(
-                  "inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg border text-sm cursor-pointer transition-all duration-300",
-                  isLightMode
-                    ? "border-gray-200 text-gray-500 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50/50"
-                    : "border-gray-800 text-gray-500 hover:border-indigo-500/30 hover:text-indigo-400 hover:bg-indigo-950/30",
-                )}
-                whileTap={{ scale: 0.97 }}
-                suppressHydrationWarning
-              >
-                <CopyEmailButton email="webdevislife2021@gmail.com" />
-                <span className="font-mono text-xs hidden sm:inline">
-                  email
-                </span>
-              </motion.div>
             </motion.div>
           </div>
 
@@ -296,7 +306,12 @@ const AboutMe = () => {
                 {[
                   { target: 5, suffix: "+", display: null, label: "Years" },
                   { target: 20, suffix: "+", display: null, label: "Projects" },
-                  { target: null, suffix: "", display: "∞", label: "Curiosity" },
+                  {
+                    target: null,
+                    suffix: "",
+                    display: "∞",
+                    label: "Curiosity",
+                  },
                 ].map((stat, i) => (
                   <motion.div
                     key={stat.label}
@@ -313,7 +328,10 @@ const AboutMe = () => {
                       suppressHydrationWarning
                     >
                       {stat.target !== null ? (
-                        <AnimatedCounter target={stat.target} suffix={stat.suffix} />
+                        <AnimatedCounter
+                          target={stat.target}
+                          suffix={stat.suffix}
+                        />
                       ) : (
                         stat.display
                       )}
@@ -334,7 +352,7 @@ const AboutMe = () => {
         </div>
       </div>
     </motion.section>
-  )
-}
+  );
+};
 
-export default AboutMe
+export default AboutMe;

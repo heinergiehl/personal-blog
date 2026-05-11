@@ -48,7 +48,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const GA_ID = process.env.GOOGLE_ANALYTICS
+  const GA_ID =
+    process.env.NODE_ENV === "production" ? process.env.GOOGLE_ANALYTICS : null
   return (
     <html
       lang="en"

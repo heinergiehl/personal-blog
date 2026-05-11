@@ -1,51 +1,51 @@
-"use client"
+"use client";
 
-import { useState, useMemo } from "react"
-import { motion } from "framer-motion"
-import { ProjectsList } from "./index"
-import { ProjectFilters } from "./ProjectsFilters"
-import { projects as allProjects } from "@/app/data/projects"
+import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
+import { ProjectsList } from "./index";
+import { ProjectFilters } from "./ProjectsFilters";
+import { projects as allProjects } from "@/app/data/projects";
 
 // Define only the main categories statically
-const mainCategories = ["All", "Fullstack", "Frontend", "Tool"]
+const mainCategories = ["All", "Fullstack", "Frontend", "Tool"];
 
 export function ProjectsWrapper() {
-  const [activeCategory, setActiveCategory] = useState("All")
-  const [activeTech, setActiveTech] = useState("All")
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeTech, setActiveTech] = useState("All");
 
   // 1. DYNAMICALLY generate the list of available tech filters
   const availableTechs = useMemo(() => {
     if (activeCategory === "All") {
       // If "All" is selected, show all unique techs from all projects
-      const allTechs = allProjects.flatMap((project) => project.techStack)
-      return ["All", ...Array.from(new Set(allTechs))]
+      const allTechs = allProjects.flatMap((project) => project.techStack);
+      return ["All", ...Array.from(new Set(allTechs))];
     }
 
     // Get all techs from projects within the selected category
     const techsInCategory = allProjects
       .filter((project) => project.category === activeCategory)
-      .flatMap((project) => project.techStack)
+      .flatMap((project) => project.techStack);
 
     // Return unique tech names, always including "All"
-    return ["All", ...Array.from(new Set(techsInCategory))]
-  }, [activeCategory]) // This dependency array ensures it only recalculates when the category changes
+    return ["All", ...Array.from(new Set(techsInCategory))];
+  }, [activeCategory]); // This dependency array ensures it only recalculates when the category changes
 
   // 2. IMPROVED filtering logic (it's the same, but now more efficient with the dynamic techs)
   const filteredProjects = allProjects
     .filter((project) => {
-      if (activeCategory === "All") return true
-      return project.category === activeCategory
+      if (activeCategory === "All") return true;
+      return project.category === activeCategory;
     })
     .filter((project) => {
-      if (activeTech === "All") return true
-      return project.techStack.includes(activeTech)
-    })
+      if (activeTech === "All") return true;
+      return project.techStack.includes(activeTech);
+    });
 
   // 3. Handle category change to reset the tech filter
   const handleCategoryChange = (category: string) => {
-    setActiveCategory(category)
-    setActiveTech("All") // Reset tech filter when category changes
-  }
+    setActiveCategory(category);
+    setActiveTech("All"); // Reset tech filter when category changes
+  };
 
   return (
     <section
@@ -74,6 +74,7 @@ export function ProjectsWrapper() {
               categories={mainCategories}
               activeFilter={activeCategory}
               onFilterChange={handleCategoryChange} // Use the new handler
+              layoutId="project-category-filter"
             />
           </div>
 
@@ -88,6 +89,7 @@ export function ProjectsWrapper() {
               categories={availableTechs}
               activeFilter={activeTech}
               onFilterChange={setActiveTech}
+              layoutId="project-tech-filter"
             />
           </div>
         </div>
@@ -95,5 +97,5 @@ export function ProjectsWrapper() {
         <ProjectsList projects={filteredProjects} />
       </div>
     </section>
-  )
+  );
 }
