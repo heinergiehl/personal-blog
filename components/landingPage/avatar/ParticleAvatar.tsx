@@ -4,8 +4,8 @@ import { useMemo, useRef, Suspense, useEffect, useState } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useTexture, Stats } from "@react-three/drei";
-import { FluidSimulation, useFluid } from "r3f-fluid-sim";
 import { useTheme } from "next-themes";
+import { SafeFluidSimulation, useFluid } from "./SafeFluidSimulation";
 
 interface ParticleAvatarProps {
   imageUrl: string;
@@ -86,9 +86,9 @@ const BackgroundParticlesDesktop = ({ count = 2000 }) => {
       float time = uTime * 0.1;
       pos.x += sin(time + aRandom.y * 6.28) * 0.15;
       pos.y += cos(time + aRandom.z * 6.28) * 0.15;
-      pos.xy += velocity.xy * 15.0;
+      pos.xy += velocity.xy * 22.0;
       gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-      gl_PointSize = (350.0 + velocityStrength * 80.0) * (1.0 / -mvPosition.z) * (0.5 + aRandom.x * 0.5);
+      gl_PointSize = (350.0 + velocityStrength * 120.0) * (1.0 / -mvPosition.z) * (0.5 + aRandom.x * 0.5);
       vAlpha = 0.6 + (velocityStrength * 0.4);
     }
   `;
@@ -341,18 +341,18 @@ const ParticleSystemDesktop = ({
       vAlpha = mix(1.0, fadeCycle, movementThreshold);
       pos.z += brightness * 1.5;
       pos.z += sin(uTime * 0.5 + pos.x * 0.5) * 0.2;
-      float drift = 5.0;
+      float drift = 7.5;
       pos.xy += velocity.xy * drift * progress;
-      pos.z += velocityStrength * 5.0 * sin(progress * 10.0);
+      pos.z += velocityStrength * 7.0 * sin(progress * 10.0);
       vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
       gl_Position = projectionMatrix * mvPosition;
       float baseSize = uPointSize * 25.0;
       float scale;
       if (uIsDarkMode > 0.5) {
-        scale = 0.8 + (brightness * 0.5) + (smoothstep(0.0, 0.2, velocityStrength) * 1.5);
+        scale = 0.8 + (brightness * 0.5) + (smoothstep(0.0, 0.2, velocityStrength) * 1.8);
       } else {
         scale = 1.8 - (brightness * 1.0);
-        scale += smoothstep(0.0, 0.2, velocityStrength) * 1.0;
+        scale += smoothstep(0.0, 0.2, velocityStrength) * 1.25;
       }
       gl_PointSize = (baseSize / -mvPosition.z) * scale;
     }
@@ -622,11 +622,15 @@ const DesktopScene = ({
   faceScale: number;
 }) => {
   return (
-    <FluidSimulation
-      size={256}
-      forceStrength={(mouseInfluence / 100) * 10}
-      viscosity={0.01}
-      advectionDecay={0.97}
+    <SafeFluidSimulation
+      size={160}
+      forceStrength={(mouseInfluence / 100) * 14}
+      forceRadius={0.018}
+      forceClamp={6}
+      viscosity={0.008}
+      viscousIterations={4}
+      pressureIterations={16}
+      advectionDecay={0.992}
     >
       <BackgroundParticlesDesktop count={2000} />
       <Suspense fallback={null}>
@@ -639,7 +643,7 @@ const DesktopScene = ({
           />
         </group>
       </Suspense>
-    </FluidSimulation>
+    </SafeFluidSimulation>
   );
 };
 
