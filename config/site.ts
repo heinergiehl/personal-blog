@@ -4,7 +4,7 @@ const SiteConfig = {
   /** Canonical site URL (no trailing slash) */
   url: "https://heinerdevelops.tech",
   /** Impressum / contact (legal) */
-  ownerName: "Heiner Gehl",
+  ownerName: "Heiner Giehl",
   addressLine1: "Fliemenstrasse 15",
   postalCode: "44147",
   city: "Dortmund",

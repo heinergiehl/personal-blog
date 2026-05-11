@@ -70,6 +70,7 @@ export function ProjectDetail(project: Project) {
     (p) => p.product && p.slug !== slug
   )
 
+  const entranceInitial = product ? false : "hidden"
   const currencySymbol =
     product?.offer.priceCurrency === "EUR" ? "€" : "$"
 
@@ -79,7 +80,7 @@ export function ProjectDetail(project: Project) {
       <section className="w-full max-w-6xl mx-auto px-6 pt-24 pb-16">
         <motion.div
           className="mb-4"
-          initial="hidden"
+          initial={entranceInitial}
           animate="visible"
           variants={fadeUp}
           custom={0}
@@ -95,7 +96,7 @@ export function ProjectDetail(project: Project) {
             <ViewTransition name={`project-title-${slug}`} enter="page-fade">
               <motion.h1
                 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground mb-5 leading-tight"
-                initial="hidden"
+                initial={entranceInitial}
                 animate="visible"
                 variants={fadeUp}
                 custom={1}
@@ -106,7 +107,7 @@ export function ProjectDetail(project: Project) {
 
             <motion.p
               className="text-base text-muted-foreground leading-relaxed mb-8 max-w-lg"
-              initial="hidden"
+              initial={entranceInitial}
               animate="visible"
               variants={fadeUp}
               custom={2}
@@ -117,7 +118,7 @@ export function ProjectDetail(project: Project) {
             {/* CTAs */}
             <motion.div
               className="flex flex-wrap gap-3 mb-10"
-              initial="hidden"
+              initial={entranceInitial}
               animate="visible"
               variants={fadeUp}
               custom={3}
@@ -170,7 +171,7 @@ export function ProjectDetail(project: Project) {
 
             {/* Tech stack */}
             <motion.div
-              initial="hidden"
+              initial={entranceInitial}
               animate="visible"
               variants={fadeUp}
               custom={4}
@@ -183,7 +184,7 @@ export function ProjectDetail(project: Project) {
                   <motion.span
                     key={tech}
                     className="px-3 py-1 text-xs font-medium rounded-md bg-muted text-muted-foreground border border-border"
-                    initial={{ opacity: 0 }}
+                    initial={product ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.35 + i * 0.04 }}
                   >
@@ -198,7 +199,7 @@ export function ProjectDetail(project: Project) {
           <ViewTransition name={`project-hero-${slug}`} share="project-morph">
             <motion.div
               className="relative rounded-xl overflow-hidden border border-border shadow-xl"
-              initial={{ opacity: 0, scale: 0.98 }}
+              initial={product ? false : { opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
             >
@@ -225,6 +226,30 @@ export function ProjectDetail(project: Project) {
               <p className="text-sm text-muted-foreground border-l-2 border-indigo-500/60 dark:border-indigo-500/50 pl-4 leading-relaxed">
                 {product.compareNote}
               </p>
+            </section>
+          )}
+
+          {/* ── Search use cases ── */}
+          {product.searchUseCases && product.searchUseCases.length > 0 && (
+            <section className="w-full max-w-6xl mx-auto px-6 mb-16">
+              <h2 className="text-2xl font-bold text-foreground mb-6 tracking-tight">
+                Popular use cases
+              </h2>
+              <div className="grid md:grid-cols-3 gap-4">
+                {product.searchUseCases.map((useCase) => (
+                  <div
+                    key={useCase.title}
+                    className="rounded-xl border border-border bg-card/50 dark:bg-card/30 p-6"
+                  >
+                    <h3 className="font-semibold text-[15px] text-foreground mb-3 leading-snug">
+                      {useCase.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {useCase.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </section>
           )}
 
@@ -360,9 +385,17 @@ export function ProjectDetail(project: Project) {
       {/* ── Related products ── */}
       {relatedProducts.length > 0 && (
         <section className="w-full max-w-6xl mx-auto px-6 mb-16">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-5">
-            More Filament plugins
-          </p>
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              More Filament plugins
+            </p>
+            <Link
+              href="/filament-plugins"
+              className="text-xs font-medium text-indigo-500 hover:text-indigo-400"
+            >
+              Browse all plugins -&gt;
+            </Link>
+          </div>
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
             {relatedProducts.map((p) => (
               <Link

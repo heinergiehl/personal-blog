@@ -28,6 +28,7 @@ export interface ProductLanding {
   whoItsFor: string[]
   requirements: string[]
   faqs: ProductFAQ[]
+  searchUseCases?: { title: string; description: string }[]
   /** Optional positioning vs your other plugins */
   compareNote?: string
 }
@@ -55,20 +56,24 @@ export const projects: Project[] = [
     liveUrl: "https://filamentphp.com/plugins/heiner-giehl-agentic-chatbot",
     product: {
       seoTitle:
-        "Filament Agentic Chatbot — RAG & Visual AI Workflows for Laravel",
+        "Filament AI Chatbot Plugin for Laravel - Agentic Chatbot",
       seoDescription:
-        "Ship agentic AI assistants inside Filament: RAG knowledge, Vue Flow workflows, API connectors, signed chat widgets, tracing, and doctor checks. Premium Laravel plugin by Heiner Giehl.",
+        "Build an AI chatbot in Filament with RAG knowledge, visual workflow automation, API connectors, signed chat widgets, run tracing, and Laravel-ready operations.",
       keywords: [
-        "Filament agentic chatbot",
+        "Filament AI chatbot plugin",
+        "Laravel AI chatbot",
+        "Laravel AI agent plugin",
+        "Filament AI workflow builder",
         "Filament AI plugin",
-        "Laravel agentic AI",
+        "Filament agentic chatbot",
         "Filament RAG workflow",
         "Filament chatbot widget",
+        "AI support bot Laravel",
         "Laravel Livewire AI assistant",
         "Filament 5 AI",
       ],
       subtitle:
-        "Go beyond simple Q&A: run grounded retrieval, branch with a visual workflow editor, call HTTP APIs, trace every run, and embed a polished widget—without leaving your Filament panel.",
+        "A Filament AI chatbot plugin for Laravel teams that need grounded RAG answers, visual workflow automation, external API calls, live run tracing, and an embeddable chat widget.",
       buyUrl: "https://checkout.anystack.sh/agentic-chatbot?via=arf178",
       buyLabel: "Buy Agentic Chatbot",
       demoUrl: "https://filament-agentic-chatbot.heinerdevelops.tech/",
@@ -79,7 +84,7 @@ export const projects: Project[] = [
       offer: { price: "69.98", priceCurrency: "USD" },
       highlights: [
         {
-          title: "RAG that is ready for real traffic",
+          title: "Filament RAG chatbot for real traffic",
           items: [
             "Multiple bots with their own models, prompts, and retrieval settings",
             "URL, file, sitemap, and text sources with queue-based ingestion",
@@ -88,7 +93,7 @@ export const projects: Project[] = [
           ],
         },
         {
-          title: "Agentic workflows your team can actually maintain",
+          title: "Laravel AI workflow builder for support flows",
           items: [
             "10 node types: triggers, AI, KB retrieval, routers, HTTP, DB actions, joins, conditions",
             "Vue Flow canvas with AI-assisted drafting from plain language",
@@ -97,7 +102,7 @@ export const projects: Project[] = [
           ],
         },
         {
-          title: "Embeds and production hygiene",
+          title: "Embeddable chatbot widget and production tooling",
           items: [
             "Blade component, script tag, or NPM widget; signed tokens when you need them",
             "`php artisan filament-agentic-chatbot:doctor` for pre-flight validation",
@@ -121,6 +126,23 @@ export const projects: Project[] = [
         "Filament 5.2+",
         "PostgreSQL with pgvector (recommended) or ChromaDB",
         "Queue worker + supported LLM provider API key",
+      ],
+      searchUseCases: [
+        {
+          title: "AI support chatbot for Laravel SaaS products",
+          description:
+            "Give customers grounded answers from your docs, then route complex requests through multi-step workflows and external APIs.",
+        },
+        {
+          title: "Filament AI workflow builder for internal operations",
+          description:
+            "Use visual nodes, branching, database actions, and HTTP requests to automate repetitive admin workflows from inside Filament.",
+        },
+        {
+          title: "Embeddable AI assistant for Laravel apps",
+          description:
+            "Add a branded chat widget to Laravel or external sites while keeping bot configuration and conversation history in your Filament panel.",
+        },
       ],
       compareNote:
         "Choose RAG Chatbot when you mainly need grounded Q&A and widgets. Choose Agentic Chatbot when you also need visual workflows, external APIs, and deep run tracing—see the Filament listing for a full comparison.",
@@ -159,19 +181,23 @@ export const projects: Project[] = [
     liveUrl: "https://filamentphp.com/plugins/heiner-giehl-image-studio-pro",
     product: {
       seoTitle:
-        "Filament Image Studio Pro — In-Panel Creative Studio for Laravel",
+        "Filament Image Editor Plugin for Laravel - Image Studio Pro",
       seoDescription:
-        "Edit, template, and approve images inside Filament: canvas editor, asset library, brand presets, team review, Spatie Media Library, and cloud storage. Premium plugin for Laravel admins.",
+        "Edit images inside Filament with a Laravel image editor plugin: canvas tools, templates, brand presets, approvals, cloud storage, and Spatie Media Library workflows.",
       keywords: [
         "Filament image editor",
         "Filament image plugin",
+        "Filament image editor plugin",
         "Laravel admin image editor",
+        "Laravel image editor plugin",
         "Filament creative studio",
         "Filament Media Library editor",
+        "Spatie Media Library image editor",
+        "Canva alternative for Filament",
         "in-panel image editor Laravel",
       ],
       subtitle:
-        "Give marketers and ops teams a Canva-class workspace without exporting files: edit on a canvas, enforce brand presets, route approvals, and push renders straight into Filament forms or Media Library collections.",
+        "A Filament image editor plugin for Laravel teams that need canvas editing, templates, brand presets, approvals, and Media Library exports without sending users to external design tools.",
       buyUrl:
         "https://checkout.anystack.sh/filament-image-gallery-pro?via=arf178",
       buyLabel: "Buy Image Studio Pro",
@@ -183,7 +209,7 @@ export const projects: Project[] = [
       offer: { price: "49.99", priceCurrency: "EUR" },
       highlights: [
         {
-          title: "Professional canvas editing",
+          title: "Laravel admin image editor with canvas tools",
           items: [
             "Layers, text, shapes, markup, filters, drawing, and 30+ shortcuts",
             "Templates, brand presets, and reusable source assets",
@@ -191,7 +217,7 @@ export const projects: Project[] = [
           ],
         },
         {
-          title: "Native Filament integration",
+          title: "Filament Media Library and form integration",
           items: [
             "CreativeStudioEditor field, actions from tables, and dedicated studio pages",
             "ViewImageAction, OpenMediaAction, galleries, and before/after compare",
@@ -199,7 +225,7 @@ export const projects: Project[] = [
           ],
         },
         {
-          title: "Team-ready governance",
+          title: "Approval workflows for marketing and ops teams",
           items: [
             "Draft → review → approval flows with audit-friendly history",
             "Tenant-aware scoping plus Gate-driven permissions",
@@ -222,6 +248,23 @@ export const projects: Project[] = [
         "Laravel 12.x",
         "Filament 5.x",
         "Livewire 4",
+      ],
+      searchUseCases: [
+        {
+          title: "Filament image editor for content teams",
+          description:
+            "Let non-technical users crop, annotate, resize, brand, and export product or marketing images from the admin panel.",
+        },
+        {
+          title: "Spatie Media Library editing workflow",
+          description:
+            "Connect image editing to media collections so users can create final assets without downloading and re-uploading files.",
+        },
+        {
+          title: "Canva-style editing inside Laravel admin",
+          description:
+            "Provide a focused canvas workflow for common admin image tasks without building a full custom editor from scratch.",
+        },
       ],
       faqs: [
         {
@@ -258,19 +301,23 @@ export const projects: Project[] = [
     liveUrl: "https://filamentphp.com/plugins/heiner-giehl-rag-chatbot",
     product: {
       seoTitle:
-        "Filament RAG Chatbot — Knowledge-Grounded AI for Laravel Admin",
+        "Laravel RAG Chatbot for Filament - AI Knowledge Base Plugin",
       seoDescription:
-        "Manage multi-tenant RAG bots in Filament: ingest URLs and files, tune retrieval, embed widgets, and run doctor checks. Premium Laravel + Filament plugin by Heiner Giehl.",
+        "Create a Laravel RAG chatbot in Filament: ingest URLs and files, manage knowledge sources, tune retrieval, embed AI widgets, and monitor production health.",
       keywords: [
         "Filament RAG plugin",
         "Laravel RAG chatbot",
+        "Filament RAG chatbot",
+        "Laravel knowledge base chatbot",
         "Filament chatbot",
         "Filament knowledge base AI",
+        "AI documentation chatbot Laravel",
         "pgvector Filament",
         "embeddable AI widget Laravel",
+        "customer support chatbot Laravel",
       ],
       subtitle:
-        "Spin up support bots, documentation assistants, or internal copilots with a Filament-native admin: multiple bots, grounded answers with citations, ingestion queues, and one-script embeds.",
+        "A Laravel RAG chatbot plugin for Filament teams that need knowledge-grounded answers, URL and file ingestion, citation-aware responses, multi-bot management, and embeddable AI widgets.",
       buyUrl: "https://checkout.anystack.sh/filament-rag-chatbot?via=arf178",
       buyLabel: "Buy RAG Chatbot",
       demoUrl: "https://filament-rag.heinerdevelops.tech/",
@@ -280,7 +327,7 @@ export const projects: Project[] = [
       offer: { price: "49.99", priceCurrency: "EUR" },
       highlights: [
         {
-          title: "Bot operations without bespoke code",
+          title: "Filament chatbot management without bespoke CRUD",
           items: [
             "Separate bots with unique prompts, providers, models, and retrieval tuning",
             "Public, member, and admin contexts with per-bot widget branding",
@@ -288,7 +335,7 @@ export const projects: Project[] = [
           ],
         },
         {
-          title: "Knowledge ingestion that scales",
+          title: "Laravel knowledge base ingestion for RAG",
           items: [
             "Text, files, and URLs with queue-driven retries",
             "Support for Markdown, HTML, PDFs, and public web content",
@@ -296,7 +343,7 @@ export const projects: Project[] = [
           ],
         },
         {
-          title: "Embeds developers expect",
+          title: "Embeddable AI chatbot widgets for Laravel apps",
           items: [
             "Single-script website embed plus NPM loader for SPAs",
             "Signed tokens, domain allowlists, and rate limiting",
@@ -320,6 +367,23 @@ export const projects: Project[] = [
         "Filament 5+",
         "PostgreSQL + pgvector (recommended) or Chroma",
         "LLM provider API key (Gemini, OpenAI, Anthropic, xAI, etc.)",
+      ],
+      searchUseCases: [
+        {
+          title: "AI documentation chatbot for Laravel products",
+          description:
+            "Turn product docs, help articles, and Markdown content into grounded answers with retrieval context and citations.",
+        },
+        {
+          title: "Customer support chatbot with a Filament control panel",
+          description:
+            "Let support or product teams manage sources, review conversations, and adjust bot settings without direct database work.",
+        },
+        {
+          title: "pgvector chatbot for Laravel and Filament",
+          description:
+            "Use PostgreSQL with pgvector or ChromaDB to run retrieval-backed chat while keeping admin operations in one panel.",
+        },
       ],
       compareNote:
         "Need visual agentic workflows, API connectors, and deep execution traces? Upgrade path: Agentic Chatbot builds on the same product family with advanced automation tooling.",
