@@ -13,25 +13,34 @@ function absoluteUrl(path: string) {
 }
 
 export const metadata: Metadata = {
-  title: "Premium Filament Plugins for Laravel Admin Panels",
+  title: "Filament Plugins for Laravel",
   description:
-    "Commercial Filament plugins for Laravel teams: AI chatbot plugins, RAG knowledge base bots, workflow automation, and in-panel image editing by Heiner Giehl.",
+    "Commercial Filament plugins for Laravel: AI chatbots, RAG knowledge bases, workflow automation, and in-panel image editing by Heiner Giehl.",
   alternates: {
     canonical: absoluteUrl("/filament-plugins"),
   },
   openGraph: {
-    title: "Premium Filament Plugins for Laravel Admin Panels",
+    title: "Filament Plugins for Laravel",
     description:
       "Explore commercial Filament plugins for AI chatbots, RAG knowledge bases, workflow automation, and image editing inside Laravel admin panels.",
     url: absoluteUrl("/filament-plugins"),
     siteName: "Heiner Giehl",
+    images: [
+      {
+        url: absoluteUrl("/agentic-chatbot.webp"),
+        width: 1200,
+        height: 630,
+        alt: "Filament plugins for Laravel admin panels",
+      },
+    ],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Premium Filament Plugins for Laravel Admin Panels",
+    title: "Filament Plugins for Laravel",
     description:
       "AI chatbot, RAG, workflow automation, and image editing plugins for Laravel Filament applications.",
+    images: [absoluteUrl("/agentic-chatbot.webp")],
   },
 }
 
@@ -46,23 +55,9 @@ function JsonLd() {
       return {
         "@type": "ListItem",
         position: index + 1,
+        name: project.title,
+        description: product.seoDescription,
         url: absoluteUrl(`/${project.slug}`),
-        item: {
-          "@type": "SoftwareApplication",
-          name: project.title,
-          description: product.seoDescription,
-          applicationCategory: "DeveloperApplication",
-          operatingSystem: "Web",
-          url: absoluteUrl(`/${project.slug}`),
-          image: absoluteUrl(project.image),
-          offers: {
-            "@type": "Offer",
-            url: product.buyUrl,
-            price: product.offer.price,
-            priceCurrency: product.offer.priceCurrency,
-            availability: "https://schema.org/InStock",
-          },
-        },
       }
     }),
   }
@@ -206,7 +201,8 @@ export default function FilamentPluginsPage() {
                   </h3>
                   <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
                     Choose RAG Chatbot when your main goal is grounded Q&amp;A
-                    over URLs, files, docs, and product knowledge with citations.
+                    over URLs, files, docs, and product knowledge with
+                    citations.
                   </p>
                 </div>
                 <div>
@@ -227,10 +223,10 @@ export default function FilamentPluginsPage() {
                 Marketplace trust, direct product pages, clean checkout
               </h2>
               <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
-                The plugins are listed on the Filament marketplace for
-                discovery and ecosystem trust. These pages add more search
-                coverage for buyers who look for Laravel AI chatbot plugins,
-                Filament RAG tools, or image editing inside an admin panel.
+                The plugins are listed on the Filament marketplace for discovery
+                and ecosystem trust. These pages add more search coverage for
+                buyers who look for Laravel AI chatbot plugins, Filament RAG
+                tools, or image editing inside an admin panel.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link

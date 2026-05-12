@@ -58,6 +58,13 @@ function JsonLd({ project }: { project: (typeof projects)[number] }) {
   const product = project.product
   if (!product) return null
 
+  const pageUrl = absoluteUrl(`/${project.slug}`)
+  const sameAs = [
+    product.filamentListingUrl,
+    product.demoUrl,
+    product.docsUrl,
+  ].filter((url): url is string => Boolean(url))
+
   const softwareJson = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -65,6 +72,10 @@ function JsonLd({ project }: { project: (typeof projects)[number] }) {
     description: product.seoDescription,
     applicationCategory: "DeveloperApplication",
     operatingSystem: "Web",
+    url: pageUrl,
+    mainEntityOfPage: pageUrl,
+    sameAs,
+    softwareRequirements: product.requirements,
     author: {
       "@type": "Person",
       name: "Heiner Giehl",
@@ -80,21 +91,30 @@ function JsonLd({ project }: { project: (typeof projects)[number] }) {
     image: absoluteUrl(project.image),
   }
 
-  const faqJson =
-    product.faqs.length > 0
-      ? {
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          mainEntity: product.faqs.map((faq) => ({
-            "@type": "Question",
-            name: faq.question,
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: faq.answer,
-            },
-          })),
-        }
-      : null
+  const breadcrumbJson = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: SiteConfig.url,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Filament Plugins",
+        item: absoluteUrl("/filament-plugins"),
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: project.title,
+        item: pageUrl,
+      },
+    ],
+  }
 
   return (
     <>
@@ -102,12 +122,10 @@ function JsonLd({ project }: { project: (typeof projects)[number] }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareJson) }}
       />
-      {faqJson ? (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJson) }}
-        />
-      ) : null}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJson) }}
+      />
     </>
   )
 }

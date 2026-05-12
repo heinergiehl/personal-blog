@@ -9,7 +9,8 @@ const MobileNav = () => {
   const pathname = usePathname()
 
   const getTransitionTypes = (href: string) => {
-    if (href === "/feedback") return ["nav-forward"]
+    if (href === "/feedback" || href === "/filament-plugins")
+      return ["nav-forward"]
     if (href === "/" || (href.startsWith("/#") && pathname !== "/")) {
       return ["nav-back"]
     }

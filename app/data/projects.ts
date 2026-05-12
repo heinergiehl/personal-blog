@@ -55,10 +55,9 @@ export const projects: Project[] = [
     category: "Tool",
     liveUrl: "https://filamentphp.com/plugins/heiner-giehl-agentic-chatbot",
     product: {
-      seoTitle:
-        "Filament AI Chatbot Plugin for Laravel - Agentic Chatbot",
+      seoTitle: "Filament AI Chatbot Plugin - Agentic",
       seoDescription:
-        "Build an AI chatbot in Filament with RAG knowledge, visual workflow automation, API connectors, signed chat widgets, run tracing, and Laravel-ready operations.",
+        "Build a Filament AI chatbot for Laravel with RAG, visual workflows, API connectors, signed widgets, run tracing, and production-ready ops.",
       keywords: [
         "Filament AI chatbot plugin",
         "Laravel AI chatbot",
@@ -180,10 +179,9 @@ export const projects: Project[] = [
     category: "Tool",
     liveUrl: "https://filamentphp.com/plugins/heiner-giehl-image-studio-pro",
     product: {
-      seoTitle:
-        "Filament Image Editor Plugin for Laravel - Image Studio Pro",
+      seoTitle: "Filament Image Editor Plugin",
       seoDescription:
-        "Edit images inside Filament with a Laravel image editor plugin: canvas tools, templates, brand presets, approvals, cloud storage, and Spatie Media Library workflows.",
+        "Edit images inside Filament with canvas tools, templates, brand presets, approvals, cloud storage, and Spatie Media Library workflows.",
       keywords: [
         "Filament image editor",
         "Filament image plugin",
@@ -243,12 +241,7 @@ export const projects: Project[] = [
         "Agencies delivering multi-tenant admin experiences",
         "Products that already rely on Laravel storage or Spatie Media Library",
       ],
-      requirements: [
-        "PHP 8.2+",
-        "Laravel 12.x",
-        "Filament 5.x",
-        "Livewire 4",
-      ],
+      requirements: ["PHP 8.2+", "Laravel 12.x", "Filament 5.x", "Livewire 4"],
       searchUseCases: [
         {
           title: "Filament image editor for content teams",
@@ -300,10 +293,9 @@ export const projects: Project[] = [
     category: "Tool",
     liveUrl: "https://filamentphp.com/plugins/heiner-giehl-rag-chatbot",
     product: {
-      seoTitle:
-        "Laravel RAG Chatbot for Filament - AI Knowledge Base Plugin",
+      seoTitle: "Laravel RAG Chatbot Plugin",
       seoDescription:
-        "Create a Laravel RAG chatbot in Filament: ingest URLs and files, manage knowledge sources, tune retrieval, embed AI widgets, and monitor production health.",
+        "Create a Laravel RAG chatbot in Filament with URL/file ingestion, knowledge sources, retrieval tuning, embeddable widgets, and health monitoring.",
       keywords: [
         "Filament RAG plugin",
         "Laravel RAG chatbot",

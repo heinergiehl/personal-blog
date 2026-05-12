@@ -16,6 +16,7 @@ export const navItems = [
   { name: "Timeline", href: "/#Timeline" },
   { name: "Skills", href: "/#Skills" },
   { name: "Projects", href: "/#Projects" },
+  { name: "Plugins", href: "/filament-plugins" },
   { name: "Contact", href: "/#Contact" },
   { name: "Feedback", href: "/feedback" },
 ]
@@ -92,7 +93,8 @@ const NavBar: React.FC = () => {
   }
 
   const getTransitionTypes = (href: string) => {
-    if (href === "/feedback") return ["nav-forward"]
+    if (href === "/feedback" || href === "/filament-plugins")
+      return ["nav-forward"]
     if (href === "/" || (href.startsWith("/#") && pathname !== "/")) {
       return ["nav-back"]
     }
@@ -107,7 +109,6 @@ const NavBar: React.FC = () => {
     >
       {/* Single-level flex row: logo | links (desktop) | toggle | hamburger (mobile) */}
       <div className="w-full md:max-w-[900px] border border-border bg-background/70 backdrop-blur-md md:rounded-xl px-4 py-2 mx-4 flex items-center gap-3">
-
         {/* Logo */}
         <Link
           href="/"
@@ -116,11 +117,18 @@ const NavBar: React.FC = () => {
         >
           {/* </> badge */}
           <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 dark:from-indigo-500 dark:to-violet-500 shadow-sm shadow-indigo-600/20 group-hover:from-indigo-500 group-hover:to-violet-500 transition-all duration-200">
-            <span className="text-white font-black text-[11px] leading-none font-mono tracking-tighter">&lt;/&gt;</span>
+            <span className="text-white font-black text-[11px] leading-none font-mono tracking-tighter">
+              &lt;/&gt;
+            </span>
           </span>
           {/* Two-tone wordmark */}
           <span className="text-sm font-bold tracking-tight leading-none">
-            <span className="text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200">Heiner</span><span className="text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-500 dark:group-hover:text-indigo-300 transition-colors duration-200">Develops</span>
+            <span className="text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200">
+              Heiner
+            </span>
+            <span className="text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-500 dark:group-hover:text-indigo-300 transition-colors duration-200">
+              Develops
+            </span>
           </span>
         </Link>
 
@@ -148,7 +156,9 @@ const NavBar: React.FC = () => {
             <li key={item.href} className="relative z-10">
               {item.href.startsWith("/") ? (
                 <Link
-                  ref={(el) => { linkRefs.current[i] = el }}
+                  ref={(el) => {
+                    linkRefs.current[i] = el
+                  }}
                   href={item.href}
                   transitionTypes={getTransitionTypes(item.href)}
                   onMouseEnter={() => setHoveredIdx(i)}
@@ -173,7 +183,9 @@ const NavBar: React.FC = () => {
                 </Link>
               ) : (
                 <a
-                  ref={(el) => { linkRefs.current[i] = el }}
+                  ref={(el) => {
+                    linkRefs.current[i] = el
+                  }}
                   href={item.href}
                   onMouseEnter={() => setHoveredIdx(i)}
                   onClick={() => handleClick(item.href)}
