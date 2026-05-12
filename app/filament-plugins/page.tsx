@@ -7,6 +7,45 @@ import SiteConfig from "@/config/site"
 
 const pluginProjects = projects.filter((project) => project.product)
 
+const buyingGuides = [
+  {
+    href: "/blog/filament-ai-chatbot-plugin-laravel",
+    title: "Filament AI chatbot plugin buyer guide",
+    description:
+      "Choose between RAG, widgets, workflow automation, and production chatbot operations.",
+  },
+  {
+    href: "/blog/laravel-rag-chatbot-filament-pgvector",
+    title: "Laravel RAG chatbot with pgvector and Chroma",
+    description:
+      "Understand source ingestion, retrieval tuning, vector storage, citations, and health checks.",
+  },
+  {
+    href: "/blog/embed-ai-chatbot-widget-laravel-filament",
+    title: "Embeddable AI chatbot widget for Laravel",
+    description:
+      "Plan public and authenticated widgets with signed tokens, domain controls, and Filament admin settings.",
+  },
+  {
+    href: "/blog/filament-ai-workflow-builder-laravel",
+    title: "Filament AI workflow builder for Laravel",
+    description:
+      "Learn when support routing, API connectors, database actions, and run tracing matter.",
+  },
+  {
+    href: "/blog/filament-image-editor-spatie-media-library",
+    title: "Filament image editor for Spatie Media Library",
+    description:
+      "See how in-panel editing, templates, approvals, and cloud storage fit Laravel media workflows.",
+  },
+  {
+    href: "/blog/agentic-chatbot-vs-rag-chatbot",
+    title: "Agentic Chatbot vs RAG Chatbot",
+    description:
+      "Compare focused knowledge-base chat with workflow-capable AI automation.",
+  },
+]
+
 function absoluteUrl(path: string) {
   const base = SiteConfig.url.replace(/\/$/, "")
   return `${base}${path.startsWith("/") ? path : `/${path}`}`
@@ -243,6 +282,38 @@ export default function FilamentPluginsPage() {
                 </Link>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section className="w-full max-w-6xl mx-auto px-6 pb-20">
+          <div className="mb-6 max-w-3xl">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">
+              Filament plugin buying guides
+            </h2>
+            <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+              Practical guides for Laravel teams comparing AI chatbots, RAG,
+              embeddable widgets, workflow automation, and in-panel image
+              editing.
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {buyingGuides.map((guide) => (
+              <Link
+                key={guide.href}
+                href={guide.href}
+                className="rounded-lg border border-border bg-card/50 p-5 transition-colors hover:border-indigo-400/60 hover:bg-muted/60 dark:bg-card/30"
+              >
+                <h3 className="text-sm font-semibold text-foreground">
+                  {guide.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {guide.description}
+                </p>
+                <span className="mt-4 inline-flex text-sm font-medium text-indigo-500">
+                  Read guide -&gt;
+                </span>
+              </Link>
+            ))}
           </div>
         </section>
       </main>

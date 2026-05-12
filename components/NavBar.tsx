@@ -17,6 +17,7 @@ export const navItems = [
   { name: "Skills", href: "/#Skills" },
   { name: "Projects", href: "/#Projects" },
   { name: "Plugins", href: "/filament-plugins" },
+  { name: "Blog", href: "/blog" },
   { name: "Contact", href: "/#Contact" },
   { name: "Feedback", href: "/feedback" },
 ]
@@ -93,7 +94,11 @@ const NavBar: React.FC = () => {
   }
 
   const getTransitionTypes = (href: string) => {
-    if (href === "/feedback" || href === "/filament-plugins")
+    if (
+      href === "/feedback" ||
+      href === "/filament-plugins" ||
+      href === "/blog"
+    )
       return ["nav-forward"]
     if (href === "/" || (href.startsWith("/#") && pathname !== "/")) {
       return ["nav-back"]

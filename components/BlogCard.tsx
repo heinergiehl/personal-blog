@@ -1,83 +1,129 @@
-"use client"
-
-import { motion } from "framer-motion"
+import Image from "next/image"
 import Link from "next/link"
-import { cn } from "@/lib/utils"
-import { useTheme } from "next-themes"
-import { formatDate } from "@/lib/utils"
+import { ArrowRight, CalendarDays, FileText } from "lucide-react"
 
-interface BlogCardProps {
-    slug: string
-    title: string
-    summary: string
-    publishedAt: string
-    index: number
+import type { BlogPost } from "@/lib/blog"
+import { cn, formatDate } from "@/lib/utils"
+
+interface BlogCardProps extends BlogPost {
+  index: number
 }
 
-export function BlogCard({ slug, title, summary, publishedAt, index }: BlogCardProps) {
-    const { theme } = useTheme()
-    const isLight = theme === "light"
+function formatDateOrNull(input?: string) {
+  if (!input) return null
 
-    return (
-        <Link href={`/blog/${slug}`} transitionTypes={["nav-forward"]}>
-            <motion.article
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -5, scale: 1.02 }}
-                className={cn(
-                    "group relative flex flex-col justify-between h-full p-6 md:p-8 rounded-2xl overflow-hidden border transition-all duration-300",
-                    isLight
-                        ? "bg-white/50 border-white/40 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-500/10"
-                        : "bg-slate-900/40 border-slate-800/60 hover:border-indigo-500/30 hover:shadow-2xl hover:shadow-indigo-500/10"
-                )}
-            >
-                {/* Glassmorphism Background */}
-                <div className="absolute inset-0 backdrop-blur-sm -z-10" />
+  const time = new Date(input).getTime()
+  if (Number.isNaN(time)) return null
 
-                {/* Gradient Blur Effect on Hover */}
-                <div
-                    className={cn(
-                        "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10",
-                        isLight
-                            ? "bg-gradient-to-br from-indigo-50/50 via-blue-50/30 to-purple-50/50"
-                            : "bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-cyan-500/5"
-                    )}
-                />
+  return formatDate(input)
+}
 
-                <div className="flex flex-col space-y-4">
-                    <div className="flex items-center space-x-2 text-sm text-muted-foreground/80">
-                        <time dateTime={publishedAt}>{formatDate(publishedAt)}</time>
-                        <span>•</span>
-                        <span>5 min read</span>
-                    </div>
+function PlaceholderThumbnail({ title }: { title: string }) {
+  const initials = title
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase()
 
-                    <h2 className={cn(
-                        "text-2xl font-bold tracking-tight transition-colors",
-                        isLight ? "text-slate-800 group-hover:text-indigo-600" : "text-slate-100 group-hover:text-indigo-400"
-                    )}>
-                        {title}
-                    </h2>
+  return (
+    <div className="flex h-full w-full flex-col justify-between bg-slate-100 p-5 dark:bg-slate-950">
+      <div className="flex items-center justify-between">
+        <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+          <FileText className="h-4 w-4" aria-hidden="true" />
+        </span>
+        <span className="rounded-md border border-slate-300 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500 dark:border-slate-700 dark:text-slate-400">
+          Guide
+        </span>
+      </div>
+      <div>
+        <div className="text-5xl font-black tracking-tight text-slate-300 dark:text-slate-800">
+          {initials || "HG"}
+        </div>
+        <div className="mt-4 h-2 w-28 rounded-full bg-indigo-500/60" />
+        <div className="mt-2 h-2 w-40 rounded-full bg-cyan-500/45" />
+      </div>
+    </div>
+  )
+}
 
-                    <p className={cn(
-                        "leading-relaxed line-clamp-3",
-                        isLight ? "text-slate-600" : "text-slate-400"
-                    )}>
-                        {summary}
-                    </p>
-                </div>
+export function BlogCard({
+  slug,
+  title,
+  summary,
+  publishedAt,
+  imageUrl,
+  readingTime,
+  index,
+}: BlogCardProps) {
+  const formattedDate = formatDateOrNull(publishedAt)
 
-                <div className={cn(
-                    "mt-6 flex items-center text-sm font-medium transition-colors",
-                    isLight ? "text-indigo-600 group-hover:text-indigo-700" : "text-indigo-400 group-hover:text-indigo-300"
-                )}>
-                    Read Article
-                    <svg className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                </div>
-            </motion.article>
-        </Link>
-    )
+  return (
+    <Link
+      href={`/blog/${slug}`}
+      transitionTypes={["nav-forward"]}
+      className="group block h-full"
+    >
+      <article
+        className={cn(
+          "flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-500/10 dark:bg-card/70 dark:hover:border-indigo-500/50",
+          index === 0 && "lg:col-span-2",
+        )}
+      >
+        <div
+          className={cn(
+            "relative overflow-hidden border-b border-border bg-slate-50 dark:bg-slate-950",
+            index === 0 ? "aspect-[16/7] lg:aspect-[21/8]" : "aspect-video",
+          )}
+        >
+          {imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt={`${title} thumbnail`}
+              fill
+              sizes={
+                index === 0
+                  ? "(min-width: 1024px) 768px, 100vw"
+                  : "(min-width: 1024px) 384px, (min-width: 768px) 50vw, 100vw"
+              }
+              className="object-contain p-3 transition-transform duration-300 group-hover:scale-[1.02]"
+            />
+          ) : (
+            <PlaceholderThumbnail title={title} />
+          )}
+        </div>
+
+        <div className="flex flex-1 flex-col p-5 md:p-6">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
+              {formattedDate ? (
+                <time dateTime={publishedAt}>{formattedDate}</time>
+              ) : (
+                <span>Article</span>
+              )}
+            </span>
+            <span aria-hidden="true">/</span>
+            <span>{readingTime} min read</span>
+          </div>
+
+          <h2 className="mt-4 text-xl font-bold leading-tight tracking-tight text-foreground transition-colors group-hover:text-indigo-600 dark:group-hover:text-indigo-300 md:text-2xl">
+            {title}
+          </h2>
+
+          <p className="mt-3 line-clamp-3 text-sm leading-6 text-muted-foreground">
+            {summary}
+          </p>
+
+          <div className="mt-auto pt-6">
+            <span className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 transition-colors group-hover:text-cyan-600 dark:text-indigo-300 dark:group-hover:text-cyan-200">
+              Read article
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </span>
+          </div>
+        </div>
+      </article>
+    </Link>
+  )
 }

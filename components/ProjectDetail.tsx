@@ -5,7 +5,12 @@ import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
 import { ViewTransition } from "react"
-import { useState, type CSSProperties, type MouseEvent, type ReactNode } from "react"
+import {
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+  type ReactNode,
+} from "react"
 import {
   ArrowRight,
   BookOpen,
@@ -38,6 +43,48 @@ const fadeUp = {
   }),
 }
 
+const productGuideLinks: Record<
+  string,
+  { href: string; title: string; description: string }[]
+> = {
+  "agentic-chatbot": [
+    {
+      href: "/blog/filament-ai-chatbot-plugin-laravel",
+      title: "Filament AI chatbot plugin buyer guide",
+      description:
+        "Compare RAG, widgets, workflow automation, and production chatbot operations.",
+    },
+    {
+      href: "/blog/filament-ai-workflow-builder-laravel",
+      title: "Filament AI workflow builder for Laravel",
+      description:
+        "Plan support routing, API calls, database actions, and run tracing.",
+    },
+  ],
+  "rag-chatbot": [
+    {
+      href: "/blog/laravel-rag-chatbot-filament-pgvector",
+      title: "Laravel RAG chatbot with pgvector and Chroma",
+      description:
+        "Understand ingestion, retrieval tuning, vector storage, and citations.",
+    },
+    {
+      href: "/blog/embed-ai-chatbot-widget-laravel-filament",
+      title: "Embeddable AI chatbot widget for Laravel",
+      description:
+        "Plan public and authenticated widgets with Filament admin controls.",
+    },
+  ],
+  "image-studio-pro": [
+    {
+      href: "/blog/filament-image-editor-spatie-media-library",
+      title: "Filament image editor for Spatie Media Library",
+      description:
+        "Connect image editing to Laravel media workflows, templates, and approvals.",
+    },
+  ],
+}
+
 function GlowPanel({
   children,
   className,
@@ -51,11 +98,11 @@ function GlowPanel({
     const rect = event.currentTarget.getBoundingClientRect()
     event.currentTarget.style.setProperty(
       "--mouse-x",
-      `${event.clientX - rect.left}px`
+      `${event.clientX - rect.left}px`,
     )
     event.currentTarget.style.setProperty(
       "--mouse-y",
-      `${event.clientY - rect.top}px`
+      `${event.clientY - rect.top}px`,
     )
   }
 
@@ -64,7 +111,7 @@ function GlowPanel({
       onMouseMove={handleMouseMove}
       className={cn(
         "group relative overflow-hidden rounded-2xl border border-indigo-200/30 bg-white/70 shadow-[0_20px_70px_rgba(79,70,229,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/55 dark:shadow-[0_24px_90px_rgba(0,0,0,0.42)]",
-        className
+        className,
       )}
       style={{ "--mouse-x": "50%", "--mouse-y": "50%" } as CSSProperties}
       variants={fadeUp}
@@ -109,7 +156,7 @@ function ActionButton({
         variant === "secondary" &&
           "border border-indigo-300/40 bg-white/70 text-slate-950 hover:border-indigo-400 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10",
         variant === "ghost" &&
-          "px-2 text-indigo-700 hover:text-cyan-700 dark:text-indigo-200 dark:hover:text-cyan-200"
+          "px-2 text-indigo-700 hover:text-cyan-700 dark:text-indigo-200 dark:hover:text-cyan-200",
       )}
     >
       <Icon className="h-4 w-4" aria-hidden="true" />
@@ -180,7 +227,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
         <ChevronDown
           className={cn(
             "mt-0.5 h-4 w-4 shrink-0 text-indigo-500 transition-transform duration-200",
-            open && "rotate-180"
+            open && "rotate-180",
           )}
           aria-hidden="true"
         />
@@ -206,20 +253,31 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
 }
 
 export function ProjectDetail(project: Project) {
-  const { slug, title, description, image, liveUrl, techStack, product, category } =
-    project
+  const {
+    slug,
+    title,
+    description,
+    image,
+    liveUrl,
+    techStack,
+    product,
+    category,
+  } = project
 
   const currencySymbol = product?.offer.priceCurrency === "EUR" ? "€" : "$"
   const relatedProjects = allProjects
     .filter((p) => p.slug !== slug && (product ? p.product : true))
     .slice(0, 3)
+  const guideLinks = product ? (productGuideLinks[slug] ?? []) : []
 
   const heroStats = product
     ? [
         { label: "Price", value: `${currencySymbol}${product.offer.price}` },
         {
           label: "Use cases",
-          value: String(product.searchUseCases?.length ?? product.highlights.length),
+          value: String(
+            product.searchUseCases?.length ?? product.highlights.length,
+          ),
         },
         { label: "Stack", value: `${techStack.length} tools` },
       ]
@@ -288,12 +346,20 @@ export function ProjectDetail(project: Project) {
                   {product.buyLabel}
                 </ActionButton>
                 {product.demoUrl && (
-                  <ActionButton href={product.demoUrl} icon={ExternalLink} variant="secondary">
+                  <ActionButton
+                    href={product.demoUrl}
+                    icon={ExternalLink}
+                    variant="secondary"
+                  >
                     Live demo
                   </ActionButton>
                 )}
                 {product.docsUrl && (
-                  <ActionButton href={product.docsUrl} icon={BookOpen} variant="ghost">
+                  <ActionButton
+                    href={product.docsUrl}
+                    icon={BookOpen}
+                    variant="ghost"
+                  >
                     Docs
                   </ActionButton>
                 )}
@@ -352,7 +418,10 @@ export function ProjectDetail(project: Project) {
                 </div>
                 <div className="h-1.5 w-28 rounded-full bg-white/10" />
               </div>
-              <ViewTransition name={`project-hero-${slug}`} share="project-morph">
+              <ViewTransition
+                name={`project-hero-${slug}`}
+                share="project-morph"
+              >
                 <div className="relative overflow-hidden rounded-lg">
                   <Image
                     src={image}
@@ -477,7 +546,10 @@ export function ProjectDetail(project: Project) {
               </div>
               <ul className="space-y-4">
                 {product.outcomes.map((line) => (
-                  <li key={line} className="flex gap-3 text-sm leading-7 text-slate-700 dark:text-slate-200">
+                  <li
+                    key={line}
+                    className="flex gap-3 text-sm leading-7 text-slate-700 dark:text-slate-200"
+                  >
                     <Check className="mt-1 h-4 w-4 shrink-0 text-cyan-500" />
                     <span>{line}</span>
                   </li>
@@ -494,7 +566,10 @@ export function ProjectDetail(project: Project) {
               </div>
               <ul className="space-y-4">
                 {product.whoItsFor.map((line) => (
-                  <li key={line} className="flex gap-3 text-sm leading-7 text-slate-700 dark:text-slate-200">
+                  <li
+                    key={line}
+                    className="flex gap-3 text-sm leading-7 text-slate-700 dark:text-slate-200"
+                  >
                     <Check className="mt-1 h-4 w-4 shrink-0 text-violet-500" />
                     <span>{line}</span>
                   </li>
@@ -532,13 +607,18 @@ export function ProjectDetail(project: Project) {
                 {product.offer.price}
               </p>
               <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
-                Composer access, product updates, and the Filament listing flow stay tied to the official checkout.
+                Composer access, product updates, and the Filament listing flow
+                stay tied to the official checkout.
               </p>
               <div className="mt-6 flex flex-col gap-3">
                 <ActionButton href={product.buyUrl} icon={ShoppingCart}>
                   {product.buyLabel}
                 </ActionButton>
-                <ActionButton href={product.filamentListingUrl} icon={ExternalLink} variant="secondary">
+                <ActionButton
+                  href={product.filamentListingUrl}
+                  icon={ExternalLink}
+                  variant="secondary"
+                >
                   View on Filament PHP
                 </ActionButton>
               </div>
@@ -557,6 +637,38 @@ export function ProjectDetail(project: Project) {
               </GlowPanel>
             </section>
           )}
+
+          {guideLinks.length > 0 && (
+            <section className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+              <SectionHeader
+                eyebrow="Guides"
+                title="Related implementation guides"
+                description="Long-form notes for teams comparing Laravel and Filament plugin options before they buy or build."
+              />
+              <div className="grid gap-4 md:grid-cols-2">
+                {guideLinks.map((guide, index) => (
+                  <Link
+                    key={guide.href}
+                    href={guide.href}
+                    transitionTypes={["nav-forward"]}
+                  >
+                    <GlowPanel className="h-full p-6" delay={index}>
+                      <h3 className="text-base font-bold leading-snug text-slate-950 dark:text-white">
+                        {guide.title}
+                      </h3>
+                      <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
+                        {guide.description}
+                      </p>
+                      <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-300">
+                        Read guide
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                    </GlowPanel>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
         </>
       )}
 
@@ -565,7 +677,11 @@ export function ProjectDetail(project: Project) {
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
             <SectionHeader
               eyebrow={product ? "More plugins" : "More work"}
-              title={product ? "Same portfolio, same system" : "Other builds from the same bench"}
+              title={
+                product
+                  ? "Same portfolio, same system"
+                  : "Other builds from the same bench"
+              }
             />
             {product && (
               <Link

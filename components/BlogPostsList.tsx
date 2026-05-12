@@ -1,71 +1,42 @@
-"use client"
-
-import { motion } from "framer-motion"
 import { BlogCard } from "@/components/BlogCard"
 import MaxWidthWrapper from "@/components/MaxWidthWrapper"
-import { useTheme } from "next-themes"
-import { useEffect, useState } from "react"
-import { BlogPost } from "@/lib/blog"
+import type { BlogPost } from "@/lib/blog"
 
 export function BlogPostsList({ posts }: { posts: BlogPost[] }) {
-    const { theme } = useTheme()
-    const [mounted, setMounted] = useState(false)
-
-    useEffect(() => setMounted(true), [])
-    const isLight = mounted && theme === "light"
-
-    return (
-        <div className="relative min-h-screen py-24 overflow-hidden">
-            {/* Ambient Background */}
-            <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-200/20 via-background to-background dark:from-indigo-950/20 dark:via-background dark:to-background" />
-                <motion.div
-                    animate={{
-                        scale: [1, 1.1, 1],
-                        opacity: [0.3, 0.5, 0.3],
-                    }}
-                    transition={{ duration: 8, repeat: Infinity }}
-                    className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[100px]"
-                />
-                <motion.div
-                    animate={{
-                        scale: [1, 1.2, 1],
-                        opacity: [0.3, 0.5, 0.3],
-                    }}
-                    transition={{ duration: 10, repeat: Infinity, delay: 1 }}
-                    className="absolute top-20 right-1/4 w-[400px] h-[400px] bg-cyan-500/20 rounded-full blur-[100px]"
-                />
+  return (
+    <main className="min-h-screen py-24">
+      <MaxWidthWrapper className="my-0 px-4 sm:px-6 lg:px-8">
+        <section className="mb-12 border-b border-border pb-10">
+          <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.22em] text-indigo-600 dark:text-indigo-300">
+            Engineering notes
+          </p>
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,760px)_1fr] lg:items-end">
+            <div>
+              <h1 className="text-4xl font-black tracking-tight text-slate-950 dark:text-white md:text-5xl">
+                Laravel, Filament and AI guides
+              </h1>
+              <p className="mt-5 max-w-3xl text-lg leading-8 text-muted-foreground">
+                Practical notes on Filament plugins, Laravel admin panels, AI
+                chatbots, RAG systems, workflow automation, and production web
+                development.
+              </p>
             </div>
+            <div className="rounded-lg border border-border bg-card/60 p-4 text-sm text-muted-foreground dark:bg-card/30">
+              <span className="font-semibold text-foreground">
+                {posts.length} articles
+              </span>{" "}
+              covering product decisions, implementation tradeoffs, and
+              operational details.
+            </div>
+          </div>
+        </section>
 
-            <MaxWidthWrapper>
-                {/* Header */}
-                <div className="relative mb-20">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                    >
-                        <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-400 bg-clip-text text-transparent">
-                            Writing & <span className="text-indigo-500 dark:text-indigo-400">Insights</span>
-                        </h1>
-                        <p className="text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed">
-                            Exploring the intersection of design, engineering, and user experience.
-                            Deep dives into modern web technologies.
-                        </p>
-                    </motion.div>
-                </div>
-
-                {/* Blog Grid */}
-                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                    {posts.map((post, i) => (
-                        <BlogCard
-                            key={post.slug}
-                            index={i}
-                            {...post}
-                        />
-                    ))}
-                </div>
-            </MaxWidthWrapper>
-        </div>
-    )
+        <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {posts.map((post, i) => (
+            <BlogCard key={post.slug} index={i} {...post} />
+          ))}
+        </section>
+      </MaxWidthWrapper>
+    </main>
+  )
 }
